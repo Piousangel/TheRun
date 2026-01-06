@@ -1,0 +1,40 @@
+export interface PlayerMatchRecord {
+  member_id: string;
+  goals: number;
+  assists: number;
+  is_mvp: boolean;
+}
+
+export interface TeamMatchData {
+  name: string; // "Team A", "Team B"
+  member_ids: string[];
+  score: number;
+  players: PlayerMatchRecord[];
+}
+
+export interface Match {
+  id: string;
+  date: string;
+  location: string;
+  team_a: TeamMatchData;
+  team_b: TeamMatchData;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateMatchData {
+  date: string;
+  location: string;
+  team_a: TeamMatchData;
+  team_b: TeamMatchData;
+  notes?: string;
+}
+
+export interface UpdateMatchData {
+  date?: string;
+  location?: string;
+  team_a?: TeamMatchData;
+  team_b?: TeamMatchData;
+  notes?: string;
+}
