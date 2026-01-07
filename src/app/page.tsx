@@ -37,13 +37,15 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full opacity-50">
-            <CardHeader>
-              <Trophy className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>경기 기록</CardTitle>
-              <CardDescription>경기 결과 및 개인 기록</CardDescription>
-            </CardHeader>
-          </Card>
+          <Link href="/matches">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <Trophy className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>경기 기록</CardTitle>
+                <CardDescription>경기 결과 및 개인 기록</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
 
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full opacity-50">
             <CardHeader>
@@ -127,7 +129,26 @@ CREATE POLICY "Allow all for attendance_sessions"
   ON attendance_sessions FOR ALL USING (true);
 
 CREATE POLICY "Allow all for attendance_votes"
-  ON attendance_votes FOR ALL USING (true);`}
+  ON attendance_votes FOR ALL USING (true);
+
+-- Matches table
+CREATE TABLE matches (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  date TIMESTAMPTZ NOT NULL,
+  location VARCHAR(200) NOT NULL,
+  team_a JSONB NOT NULL,
+  team_b JSONB NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
+
+-- Allow all operations
+CREATE POLICY "Allow all for matches"
+  ON matches FOR ALL USING (true);`}
               </pre>
             </div>
           </CardContent>
