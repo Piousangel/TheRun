@@ -27,13 +27,15 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full opacity-50">
-            <CardHeader>
-              <Calendar className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>출석 투표</CardTitle>
-              <CardDescription>주간 경기 출석 확인</CardDescription>
-            </CardHeader>
-          </Card>
+          <Link href="/attendance">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <Calendar className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>출석 투표</CardTitle>
+                <CardDescription>주간 경기 출석 확인</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
 
           <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full opacity-50">
             <CardHeader>
@@ -94,7 +96,38 @@ VALUES ('member-photos', 'member-photos', true);
 -- Allow public access to storage
 CREATE POLICY "Public Access"
 ON storage.objects FOR ALL
-USING (bucket_id = 'member-photos');`}
+USING (bucket_id = 'member-photos');
+
+-- Attendance sessions table
+CREATE TABLE attendance_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  match_date TIMESTAMPTZ NOT NULL,
+  deadline TIMESTAMPTZ NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Attendance votes table
+CREATE TABLE attendance_votes (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  session_id UUID NOT NULL REFERENCES attendance_sessions(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  status VARCHAR(10) NOT NULL CHECK (status IN ('attending', 'absent')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(session_id, member_id)
+);
+
+-- Enable RLS
+ALTER TABLE attendance_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE attendance_votes ENABLE ROW LEVEL SECURITY;
+
+-- Allow all operations
+CREATE POLICY "Allow all for attendance_sessions"
+  ON attendance_sessions FOR ALL USING (true);
+
+CREATE POLICY "Allow all for attendance_votes"
+  ON attendance_votes FOR ALL USING (true);`}
               </pre>
             </div>
           </CardContent>
