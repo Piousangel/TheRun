@@ -3,6 +3,7 @@
 import { useMatches } from '@/entities/match/model/queries';
 import { MatchCard } from '@/entities/match/ui/match-card';
 import { Button } from '@/shared/ui/button';
+import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Plus } from 'lucide-react';
 
 export function MatchesList() {
@@ -10,8 +11,8 @@ export function MatchesList() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <p className="text-muted-foreground">로딩 중...</p>
+      <div className="min-h-[400px]">
+        <LoadingState />
       </div>
     );
   }

@@ -10,6 +10,7 @@ import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { Separator } from '@/shared/ui/separator';
+import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Calendar, Clock, Users, UserX } from 'lucide-react';
 
 interface VoteDetailProps {
@@ -55,7 +56,7 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">로딩 중...</p>
+          <LoadingState />
         </CardContent>
       </Card>
     );

@@ -13,6 +13,7 @@ import { DroppableTeam } from '@/features/team-split-manual/ui/droppable-team';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Shuffle } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
@@ -108,7 +109,7 @@ export function TeamSplitAuto() {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">로딩 중...</p>
+          <LoadingState />
         </CardContent>
       </Card>
     );

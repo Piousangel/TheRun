@@ -16,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog';
+import { LoadingState } from '@/shared/ui/loading-spinner';
 import { ArrowLeft, Edit } from 'lucide-react';
 
 interface MemberDetailProps {
@@ -32,8 +33,8 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <p className="text-muted-foreground">로딩 중...</p>
+      <div className="min-h-[400px]">
+        <LoadingState />
       </div>
     );
   }

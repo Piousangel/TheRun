@@ -1,20 +1,21 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useActiveVoteSessions } from '@/entities/vote/model/queries';
-import { VoteCard } from '@/entities/vote/ui/vote-card';
-import { VoteCreateForm } from '@/features/vote-create/ui/vote-create-form';
-import { Button } from '@/shared/ui/button';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useActiveVoteSessions } from "@/entities/vote/model/queries";
+import { VoteCard } from "@/entities/vote/ui/vote-card";
+import { VoteCreateForm } from "@/features/vote-create/ui/vote-create-form";
+import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/shared/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
-import { Plus } from 'lucide-react';
+} from "@/shared/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
+import { LoadingState } from "@/shared/ui/loading-spinner";
+import { Plus } from "lucide-react";
 
 export function VotesList() {
   const router = useRouter();
@@ -31,8 +32,8 @@ export function VotesList() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[400px]">
-        <p className="text-muted-foreground">로딩 중...</p>
+      <div className="min-h-[400px]">
+        <LoadingState />
       </div>
     );
   }
@@ -45,8 +46,8 @@ export function VotesList() {
     );
   }
 
-  const matchVotes = sessions?.filter((s) => s.type === 'match') || [];
-  const otherVotes = sessions?.filter((s) => s.type !== 'match') || [];
+  const matchVotes = sessions?.filter((s) => s.type === "match") || [];
+  const otherVotes = sessions?.filter((s) => s.type !== "match") || [];
 
   return (
     <>
@@ -55,7 +56,7 @@ export function VotesList() {
           <div>
             <h2 className="text-2xl font-bold">투표 관리</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              경기, 회식, 야유회 등 다양한 투표를 만들고 관리하세요
+              다양한 투표를 만들고 관리하세요
             </p>
           </div>
           <Button onClick={() => setIsCreateOpen(true)}>
@@ -66,15 +67,23 @@ export function VotesList() {
 
         <Tabs defaultValue="match" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="match">⚽ 경기 ({matchVotes.length})</TabsTrigger>
-            <TabsTrigger value="other">📌 기타 ({otherVotes.length})</TabsTrigger>
+            <TabsTrigger value="match">
+              ⚽ 경기 ({matchVotes.length})
+            </TabsTrigger>
+            <TabsTrigger value="other">
+              📌 기타 ({otherVotes.length})
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="match" className="mt-6">
             {matchVotes.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">진행 중인 경기 투표가 없습니다.</p>
-                <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button>
+                <p className="text-muted-foreground mb-4">
+                  진행 중인 경기 투표가 없습니다.
+                </p>
+                <Button onClick={() => setIsCreateOpen(true)}>
+                  첫 투표 만들기
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -92,8 +101,12 @@ export function VotesList() {
           <TabsContent value="other" className="mt-6">
             {otherVotes.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">진행 중인 기타 투표가 없습니다.</p>
-                <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button>
+                <p className="text-muted-foreground mb-4">
+                  진행 중인 기타 투표가 없습니다.
+                </p>
+                <Button onClick={() => setIsCreateOpen(true)}>
+                  첫 투표 만들기
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -115,7 +128,7 @@ export function VotesList() {
           <DialogHeader>
             <DialogTitle>새 투표 생성</DialogTitle>
             <DialogDescription>
-              경기, 회식, 야유회 등 다양한 이벤트 투표를 만들 수 있습니다.
+              다양한 이벤트 투표를 만들 수 있습니다.
             </DialogDescription>
           </DialogHeader>
           <VoteCreateForm onSuccess={handleCreateSuccess} />

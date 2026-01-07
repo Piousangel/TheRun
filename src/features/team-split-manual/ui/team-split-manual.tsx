@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
+import { LoadingState } from '@/shared/ui/loading-spinner';
 import { RefreshCw, Vote } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
@@ -191,7 +192,7 @@ export function TeamSplitManual() {
     return (
       <Card>
         <CardContent className="pt-6">
-          <p className="text-center text-muted-foreground">로딩 중...</p>
+          <LoadingState />
         </CardContent>
       </Card>
     );

@@ -53,22 +53,22 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Link href="/matches">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-              <CardHeader>
-                <Trophy className="h-10 w-10 text-primary mb-2" />
-                <CardTitle>경기 기록</CardTitle>
-                <CardDescription>경기 결과 및 개인 기록</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-
           <Link href="/team-division">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
               <CardHeader>
                 <ClipboardList className="h-10 w-10 text-primary mb-2" />
                 <CardTitle>팀 나누기</CardTitle>
                 <CardDescription>자동 밸런싱 및 팀 구성</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/matches">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <Trophy className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>경기 기록</CardTitle>
+                <CardDescription>경기 결과 및 개인 기록</CardDescription>
               </CardHeader>
             </Card>
           </Link>
