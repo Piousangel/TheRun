@@ -31,7 +31,7 @@ export function MemberAvatar({ src, alt, size = 'md' }: MemberAvatarProps) {
   return (
     <Avatar className={sizeClasses[size]}>
       <AvatarImage src={src || undefined} alt={alt} />
-      <AvatarFallback className={`bg-primary text-primary-foreground ${fallbackSizeClasses[size]}`}>
+      <AvatarFallback className={`bg-primary text-white ${fallbackSizeClasses[size]}`}>
         {initials}
       </AvatarFallback>
     </Avatar>
