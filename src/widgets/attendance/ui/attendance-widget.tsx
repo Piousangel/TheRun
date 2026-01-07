@@ -87,7 +87,7 @@ export function AttendanceWidget() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
+            <Users className="h-5 w-5 text-blue-500" />
             <div>
               <p className="text-2xl font-bold">{attending.length}</p>
               <p className="text-xs text-muted-foreground">참석</p>
@@ -114,14 +114,14 @@ export function AttendanceWidget() {
         {/* 참석자 목록 */}
         <div>
           <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" />
+            <Users className="h-4 w-4 text-blue-500" />
             참석 ({attending.length})
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {attending.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-2 bg-primary/5 rounded-lg"
+                className="flex items-center justify-between p-2 bg-blue-500/10 rounded-lg"
               >
                 <div className="flex items-center gap-2">
                   <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />

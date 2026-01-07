@@ -8,6 +8,7 @@ import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { useVoteResponses } from '@/entities/vote/model/queries';
 import { useMembers } from '@/entities/member/model/queries';
+import { VoteDeleteButton } from '@/features/vote-delete/ui/vote-delete-button';
 import { Calendar, Clock, Users, UserX } from 'lucide-react';
 import type { VoteSession } from '@/shared/types/vote';
 
@@ -52,7 +53,7 @@ export function VoteCard({ session, onVoteClick }: VoteCardProps) {
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader>
-        <div className="flex justify-between items-start">
+        <div className="flex justify-between items-start gap-2">
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">{voteTypeIcons[session.type]}</span>
@@ -68,6 +69,7 @@ export function VoteCard({ session, onVoteClick }: VoteCardProps) {
               <CardDescription className="mt-1">{session.description}</CardDescription>
             )}
           </div>
+          <VoteDeleteButton sessionId={session.id} sessionTitle={session.title} />
         </div>
       </CardHeader>
 
@@ -84,8 +86,8 @@ export function VoteCard({ session, onVoteClick }: VoteCardProps) {
         </div>
 
         <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="flex flex-col items-center gap-1 p-2 bg-primary/10 rounded-lg">
-            <Users className="h-4 w-4 text-primary" />
+          <div className="flex flex-col items-center gap-1 p-2 bg-blue-500/10 rounded-lg">
+            <Users className="h-4 w-4 text-blue-500" />
             <p className="text-lg font-bold">{attending}</p>
             <p className="text-xs text-muted-foreground">참석</p>
           </div>

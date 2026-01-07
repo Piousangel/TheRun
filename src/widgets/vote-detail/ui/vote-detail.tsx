@@ -6,6 +6,7 @@ import { ko } from 'date-fns/locale';
 import { useVoteSession, useVoteResponses } from '@/entities/vote/model/queries';
 import { useMembers } from '@/entities/member/model/queries';
 import { VoteResponseButton } from '@/features/vote-response/ui/vote-response-button';
+import { VoteDeleteButton } from '@/features/vote-delete/ui/vote-delete-button';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
@@ -76,8 +77,8 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
+        <div className="flex justify-between items-start gap-2">
+          <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-2xl">{voteTypeIcons[session.type]}</span>
               <Badge variant="outline">{voteTypeLabels[session.type]}</Badge>
@@ -92,6 +93,11 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
               <CardDescription className="mt-2">{session.description}</CardDescription>
             )}
           </div>
+          <VoteDeleteButton
+            sessionId={session.id}
+            sessionTitle={session.title}
+            redirectAfterDelete={true}
+          />
         </div>
       </CardHeader>
 
@@ -109,7 +115,7 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
+            <Users className="h-5 w-5 text-blue-500" />
             <div>
               <p className="text-2xl font-bold">{attending.length}</p>
               <p className="text-xs text-muted-foreground">참석</p>
@@ -136,14 +142,14 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
         {/* 참석자 목록 */}
         <div>
           <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" />
+            <Users className="h-4 w-4 text-blue-500" />
             참석 ({attending.length})
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {attending.map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between p-2 bg-primary/5 rounded-lg"
+                className="flex items-center justify-between p-2 bg-blue-500/10 rounded-lg"
               >
                 <div className="flex items-center gap-2">
                   <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />

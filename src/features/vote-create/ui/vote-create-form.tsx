@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/select';
-import { format, addDays, nextSaturday, setHours, setMinutes } from 'date-fns';
+import { format, addDays, nextSaturday, setHours, setMinutes, parseISO } from 'date-fns';
+import { ko } from 'date-fns/locale';
 
 interface VoteCreateFormProps {
   onSuccess: () => void;
@@ -51,6 +52,8 @@ export function VoteCreateForm({ onSuccess }: VoteCreateFormProps) {
   });
 
   const selectedType = watch('type');
+  const selectedEventDate = watch('event_date');
+  const selectedDeadline = watch('deadline');
 
   const handleFormSubmit = (data: VoteCreateFormData) => {
     createVote(
@@ -122,6 +125,11 @@ export function VoteCreateForm({ onSuccess }: VoteCreateFormProps) {
           {...register('event_date')}
           disabled={isPending}
         />
+        {selectedEventDate && (
+          <p className="text-xs text-muted-foreground">
+            📅 {format(parseISO(selectedEventDate), 'yyyy년 MM월 dd일 (EEEE) HH:mm', { locale: ko })}
+          </p>
+        )}
         {errors.event_date && (
           <p className="text-sm text-destructive">{errors.event_date.message}</p>
         )}
@@ -135,6 +143,11 @@ export function VoteCreateForm({ onSuccess }: VoteCreateFormProps) {
           {...register('deadline')}
           disabled={isPending}
         />
+        {selectedDeadline && (
+          <p className="text-xs text-muted-foreground">
+            📅 {format(parseISO(selectedDeadline), 'MM월 dd일 (EEEE) HH:mm', { locale: ko })}
+          </p>
+        )}
         {errors.deadline && (
           <p className="text-sm text-destructive">{errors.deadline.message}</p>
         )}

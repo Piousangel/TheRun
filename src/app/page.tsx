@@ -43,16 +43,6 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Link href="/attendance">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
-              <CardHeader>
-                <Calendar className="h-10 w-10 text-primary mb-2" />
-                <CardTitle>출석 투표</CardTitle>
-                <CardDescription>주간 경기 출석 확인</CardDescription>
-              </CardHeader>
-            </Card>
-          </Link>
-
           <Link href="/team-division">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
               <CardHeader>

@@ -44,8 +44,8 @@ export function VoteResponseButton({
   };
 
   const getButtonVariant = () => {
-    if (currentVote === 'attending') return 'default';
     if (currentVote === 'absent') return 'destructive';
+    if (currentVote === 'attending') return 'outline';
     return 'outline';
   };
 
@@ -55,12 +55,20 @@ export function VoteResponseButton({
     return '미응답';
   };
 
+  const getButtonClassName = () => {
+    if (currentVote === 'attending') {
+      return 'border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600';
+    }
+    return '';
+  };
+
   return (
     <>
       <Button
         variant={getButtonVariant()}
         size="sm"
         onClick={() => setIsDialogOpen(true)}
+        className={getButtonClassName()}
       >
         {getButtonText()}
       </Button>
@@ -73,10 +81,10 @@ export function VoteResponseButton({
           </DialogHeader>
           <DialogFooter className="flex gap-2">
             <Button
-              variant="default"
+              variant="outline"
               onClick={() => handleVote('attending')}
               disabled={isPending}
-              className="flex-1"
+              className="flex-1 border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
             >
               <Check className="mr-2 h-4 w-4" />
               참석
