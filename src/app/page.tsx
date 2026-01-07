@@ -47,13 +47,15 @@ export default function HomePage() {
             </Card>
           </Link>
 
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full opacity-50">
-            <CardHeader>
-              <ClipboardList className="h-10 w-10 text-primary mb-2" />
-              <CardTitle>전술 보드</CardTitle>
-              <CardDescription>팀 구성 및 포지션 설정</CardDescription>
-            </CardHeader>
-          </Card>
+          <Link href="/team-division">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <ClipboardList className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>팀 나누기</CardTitle>
+                <CardDescription>자동 밸런싱 및 팀 구성</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
         </div>
 
         <Card>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { QueryProvider } from '@/providers/query-provider';
+import { MobileNav } from '@/shared/components/mobile-nav';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body>
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <div className="pb-16 md:pb-0">{children}</div>
+          <MobileNav />
+        </QueryProvider>
       </body>
     </html>
   );
