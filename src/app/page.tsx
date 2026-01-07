@@ -1,7 +1,13 @@
-import Link from 'next/link';
-import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Users, Calendar, Trophy, ClipboardList, Vote } from 'lucide-react';
+import Link from "next/link";
+import { Button } from "@/shared/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/shared/ui/card";
+import { Users, Calendar, Trophy, ClipboardList, Vote } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -67,139 +73,6 @@ export default function HomePage() {
             </Card>
           </Link>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Supabase 데이터베이스 설정</CardTitle>
-            <CardDescription>
-              아래 SQL을 Supabase의 SQL Editor에서 실행해주세요.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-secondary p-4 rounded-lg overflow-x-auto">
-              <pre className="text-sm">
-{`-- Members table
-CREATE TABLE members (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(100) NOT NULL,
-  phone_number VARCHAR(20) NOT NULL,
-  profile_photo TEXT,
-  stats JSONB NOT NULL DEFAULT '{
-    "speed": 50,
-    "shooting": 50,
-    "passing": 50,
-    "dribbling": 50,
-    "stamina": 50,
-    "defense": 50
-  }',
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable Row Level Security
-ALTER TABLE members ENABLE ROW LEVEL SECURITY;
-
--- Allow all operations (no auth)
-CREATE POLICY "Allow all for members"
-  ON members FOR ALL USING (true);
-
--- Create storage bucket for profile photos
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('member-photos', 'member-photos', true);
-
--- Allow public access to storage
-CREATE POLICY "Public Access"
-ON storage.objects FOR ALL
-USING (bucket_id = 'member-photos');
-
--- Attendance sessions table
-CREATE TABLE attendance_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  match_date TIMESTAMPTZ NOT NULL,
-  deadline TIMESTAMPTZ NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Attendance votes table
-CREATE TABLE attendance_votes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  session_id UUID NOT NULL REFERENCES attendance_sessions(id) ON DELETE CASCADE,
-  member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-  status VARCHAR(10) NOT NULL CHECK (status IN ('attending', 'absent')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(session_id, member_id)
-);
-
--- Enable RLS
-ALTER TABLE attendance_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE attendance_votes ENABLE ROW LEVEL SECURITY;
-
--- Allow all operations
-CREATE POLICY "Allow all for attendance_sessions"
-  ON attendance_sessions FOR ALL USING (true);
-
-CREATE POLICY "Allow all for attendance_votes"
-  ON attendance_votes FOR ALL USING (true);
-
--- Matches table
-CREATE TABLE matches (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  date TIMESTAMPTZ NOT NULL,
-  location VARCHAR(200) NOT NULL,
-  team_a JSONB NOT NULL,
-  team_b JSONB NOT NULL,
-  notes TEXT,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Enable RLS
-ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
-
--- Allow all operations
-CREATE POLICY "Allow all for matches"
-  ON matches FOR ALL USING (true);
-
--- Vote sessions table (새로운 투표 시스템)
-CREATE TABLE vote_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  title VARCHAR(200) NOT NULL,
-  description TEXT,
-  type VARCHAR(20) NOT NULL CHECK (type IN ('match', 'dining', 'outing', 'other')),
-  event_date TIMESTAMPTZ NOT NULL,
-  deadline TIMESTAMPTZ NOT NULL,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Vote responses table
-CREATE TABLE vote_responses (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  session_id UUID NOT NULL REFERENCES vote_sessions(id) ON DELETE CASCADE,
-  member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
-  status VARCHAR(10) NOT NULL CHECK (status IN ('attending', 'absent')),
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(session_id, member_id)
-);
-
--- Enable RLS
-ALTER TABLE vote_sessions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE vote_responses ENABLE ROW LEVEL SECURITY;
-
--- Allow all operations
-CREATE POLICY "Allow all for vote_sessions"
-  ON vote_sessions FOR ALL USING (true);
-
-CREATE POLICY "Allow all for vote_responses"
-  ON vote_responses FOR ALL USING (true);`}
-              </pre>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </main>
   );
