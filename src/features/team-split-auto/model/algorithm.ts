@@ -117,14 +117,29 @@ export function autoBalanceMultipleTeams(members: Member[], teamCount: number): 
   // Initialize teams
   const teams: Member[][] = Array(teamCount).fill([]).map(() => []);
 
-  // Snake draft distribution
-  sortedMembers.forEach((member, index) => {
-    // Calculate team totals
-    const teamTotals = teams.map(team => calculateTeamStats(team).totalScore);
+  // Balanced distribution: prioritize equal member count, then balance stats
+  sortedMembers.forEach((member) => {
+    // Find teams with minimum member count
+    const teamSizes = teams.map(team => team.length);
+    const minSize = Math.min(...teamSizes);
 
-    // Find team with lowest total
-    const minTotal = Math.min(...teamTotals);
-    const targetTeamIndex = teamTotals.findIndex(total => total === minTotal);
+    // Get indices of teams with minimum size
+    const smallestTeamsIndices = teamSizes
+      .map((size, index) => ({ size, index }))
+      .filter(t => t.size === minSize)
+      .map(t => t.index);
+
+    // Among smallest teams, find the one with lowest total stats
+    let targetTeamIndex = smallestTeamsIndices[0];
+    let lowestTotal = calculateTeamStats(teams[targetTeamIndex]).totalScore;
+
+    smallestTeamsIndices.forEach(index => {
+      const teamTotal = calculateTeamStats(teams[index]).totalScore;
+      if (teamTotal < lowestTotal) {
+        lowestTotal = teamTotal;
+        targetTeamIndex = index;
+      }
+    });
 
     teams[targetTeamIndex].push(member);
   });
