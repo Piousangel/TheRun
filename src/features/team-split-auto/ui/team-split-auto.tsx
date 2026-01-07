@@ -1,31 +1,108 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useState } from 'react';
 import { useMembers } from '@/entities/member/model/queries';
-import { MemberAvatar } from '@/entities/member/ui/member-avatar';
-import { autoBalanceTeams, calculateTeamStats } from '@/features/team-split-auto/model/algorithm';
+import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
+import { autoBalanceMultipleTeams, calculateTeamStats } from '@/features/team-split-auto/model/algorithm';
+import { DraggableMember } from '@/features/team-split-manual/ui/draggable-member';
+import { DroppableTeam } from '@/features/team-split-manual/ui/droppable-team';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Badge } from '@/shared/ui/badge';
-import { Separator } from '@/shared/ui/separator';
-import { Shuffle, Users } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Shuffle } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
+type TeamName = 'A' | 'B' | 'C' | 'D';
+const TEAM_NAMES: TeamName[] = ['A', 'B', 'C', 'D'];
+
 export function TeamSplitAuto() {
+  const router = useRouter();
   const { data: members, isLoading } = useMembers();
-  const [teamA, setTeamA] = useState<Member[]>([]);
-  const [teamB, setTeamB] = useState<Member[]>([]);
+  const { teamCount, teams, setTeamCount, moveToTeam, moveToAvailable, reset } = useTeamSplitStore();
+  const [activeMember, setActiveMember] = useState<Member | null>(null);
 
   const handleAutoBalance = () => {
     if (!members) return;
 
-    const { teamA: newTeamA, teamB: newTeamB } = autoBalanceTeams(members);
-    setTeamA(newTeamA);
-    setTeamB(newTeamB);
+    const balancedTeams = autoBalanceMultipleTeams(members, teamCount);
+
+    // Reset first
+    reset(members);
+
+    // Assign to teams
+    balancedTeams.forEach((teamMembers, index) => {
+      const teamName = TEAM_NAMES[index];
+      teamMembers.forEach(member => {
+        moveToTeam(member, teamName);
+      });
+    });
   };
 
-  const teamAStats = useMemo(() => teamA.length > 0 ? calculateTeamStats(teamA) : null, [teamA]);
-  const teamBStats = useMemo(() => teamB.length > 0 ? calculateTeamStats(teamB) : null, [teamB]);
+  const handleTeamCountChange = (value: string) => {
+    const count = parseInt(value);
+    setTeamCount(count);
+  };
+
+  const handleTeamClick = (teamName: TeamName) => {
+    if (teams[teamName].length > 0) {
+      router.push(`/team-division/${teamName}`);
+    }
+  };
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const memberId = event.active.id as string;
+    const allMembers = Object.values(teams).flat();
+    const member = allMembers.find((m) => m.id === memberId);
+    setActiveMember(member || null);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveMember(null);
+
+    if (!over) return;
+
+    const memberId = active.id as string;
+    const targetContainer = over.id as string;
+
+    const allMembers = Object.values(teams).flat();
+    const member = allMembers.find((m) => m.id === memberId);
+    if (!member) return;
+
+    let fromTeam: TeamName | null = null;
+
+    for (const teamName of TEAM_NAMES) {
+      if (teams[teamName].some((m) => m.id === memberId)) {
+        fromTeam = teamName;
+        break;
+      }
+    }
+
+    if (TEAM_NAMES.includes(targetContainer as TeamName) && fromTeam) {
+      const targetTeam = targetContainer as TeamName;
+      if (fromTeam !== targetTeam) {
+        moveToAvailable(member, fromTeam);
+        moveToTeam(member, targetTeam);
+      }
+    }
+  };
+
+  const teamStats = useMemo(() => {
+    const stats: Record<TeamName, ReturnType<typeof calculateTeamStats> | null> = {
+      A: teams.A.length > 0 ? calculateTeamStats(teams.A) : null,
+      B: teams.B.length > 0 ? calculateTeamStats(teams.B) : null,
+      C: teams.C.length > 0 ? calculateTeamStats(teams.C) : null,
+      D: teams.D.length > 0 ? calculateTeamStats(teams.D) : null,
+    };
+    return stats;
+  }, [teams]);
+
+  const activeTeams = TEAM_NAMES.slice(0, teamCount);
+  const hasTeams = activeTeams.some(t => teams[t].length > 0);
 
   if (isLoading) {
     return (
@@ -38,167 +115,96 @@ export function TeamSplitAuto() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-xl font-semibold">자동 밸런싱</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            능력치 기반으로 자동으로 균형잡힌 팀을 생성합니다
-          </p>
+    <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h3 className="text-xl font-semibold">자동 밸런싱</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              능력치 기반으로 자동으로 균형잡힌 팀을 생성합니다
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Select value={teamCount.toString()} onValueChange={handleTeamCountChange}>
+              <SelectTrigger className="w-[120px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2팀</SelectItem>
+                <SelectItem value="3">3팀</SelectItem>
+                <SelectItem value="4">4팀</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={handleAutoBalance}>
+              <Shuffle className="mr-2 h-4 w-4" />
+              자동 밸런싱
+            </Button>
+          </div>
         </div>
-        <Button onClick={handleAutoBalance}>
-          <Shuffle className="mr-2 h-4 w-4" />
-          자동 밸런싱
-        </Button>
+
+        {!hasTeams ? (
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-center text-muted-foreground">
+                "자동 밸런싱" 버튼을 클릭하여 팀을 나눠보세요
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {activeTeams.map((teamName) => (
+                <DroppableTeam
+                  key={teamName}
+                  id={teamName}
+                  title={`Team ${teamName}`}
+                  count={teams[teamName].length}
+                  stats={teamStats[teamName]}
+                  onClick={() => handleTeamClick(teamName)}
+                  isClickable={teams[teamName].length > 0}
+                >
+                  <SortableContext items={teams[teamName].map((m) => m.id)} strategy={verticalListSortingStrategy}>
+                    <div className="space-y-2">
+                      {teams[teamName].map((member) => (
+                        <DraggableMember key={member.id} member={member} />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DroppableTeam>
+              ))}
+            </div>
+
+            {/* Team Balance Analysis */}
+            {activeTeams.filter(t => teams[t].length > 0).length >= 2 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>팀 밸런스 분석</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {activeTeams.map((teamName) => {
+                      const stats = teamStats[teamName];
+                      if (!stats) return null;
+                      return (
+                        <div key={teamName} className="text-center">
+                          <p className="text-sm text-muted-foreground">Team {teamName} 종합</p>
+                          <p className="text-2xl font-bold text-primary">
+                            {stats.totalScore.toFixed(1)}
+                          </p>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        )}
       </div>
 
-      {teamA.length === 0 && teamB.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-muted-foreground">
-              "자동 밸런싱" 버튼을 클릭하여 팀을 나눠보세요
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Team A */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Team A
-                </CardTitle>
-                <Badge variant="secondary">{teamA.length}명</Badge>
-              </div>
-              <CardDescription>
-                평균 능력치: {teamAStats?.totalScore.toFixed(1) || 0}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {teamA.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center gap-3 p-2 bg-primary/5 rounded-lg"
-                  >
-                    <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
-                    <div className="flex-1">
-                      <p className="font-medium">{member.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        종합 {Object.values(member.stats).reduce((a, b) => a + b, 0)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {teamAStats && (
-                <>
-                  <Separator className="my-4" />
-                  <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div>
-                      <p className="text-muted-foreground">스피드</p>
-                      <p className="font-semibold">{teamAStats.avgSpeed.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">슈팅</p>
-                      <p className="font-semibold">{teamAStats.avgShooting.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">패스</p>
-                      <p className="font-semibold">{teamAStats.avgPassing.toFixed(0)}</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Team B */}
-          <Card>
-            <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Team B
-                </CardTitle>
-                <Badge variant="secondary">{teamB.length}명</Badge>
-              </div>
-              <CardDescription>
-                평균 능력치: {teamBStats?.totalScore.toFixed(1) || 0}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {teamB.map((member) => (
-                  <div
-                    key={member.id}
-                    className="flex items-center gap-3 p-2 bg-primary/5 rounded-lg"
-                  >
-                    <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
-                    <div className="flex-1">
-                      <p className="font-medium">{member.name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        종합 {Object.values(member.stats).reduce((a, b) => a + b, 0)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {teamBStats && (
-                <>
-                  <Separator className="my-4" />
-                  <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                    <div>
-                      <p className="text-muted-foreground">스피드</p>
-                      <p className="font-semibold">{teamBStats.avgSpeed.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">슈팅</p>
-                      <p className="font-semibold">{teamBStats.avgShooting.toFixed(0)}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">패스</p>
-                      <p className="font-semibold">{teamBStats.avgPassing.toFixed(0)}</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {teamAStats && teamBStats && (
-        <Card>
-          <CardHeader>
-            <CardTitle>팀 밸런스 분석</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-center gap-4">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Team A 종합</p>
-                <p className="text-3xl font-bold text-primary">
-                  {teamAStats.totalScore.toFixed(1)}
-                </p>
-              </div>
-              <div className="text-muted-foreground text-xl">vs</div>
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground">Team B 종합</p>
-                <p className="text-3xl font-bold text-primary">
-                  {teamBStats.totalScore.toFixed(1)}
-                </p>
-              </div>
-            </div>
-            <p className="text-center text-sm text-muted-foreground mt-4">
-              능력치 차이: {Math.abs(teamAStats.totalScore - teamBStats.totalScore).toFixed(1)}
-            </p>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+      <DragOverlay>
+        {activeMember ? <DraggableMember member={activeMember} isDragging /> : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

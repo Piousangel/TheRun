@@ -98,3 +98,36 @@ export function autoBalanceTeams(members: Member[]): {
 
   return { teamA, teamB };
 }
+
+export function autoBalanceMultipleTeams(members: Member[], teamCount: number): Member[][] {
+  if (members.length < teamCount) {
+    // Not enough members, put all in first team
+    const teams: Member[][] = Array(teamCount).fill([]).map(() => []);
+    teams[0] = [...members];
+    return teams;
+  }
+
+  // Sort members by total stats (descending)
+  const sortedMembers = [...members].sort((a, b) => {
+    const totalA = calculateMemberTotalStats(a.stats);
+    const totalB = calculateMemberTotalStats(b.stats);
+    return totalB - totalA;
+  });
+
+  // Initialize teams
+  const teams: Member[][] = Array(teamCount).fill([]).map(() => []);
+
+  // Snake draft distribution
+  sortedMembers.forEach((member, index) => {
+    // Calculate team totals
+    const teamTotals = teams.map(team => calculateTeamStats(team).totalScore);
+
+    // Find team with lowest total
+    const minTotal = Math.min(...teamTotals);
+    const targetTeamIndex = teamTotals.findIndex(total => total === minTotal);
+
+    teams[targetTeamIndex].push(member);
+  });
+
+  return teams;
+}

@@ -1,7 +1,9 @@
 export type FormationType = '6v6' | '7v7' | '8v8';
-export type PositionRole = 'GK' | 'DF' | 'MF' | 'FW';
+export type PositionRole = 'GK' | 'DF' | 'MF' | 'FW' | 'SUB';
 
 export interface PlayerPosition {
+  id: string;
+  memberId: string | null;
   x: number; // 0-100 percentage
   y: number; // 0-100 percentage
   role: PositionRole;

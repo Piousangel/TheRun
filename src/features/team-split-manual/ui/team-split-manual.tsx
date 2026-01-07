@@ -5,14 +5,17 @@ import { useRouter } from 'next/navigation';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useMembers } from '@/entities/member/model/queries';
+import { useActiveVoteSessions, useVoteResponses } from '@/entities/vote/model/queries';
 import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
 import { calculateTeamStats } from '@/features/team-split-auto/model/algorithm';
 import { DraggableMember } from './draggable-member';
 import { DroppableTeam } from './droppable-team';
+import { MemberContextMenu } from './member-context-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { RefreshCw } from 'lucide-react';
+import { Badge } from '@/shared/ui/badge';
+import { RefreshCw, Vote } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
 type TeamName = 'A' | 'B' | 'C' | 'D';
@@ -22,14 +25,44 @@ const TEAM_NAMES: TeamName[] = ['A', 'B', 'C', 'D'];
 export function TeamSplitManual() {
   const router = useRouter();
   const { data: members, isLoading } = useMembers();
+  const { data: voteSessions } = useActiveVoteSessions();
+  const [selectedVoteId, setSelectedVoteId] = useState<string | null>(null);
+  const { data: voteResponses } = useVoteResponses(selectedVoteId || '');
   const { teamCount, availableMembers, teams, setTeamCount, setAvailableMembers, moveToTeam, moveToAvailable, reset } = useTeamSplitStore();
   const [activeMember, setActiveMember] = useState<Member | null>(null);
+  const [filterMode, setFilterMode] = useState<'all' | 'attending'>('all');
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    position: { x: number; y: number };
+    member: Member | null;
+  }>({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    member: null,
+  });
+
+  // Get member vote status
+  const getMemberVoteStatus = (memberId: string): 'attending' | 'absent' | 'no-response' => {
+    if (!voteResponses || !selectedVoteId) return 'no-response';
+    const response = voteResponses.find(r => r.member_id === memberId);
+    if (!response) return 'no-response';
+    return response.status === 'attending' ? 'attending' : 'absent';
+  };
+
+  // Filter members based on vote status
+  const filteredMembers = useMemo(() => {
+    if (!members) return [];
+    if (filterMode === 'all') return members;
+
+    // Only show attending members
+    return members.filter(m => getMemberVoteStatus(m.id) === 'attending');
+  }, [members, filterMode, voteResponses, selectedVoteId]);
 
   useEffect(() => {
-    if (members && availableMembers.length === 0 && Object.values(teams).every(t => t.length === 0)) {
-      setAvailableMembers(members);
+    if (filteredMembers.length > 0 && availableMembers.length === 0 && Object.values(teams).every(t => t.length === 0)) {
+      setAvailableMembers(filteredMembers);
     }
-  }, [members, availableMembers, teams, setAvailableMembers]);
+  }, [filteredMembers, availableMembers, teams, setAvailableMembers]);
 
   const handleDragStart = (event: DragStartEvent) => {
     const memberId = event.active.id as string;
@@ -77,8 +110,8 @@ export function TeamSplitManual() {
   };
 
   const handleReset = () => {
-    if (members) {
-      reset(members);
+    if (filteredMembers) {
+      reset(filteredMembers);
     }
   };
 
@@ -86,15 +119,60 @@ export function TeamSplitManual() {
     const count = parseInt(value);
     setTeamCount(count);
     // Reset teams when count changes
-    if (members) {
-      reset(members);
+    if (filteredMembers) {
+      reset(filteredMembers);
     }
+  };
+
+  const handleLoadFromVote = () => {
+    if (filteredMembers) {
+      reset(filteredMembers);
+    }
+  };
+
+  const handleVoteChange = (value: string) => {
+    setSelectedVoteId(value === 'none' ? null : value);
+    setFilterMode('all');
   };
 
   const handleTeamClick = (teamName: TeamName) => {
     if (teams[teamName].length > 0) {
       router.push(`/team-division/${teamName}`);
     }
+  };
+
+  const handleMemberLongPress = (member: Member, e: React.MouseEvent | React.TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+
+    setContextMenu({
+      isOpen: true,
+      position: { x: clientX, y: clientY },
+      member,
+    });
+  };
+
+  const handleContextMenuTeamSelect = (teamName: TeamName) => {
+    if (!contextMenu.member) return;
+
+    // Check if member is in available or already in a team
+    const isInAvailable = availableMembers.some(m => m.id === contextMenu.member!.id);
+
+    if (isInAvailable) {
+      moveToTeam(contextMenu.member, teamName);
+    } else {
+      // Member is in another team, move back to available first
+      for (const tn of TEAM_NAMES) {
+        if (teams[tn].some(m => m.id === contextMenu.member!.id)) {
+          moveToAvailable(contextMenu.member, tn);
+          break;
+        }
+      }
+      // Then move to new team
+      moveToTeam(contextMenu.member, teamName);
+    }
+
+    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, member: null });
   };
 
   const teamStats = useMemo(() => {
@@ -119,9 +197,68 @@ export function TeamSplitManual() {
     );
   }
 
+  const matchVotes = voteSessions?.filter(s => s.type === 'match') || [];
+
   return (
     <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-6">
+        {/* Vote Integration Section */}
+        {matchVotes.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Vote className="h-5 w-5 text-primary" />
+                투표 연동
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Select value={selectedVoteId || 'none'} onValueChange={handleVoteChange}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="투표 선택" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">투표 없음 (전체 멤버)</SelectItem>
+                    {matchVotes.map((session) => (
+                      <SelectItem key={session.id} value={session.id}>
+                        {session.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedVoteId && (
+                  <Select value={filterMode} onValueChange={(v) => setFilterMode(v as 'all' | 'attending')}>
+                    <SelectTrigger className="w-[140px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">전체 보기</SelectItem>
+                      <SelectItem value="attending">참석만 보기</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                <Button onClick={handleLoadFromVote} variant="outline">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  불러오기
+                </Button>
+              </div>
+              {selectedVoteId && (
+                <div className="flex gap-2 text-sm">
+                  <Badge variant="default">
+                    참석: {filteredMembers.filter(m => getMemberVoteStatus(m.id) === 'attending').length}
+                  </Badge>
+                  <Badge variant="destructive">
+                    불참: {members?.filter(m => getMemberVoteStatus(m.id) === 'absent').length || 0}
+                  </Badge>
+                  <Badge variant="secondary">
+                    미응답: {members?.filter(m => getMemberVoteStatus(m.id) === 'no-response').length || 0}
+                  </Badge>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h2 className="text-2xl font-bold">수동 팀 분배</h2>
@@ -153,7 +290,12 @@ export function TeamSplitManual() {
             <SortableContext items={availableMembers.map((m) => m.id)} strategy={verticalListSortingStrategy}>
               <div className="space-y-2">
                 {availableMembers.map((member) => (
-                  <DraggableMember key={member.id} member={member} />
+                  <DraggableMember
+                    key={member.id}
+                    member={member}
+                    voteStatus={selectedVoteId ? getMemberVoteStatus(member.id) : undefined}
+                    onLongPress={(e) => handleMemberLongPress(member, e)}
+                  />
                 ))}
               </div>
             </SortableContext>
@@ -173,7 +315,12 @@ export function TeamSplitManual() {
               <SortableContext items={teams[teamName].map((m) => m.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-2">
                   {teams[teamName].map((member) => (
-                    <DraggableMember key={member.id} member={member} />
+                    <DraggableMember
+                      key={member.id}
+                      member={member}
+                      voteStatus={selectedVoteId ? getMemberVoteStatus(member.id) : undefined}
+                      onLongPress={(e) => handleMemberLongPress(member, e)}
+                    />
                   ))}
                 </div>
               </SortableContext>
@@ -210,6 +357,15 @@ export function TeamSplitManual() {
       <DragOverlay>
         {activeMember ? <DraggableMember member={activeMember} isDragging /> : null}
       </DragOverlay>
+
+      {/* Context Menu */}
+      <MemberContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        availableTeams={activeTeams}
+        onSelectTeam={handleContextMenuTeamSelect}
+        onClose={() => setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, member: null })}
+      />
     </DndContext>
   );
 }
