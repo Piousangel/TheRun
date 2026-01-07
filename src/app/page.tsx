@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Users, Calendar, Trophy, ClipboardList } from 'lucide-react';
+import { Users, Calendar, Trophy, ClipboardList, Vote } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -16,13 +16,23 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           <Link href="/members">
             <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
               <CardHeader>
                 <Users className="h-10 w-10 text-primary mb-2" />
                 <CardTitle>멤버 관리</CardTitle>
                 <CardDescription>팀 멤버 등록 및 관리</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+
+          <Link href="/votes">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+              <CardHeader>
+                <Vote className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>투표 관리</CardTitle>
+                <CardDescription>경기, 회식, 야유회 투표</CardDescription>
               </CardHeader>
             </Card>
           </Link>
@@ -150,7 +160,42 @@ ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 
 -- Allow all operations
 CREATE POLICY "Allow all for matches"
-  ON matches FOR ALL USING (true);`}
+  ON matches FOR ALL USING (true);
+
+-- Vote sessions table (새로운 투표 시스템)
+CREATE TABLE vote_sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  title VARCHAR(200) NOT NULL,
+  description TEXT,
+  type VARCHAR(20) NOT NULL CHECK (type IN ('match', 'dining', 'outing', 'other')),
+  event_date TIMESTAMPTZ NOT NULL,
+  deadline TIMESTAMPTZ NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Vote responses table
+CREATE TABLE vote_responses (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  session_id UUID NOT NULL REFERENCES vote_sessions(id) ON DELETE CASCADE,
+  member_id UUID NOT NULL REFERENCES members(id) ON DELETE CASCADE,
+  status VARCHAR(10) NOT NULL CHECK (status IN ('attending', 'absent')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(session_id, member_id)
+);
+
+-- Enable RLS
+ALTER TABLE vote_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vote_responses ENABLE ROW LEVEL SECURITY;
+
+-- Allow all operations
+CREATE POLICY "Allow all for vote_sessions"
+  ON vote_sessions FOR ALL USING (true);
+
+CREATE POLICY "Allow all for vote_responses"
+  ON vote_responses FOR ALL USING (true);`}
               </pre>
             </div>
           </CardContent>

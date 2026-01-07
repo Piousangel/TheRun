@@ -2,13 +2,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Users, Calendar, Trophy, ClipboardList } from 'lucide-react';
+import { Home, Users, Vote, Trophy, ClipboardList } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 
 const navItems = [
   { href: '/', label: '홈', icon: Home },
   { href: '/members', label: '멤버', icon: Users },
-  { href: '/attendance', label: '출석', icon: Calendar },
+  { href: '/votes', label: '투표', icon: Vote },
   { href: '/matches', label: '경기', icon: Trophy },
   { href: '/team-division', label: '팀', icon: ClipboardList },
 ];

@@ -6,10 +6,9 @@ import { ArrowLeft } from 'lucide-react';
 
 interface BackButtonProps {
   fallbackPath?: string;
-  label?: string;
 }
 
-export function BackButton({ fallbackPath = '/', label = '뒤로' }: BackButtonProps) {
+export function BackButton({ fallbackPath = '/' }: BackButtonProps) {
   const router = useRouter();
 
   const handleBack = () => {
@@ -23,12 +22,10 @@ export function BackButton({ fallbackPath = '/', label = '뒤로' }: BackButtonP
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={handleBack}
-      className="gap-2"
     >
-      <ArrowLeft className="h-4 w-4" />
-      {label}
+      <ArrowLeft className="h-5 w-5" />
     </Button>
   );
 }
