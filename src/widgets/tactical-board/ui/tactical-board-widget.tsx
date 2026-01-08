@@ -89,6 +89,14 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     }
   };
 
+  const handleEmptySlotClick = (position: PlayerPosition) => {
+    if (substituteToSwap) {
+      // Move substitute to this empty slot
+      swapPlayers(substituteToSwap.id, position.id);
+      setSubstituteToSwap(null);
+    }
+  };
+
   const fieldPlayers = positions.filter((p) => p.role !== 'SUB');
   const substitutes = positions.filter((p) => p.role === 'SUB');
   const opponentPositions = generateOpponentFormation(playerCount);
@@ -172,6 +180,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
               y={position.y}
               role={position.role}
               isEmpty={!position.memberId}
+              onClick={() => handleEmptySlotClick(position)}
             />
           ))}
 

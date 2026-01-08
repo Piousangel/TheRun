@@ -6,9 +6,10 @@ interface MemberAvatarProps {
   src: string | null;
   alt: string;
   size?: 'sm' | 'md' | 'lg';
+  bgColor?: string; // Custom background color
 }
 
-export function MemberAvatar({ src, alt, size = 'md' }: MemberAvatarProps) {
+export function MemberAvatar({ src, alt, size = 'md', bgColor }: MemberAvatarProps) {
   const sizeClasses = {
     sm: 'h-10 w-10',
     md: 'h-16 w-16',
@@ -28,10 +29,13 @@ export function MemberAvatar({ src, alt, size = 'md' }: MemberAvatarProps) {
     .toUpperCase()
     .slice(0, 2);
 
+  // Use custom bg color if provided, otherwise use primary
+  const bgColorClass = bgColor || 'bg-primary';
+
   return (
     <Avatar className={sizeClasses[size]}>
       <AvatarImage src={src || undefined} alt={alt} />
-      <AvatarFallback className={`bg-primary text-white ${fallbackSizeClasses[size]}`}>
+      <AvatarFallback className={`${bgColorClass} text-white ${fallbackSizeClasses[size]}`}>
         {initials}
       </AvatarFallback>
     </Avatar>

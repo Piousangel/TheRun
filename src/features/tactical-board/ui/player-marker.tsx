@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback, TouchEvent, MouseEvent } from 'react';
+import { useRef, useState, useEffect, useCallback, TouchEvent, MouseEvent } from 'react';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import type { Member } from '@/shared/types/member';
 import type { PositionRole } from '@/shared/types/formation';
@@ -145,28 +145,26 @@ export function PlayerMarker({
   );
 
   // Add/remove global event listeners
-  useState(() => {
-    if (typeof window !== 'undefined') {
+  useEffect(() => {
+    if (typeof window !== 'undefined' && isDragging) {
       const onMouseMove = (e: globalThis.MouseEvent) => handleMouseMove(e);
       const onMouseUp = (e: globalThis.MouseEvent) => handleMouseUp(e);
       const onTouchMove = (e: globalThis.TouchEvent) => handleTouchMove(e);
       const onTouchEnd = (e: globalThis.TouchEvent) => handleTouchEnd(e);
 
-      if (isDragging) {
-        window.addEventListener('mousemove', onMouseMove);
-        window.addEventListener('mouseup', onMouseUp);
-        window.addEventListener('touchmove', onTouchMove);
-        window.addEventListener('touchend', onTouchEnd);
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+      window.addEventListener('touchmove', onTouchMove);
+      window.addEventListener('touchend', onTouchEnd);
 
-        return () => {
-          window.removeEventListener('mousemove', onMouseMove);
-          window.removeEventListener('mouseup', onMouseUp);
-          window.removeEventListener('touchmove', onTouchMove);
-          window.removeEventListener('touchend', onTouchEnd);
-        };
-      }
+      return () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+      };
     }
-  });
+  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
 
   return (
     <div
@@ -187,11 +185,12 @@ export function PlayerMarker({
         {/* Player avatar/marker */}
         {member ? (
           <div className="flex flex-col items-center gap-1">
-            <div className={`rounded-full border-2 border-white shadow-lg ${ROLE_COLORS[role]}`}>
+            <div className="rounded-full border-2 border-white shadow-lg">
               <MemberAvatar
                 src={member.profile_photo}
                 alt={member.name}
                 size="sm"
+                bgColor={ROLE_COLORS[role]}
               />
             </div>
             <div className="bg-black/70 text-white text-xs px-2 py-0.5 rounded whitespace-nowrap">
