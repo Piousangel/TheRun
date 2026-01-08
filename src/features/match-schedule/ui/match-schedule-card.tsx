@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
-import { MatchGameCard } from './match-game-card';
+import { MatchGameCardEnhanced } from './match-game-card-enhanced';
 import { Plus, Calendar } from 'lucide-react';
 import type { VoteSession } from '@/shared/types/vote';
 
@@ -55,7 +55,7 @@ export function MatchScheduleCard({ voteSession }: MatchScheduleCardProps) {
         {/* Match Games */}
         <div className="space-y-4">
           {Array.from({ length: matchCount }, (_, i) => (
-            <MatchGameCard
+            <MatchGameCardEnhanced
               key={i}
               matchNumber={i + 1}
               voteSessionId={voteSessionId || ''}

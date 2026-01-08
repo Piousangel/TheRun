@@ -1,5 +1,4 @@
 import { TacticalBoardWidget } from '@/widgets/tactical-board/ui/tactical-board-widget';
-import { MatchTimer } from '@/features/match-timer/ui/match-timer';
 import { BackButton } from '@/shared/components/back-button';
 
 interface TeamDetailPageProps {
@@ -30,18 +29,7 @@ export default async function TeamDetailPage({ params }: TeamDetailPageProps) {
     <main className="min-h-screen p-4 sm:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         <BackButton fallbackPath="/team-division" />
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main tactical board - spans 2 columns on large screens */}
-          <div className="lg:col-span-2">
-            <TacticalBoardWidget teamName={teamName.toUpperCase()} />
-          </div>
-
-          {/* Timer sidebar */}
-          <div className="lg:col-span-1">
-            <MatchTimer />
-          </div>
-        </div>
+        <TacticalBoardWidget teamName={teamName.toUpperCase()} />
       </div>
     </main>
   );
