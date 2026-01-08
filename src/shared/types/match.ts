@@ -21,6 +21,10 @@ export interface Match {
   notes: string | null;
   vote_session_id: string | null;
   match_number: number | null;
+  status: 'pending' | 'in_progress' | 'finished';
+  start_time: string | null;
+  end_time: string | null;
+  duration: number | null; // in seconds
   created_at: string;
   updated_at: string;
 }
@@ -33,6 +37,10 @@ export interface CreateMatchData {
   notes?: string;
   vote_session_id?: string;
   match_number?: number;
+  status?: 'pending' | 'in_progress' | 'finished';
+  start_time?: string;
+  end_time?: string;
+  duration?: number;
 }
 
 export interface UpdateMatchData {
@@ -41,4 +49,8 @@ export interface UpdateMatchData {
   team_a?: TeamMatchData;
   team_b?: TeamMatchData;
   notes?: string;
+  status?: 'pending' | 'in_progress' | 'finished';
+  start_time?: string;
+  end_time?: string;
+  duration?: number;
 }

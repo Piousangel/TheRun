@@ -28,6 +28,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   const { positions, playerCount, setPositions, updatePosition, setPlayerCount, swapPlayers } = useTacticalBoardStore();
   const [selectedPosition, setSelectedPosition] = useState<PlayerPosition | null>(null);
   const [showOpponents, setShowOpponents] = useState(true);
+  const [substituteToSwap, setSubstituteToSwap] = useState<PlayerPosition | null>(null);
 
   const teamMembers = teams[teamName as TeamName] || [];
 
@@ -59,9 +60,6 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     return teamMembers.find((m) => m.id === memberId) || null;
   };
 
-  const handlePlayerClick = (position: PlayerPosition) => {
-    setSelectedPosition(position);
-  };
 
   const handlePresetSelect = (x: number, y: number) => {
     if (selectedPosition) {
@@ -70,12 +68,23 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   };
 
   const handleSubstituteClick = (subPosition: PlayerPosition) => {
-    // Find a field position to swap with
-    const fieldPositions = positions.filter((p) => p.role !== 'SUB');
+    if (substituteToSwap && substituteToSwap.id === subPosition.id) {
+      // Cancel selection
+      setSubstituteToSwap(null);
+    } else {
+      // Select this substitute for swapping
+      setSubstituteToSwap(subPosition);
+    }
+  };
 
-    // For now, swap with the first field player of any role
-    if (fieldPositions.length > 0) {
-      swapPlayers(subPosition.id, fieldPositions[0].id);
+  const handleFieldPlayerClick = (position: PlayerPosition) => {
+    if (substituteToSwap) {
+      // Swap substitute with this field player
+      swapPlayers(substituteToSwap.id, position.id);
+      setSubstituteToSwap(null);
+    } else {
+      // Normal position selection
+      setSelectedPosition(position);
     }
   };
 
@@ -167,8 +176,8 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 role={position.role}
                 onPositionChange={updatePosition}
                 containerRef={containerRef}
-                onClick={() => handlePlayerClick(position)}
-                isSelected={selectedPosition?.id === position.id}
+                onClick={() => handleFieldPlayerClick(position)}
+                isSelected={selectedPosition?.id === position.id || (substituteToSwap ? true : false)}
               />
             );
           })}
@@ -183,7 +192,9 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
               후보 선수 ({substitutes.length}명)
             </CardTitle>
             <CardDescription>
-              후보 선수를 클릭하여 교체하세요
+              {substituteToSwap
+                ? '교체할 필드 선수를 선택하세요'
+                : '후보 선수를 클릭 후 필드 선수를 클릭하여 교체하세요'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -194,7 +205,11 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                   <button
                     key={position.id}
                     onClick={() => handleSubstituteClick(position)}
-                    className="flex items-center gap-2 p-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors cursor-pointer"
+                    className={`flex items-center gap-2 p-2 rounded-lg hover:bg-muted/80 transition-colors cursor-pointer ${
+                      substituteToSwap?.id === position.id
+                        ? 'bg-primary/20 border-2 border-primary'
+                        : 'bg-muted'
+                    }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
                       SUB

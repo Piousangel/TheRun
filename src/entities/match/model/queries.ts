@@ -50,9 +50,17 @@ export function useCreateMatch() {
 
   return useMutation({
     mutationFn: async (data: CreateMatchData) => {
+      const matchData = {
+        ...data,
+        status: data.status || 'pending',
+        start_time: data.start_time || null,
+        end_time: data.end_time || null,
+        duration: data.duration || null,
+      };
+
       const { data: match, error } = await supabase
         .from('matches')
-        .insert(data)
+        .insert(matchData)
         .select()
         .single();
 
