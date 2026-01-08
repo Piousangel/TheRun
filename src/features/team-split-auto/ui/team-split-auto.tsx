@@ -14,7 +14,7 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { Shuffle } from 'lucide-react';
+import { Shuffle, Check } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
 type TeamName = 'A' | 'B' | 'C' | 'D';
@@ -23,7 +23,7 @@ const TEAM_NAMES: TeamName[] = ['A', 'B', 'C', 'D'];
 export function TeamSplitAuto() {
   const router = useRouter();
   const { data: members, isLoading } = useMembers();
-  const { teamCount, teams, setTeamCount, moveToTeam, moveToAvailable, reset } = useTeamSplitStore();
+  const { teamCount, teams, setTeamCount, moveToTeam, moveToAvailable, reset, completeTeamSelection } = useTeamSplitStore();
   const [activeMember, setActiveMember] = useState<Member | null>(null);
 
   const handleAutoBalance = () => {
@@ -48,10 +48,9 @@ export function TeamSplitAuto() {
     setTeamCount(count);
   };
 
-  const handleTeamClick = (teamName: TeamName) => {
-    if (teams[teamName].length > 0) {
-      router.push(`/team-division/${teamName}`);
-    }
+  const handleCompleteTeamSelection = () => {
+    completeTeamSelection();
+    router.push('/matches');
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -104,6 +103,9 @@ export function TeamSplitAuto() {
 
   const activeTeams = TEAM_NAMES.slice(0, teamCount);
   const hasTeams = activeTeams.some(t => teams[t].length > 0);
+
+  // Check if at least 2 teams have members
+  const canCompleteTeamSelection = activeTeams.filter(t => teams[t].length > 0).length >= 2;
 
   if (isLoading) {
     return (
@@ -161,8 +163,6 @@ export function TeamSplitAuto() {
                   title={`Team ${teamName}`}
                   count={teams[teamName].length}
                   stats={teamStats[teamName]}
-                  onClick={() => handleTeamClick(teamName)}
-                  isClickable={teams[teamName].length > 0}
                 >
                   <SortableContext items={teams[teamName].map((m) => m.id)} strategy={verticalListSortingStrategy}>
                     <div className="space-y-2">
@@ -198,6 +198,20 @@ export function TeamSplitAuto() {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Complete Team Selection Button */}
+            {canCompleteTeamSelection && (
+              <div className="flex justify-center">
+                <Button
+                  size="lg"
+                  onClick={handleCompleteTeamSelection}
+                  className="w-full sm:w-auto"
+                >
+                  <Check className="mr-2 h-5 w-5" />
+                  팀 선택 완료하기
+                </Button>
+              </div>
             )}
           </>
         )}

@@ -19,6 +19,8 @@ export interface Match {
   team_a: TeamMatchData;
   team_b: TeamMatchData;
   notes: string | null;
+  vote_session_id: string | null;
+  match_number: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -29,6 +31,8 @@ export interface CreateMatchData {
   team_a: TeamMatchData;
   team_b: TeamMatchData;
   notes?: string;
+  vote_session_id?: string;
+  match_number?: number;
 }
 
 export interface UpdateMatchData {
