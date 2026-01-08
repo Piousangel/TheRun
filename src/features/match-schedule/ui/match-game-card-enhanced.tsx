@@ -39,9 +39,9 @@ export function MatchGameCardEnhanced({
   const [createdMatch, setCreatedMatch] = useState<Match | null>(null);
 
   // Timer state
+  const [matchDurationMinutes, setMatchDurationMinutes] = useState(10);
   const [timeInSeconds, setTimeInSeconds] = useState(10 * 60);
   const [isRunning, setIsRunning] = useState(false);
-  const [initialTime] = useState(10 * 60);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Score state
@@ -50,6 +50,13 @@ export function MatchGameCardEnhanced({
 
   const TEAM_NAMES: TeamName[] = ['A', 'B', 'C', 'D'];
   const activeTeams = TEAM_NAMES.slice(0, teamCount).filter(t => teams[t].length > 0);
+
+  // Update time when duration changes
+  const handleDurationChange = (minutes: string) => {
+    const mins = parseInt(minutes);
+    setMatchDurationMinutes(mins);
+    setTimeInSeconds(mins * 60);
+  };
 
   // Timer effect
   useEffect(() => {
@@ -112,7 +119,7 @@ export function MatchGameCardEnhanced({
         vote_session_id: voteSessionId || undefined,
         match_number: matchNumber,
         status: 'pending',
-        duration: initialTime,
+        duration: matchDurationMinutes * 60,
       },
       {
         onSuccess: (match) => {
@@ -222,6 +229,29 @@ export function MatchGameCardEnhanced({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Match Duration Selection */}
+        {!createdMatch && (
+          <div className="space-y-2">
+            <label className="text-sm font-medium">경기 시간</label>
+            <Select
+              value={matchDurationMinutes.toString()}
+              onValueChange={handleDurationChange}
+              disabled={!!createdMatch}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 20 }, (_, i) => i + 1).map((minutes) => (
+                  <SelectItem key={minutes} value={minutes.toString()}>
+                    {minutes}분
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         {/* Team Selection */}
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
@@ -305,57 +335,71 @@ export function MatchGameCardEnhanced({
               </>
             )}
 
-            {/* Score */}
-            <div className="flex items-center justify-around">
-              <div className="text-center flex-1">
-                <p className="text-xs text-muted-foreground mb-1">Team {selectedTeamA} ({teams[selectedTeamA].length}명)</p>
-                <div className="flex items-center justify-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleScoreChange('A', -1)}
-                    disabled={matchStatus === 'finished' || scoreA === 0}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <div className="text-3xl font-bold text-primary w-12 text-center">{scoreA}</div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleScoreChange('A', 1)}
-                    disabled={matchStatus === 'finished'}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </div>
+            {/* Score Board */}
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-6">
+              <div className="text-center mb-3">
+                <p className="text-sm font-medium text-muted-foreground">경기 스코어</p>
               </div>
+              <div className="flex items-center justify-center gap-6">
+                {/* Team A Score */}
+                <div className="text-center flex-1">
+                  <p className="text-sm font-semibold mb-2">Team {selectedTeamA}</p>
+                  <p className="text-xs text-muted-foreground mb-3">({teams[selectedTeamA].length}명)</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => handleScoreChange('A', -1)}
+                      disabled={matchStatus === 'finished' || scoreA === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <div className="bg-background rounded-lg px-6 py-3 min-w-[80px] shadow-sm border-2 border-primary/20">
+                      <div className="text-5xl font-bold text-primary">{scoreA}</div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => handleScoreChange('A', 1)}
+                      disabled={matchStatus === 'finished'}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
 
-              <div className="text-xl font-bold text-muted-foreground px-2">vs</div>
+                {/* VS Divider */}
+                <div className="text-2xl font-bold text-muted-foreground px-3">VS</div>
 
-              <div className="text-center flex-1">
-                <p className="text-xs text-muted-foreground mb-1">Team {selectedTeamB} ({teams[selectedTeamB].length}명)</p>
-                <div className="flex items-center justify-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleScoreChange('B', -1)}
-                    disabled={matchStatus === 'finished' || scoreB === 0}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-                  <div className="text-3xl font-bold text-primary w-12 text-center">{scoreB}</div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleScoreChange('B', 1)}
-                    disabled={matchStatus === 'finished'}
-                  >
-                    <Plus className="h-3 w-3" />
-                  </Button>
+                {/* Team B Score */}
+                <div className="text-center flex-1">
+                  <p className="text-sm font-semibold mb-2">Team {selectedTeamB}</p>
+                  <p className="text-xs text-muted-foreground mb-3">({teams[selectedTeamB].length}명)</p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => handleScoreChange('B', -1)}
+                      disabled={matchStatus === 'finished' || scoreB === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <div className="bg-background rounded-lg px-6 py-3 min-w-[80px] shadow-sm border-2 border-primary/20">
+                      <div className="text-5xl font-bold text-primary">{scoreB}</div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8 rounded-full"
+                      onClick={() => handleScoreChange('B', 1)}
+                      disabled={matchStatus === 'finished'}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

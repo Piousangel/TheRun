@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { Member } from '@/shared/types/member';
 
 type TeamName = 'A' | 'B' | 'C' | 'D';
@@ -17,9 +18,12 @@ interface TeamSplitState {
   setSelectedVoteSessionId: (id: string | null) => void;
   completeTeamSelection: () => void;
   resetTeamSelection: () => void;
+  clearTeamSelection: () => void;
 }
 
-export const useTeamSplitStore = create<TeamSplitState>((set) => ({
+export const useTeamSplitStore = create<TeamSplitState>()(
+  persist(
+    (set) => ({
   teamCount: 2,
   availableMembers: [],
   teams: {
@@ -67,4 +71,20 @@ export const useTeamSplitStore = create<TeamSplitState>((set) => ({
   completeTeamSelection: () => set({ isTeamSelectionComplete: true }),
 
   resetTeamSelection: () => set({ isTeamSelectionComplete: false }),
-}));
+
+  clearTeamSelection: () => set({
+    availableMembers: [],
+    teams: {
+      A: [],
+      B: [],
+      C: [],
+      D: [],
+    },
+    isTeamSelectionComplete: false,
+  }),
+    }),
+    {
+      name: 'team-split-storage',
+    }
+  )
+);

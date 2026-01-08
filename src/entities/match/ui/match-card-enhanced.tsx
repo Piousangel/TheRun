@@ -221,57 +221,71 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
           </>
         )}
 
-        {/* Score */}
-        <div className="flex items-center justify-around">
-          <div className="text-center flex-1">
-            <p className="text-xs text-muted-foreground mb-1">Team A ({match.team_a.member_ids.length}명)</p>
-            <div className="flex items-center justify-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => handleScoreChange('A', -1)}
-                disabled={match.status === 'finished' || scoreA === 0}
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <div className="text-3xl font-bold text-primary w-12 text-center">{scoreA}</div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => handleScoreChange('A', 1)}
-                disabled={match.status === 'finished'}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-            </div>
+        {/* Score Board */}
+        <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-6">
+          <div className="text-center mb-3">
+            <p className="text-sm font-medium text-muted-foreground">경기 스코어</p>
           </div>
+          <div className="flex items-center justify-center gap-6">
+            {/* Team A Score */}
+            <div className="text-center flex-1">
+              <p className="text-sm font-semibold mb-2">Team A</p>
+              <p className="text-xs text-muted-foreground mb-3">({match.team_a.member_ids.length}명)</p>
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => handleScoreChange('A', -1)}
+                  disabled={match.status === 'finished' || scoreA === 0}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="bg-background rounded-lg px-6 py-3 min-w-[80px] shadow-sm border-2 border-primary/20">
+                  <div className="text-5xl font-bold text-primary">{scoreA}</div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => handleScoreChange('A', 1)}
+                  disabled={match.status === 'finished'}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
 
-          <div className="text-xl font-bold text-muted-foreground px-2">vs</div>
+            {/* VS Divider */}
+            <div className="text-2xl font-bold text-muted-foreground px-3">VS</div>
 
-          <div className="text-center flex-1">
-            <p className="text-xs text-muted-foreground mb-1">Team B ({match.team_b.member_ids.length}명)</p>
-            <div className="flex items-center justify-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => handleScoreChange('B', -1)}
-                disabled={match.status === 'finished' || scoreB === 0}
-              >
-                <Minus className="h-3 w-3" />
-              </Button>
-              <div className="text-3xl font-bold text-primary w-12 text-center">{scoreB}</div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => handleScoreChange('B', 1)}
-                disabled={match.status === 'finished'}
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
+            {/* Team B Score */}
+            <div className="text-center flex-1">
+              <p className="text-sm font-semibold mb-2">Team B</p>
+              <p className="text-xs text-muted-foreground mb-3">({match.team_b.member_ids.length}명)</p>
+              <div className="flex items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => handleScoreChange('B', -1)}
+                  disabled={match.status === 'finished' || scoreB === 0}
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="bg-background rounded-lg px-6 py-3 min-w-[80px] shadow-sm border-2 border-primary/20">
+                  <div className="text-5xl font-bold text-primary">{scoreB}</div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full"
+                  onClick={() => handleScoreChange('B', 1)}
+                  disabled={match.status === 'finished'}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

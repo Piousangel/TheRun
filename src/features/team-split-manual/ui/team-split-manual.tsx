@@ -16,7 +16,7 @@ import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { RefreshCw, Vote, Check } from 'lucide-react';
+import { RefreshCw, Vote, Check, PlusCircle } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
 type TeamName = 'A' | 'B' | 'C' | 'D';
@@ -29,7 +29,7 @@ export function TeamSplitManual() {
   const { data: voteSessions } = useActiveVoteSessions();
   const [selectedVoteId, setSelectedVoteId] = useState<string | null>(null);
   const { data: voteResponses } = useVoteResponses(selectedVoteId || '');
-  const { teamCount, availableMembers, teams, setTeamCount, setAvailableMembers, moveToTeam, moveToAvailable, reset, setSelectedVoteSessionId, completeTeamSelection } = useTeamSplitStore();
+  const { teamCount, availableMembers, teams, isTeamSelectionComplete, setTeamCount, setAvailableMembers, moveToTeam, moveToAvailable, reset, setSelectedVoteSessionId, completeTeamSelection, clearTeamSelection } = useTeamSplitStore();
   const [activeMember, setActiveMember] = useState<Member | null>(null);
   const [filterMode, setFilterMode] = useState<'all' | 'attending'>('all');
   const [contextMenu, setContextMenu] = useState<{
@@ -207,6 +207,31 @@ export function TeamSplitManual() {
   return (
     <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-6">
+        {/* New Team Division Button - Show when team selection is complete */}
+        {isTeamSelectionComplete && (
+          <Card className="border-2 border-primary">
+            <CardContent className="pt-6">
+              <div className="text-center space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold">팀 선택이 완료되었습니다</h3>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    경기 탭에서 경기를 시작하거나, 새로운 팀을 나눌 수 있습니다.
+                  </p>
+                </div>
+                <div className="flex gap-2 justify-center">
+                  <Button onClick={() => router.push('/matches')} size="lg">
+                    경기 시작하러 가기
+                  </Button>
+                  <Button onClick={clearTeamSelection} variant="outline" size="lg">
+                    <PlusCircle className="mr-2 h-5 w-5" />
+                    새로운 팀 나누기
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Vote Integration Section */}
         {matchVotes.length > 0 && (
           <Card>
