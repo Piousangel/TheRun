@@ -7,11 +7,16 @@ interface TeamSplitState {
   teamCount: number;
   availableMembers: Member[];
   teams: Record<TeamName, Member[]>;
+  selectedVoteSessionId: string | null;
+  isTeamSelectionComplete: boolean;
   setTeamCount: (count: number) => void;
   setAvailableMembers: (members: Member[]) => void;
   moveToTeam: (member: Member, teamName: TeamName) => void;
   moveToAvailable: (member: Member, fromTeam: TeamName) => void;
   reset: (allMembers: Member[]) => void;
+  setSelectedVoteSessionId: (id: string | null) => void;
+  completeTeamSelection: () => void;
+  resetTeamSelection: () => void;
 }
 
 export const useTeamSplitStore = create<TeamSplitState>((set) => ({
@@ -23,6 +28,8 @@ export const useTeamSplitStore = create<TeamSplitState>((set) => ({
     C: [],
     D: [],
   },
+  selectedVoteSessionId: null,
+  isTeamSelectionComplete: false,
 
   setTeamCount: (count) => set({ teamCount: count }),
 
@@ -52,5 +59,12 @@ export const useTeamSplitStore = create<TeamSplitState>((set) => ({
       C: [],
       D: [],
     },
+    isTeamSelectionComplete: false,
   }),
+
+  setSelectedVoteSessionId: (id) => set({ selectedVoteSessionId: id }),
+
+  completeTeamSelection: () => set({ isTeamSelectionComplete: true }),
+
+  resetTeamSelection: () => set({ isTeamSelectionComplete: false }),
 }));

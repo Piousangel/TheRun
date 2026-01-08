@@ -16,7 +16,7 @@ import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { RefreshCw, Vote } from 'lucide-react';
+import { RefreshCw, Vote, Check } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
 type TeamName = 'A' | 'B' | 'C' | 'D';
@@ -29,7 +29,7 @@ export function TeamSplitManual() {
   const { data: voteSessions } = useActiveVoteSessions();
   const [selectedVoteId, setSelectedVoteId] = useState<string | null>(null);
   const { data: voteResponses } = useVoteResponses(selectedVoteId || '');
-  const { teamCount, availableMembers, teams, setTeamCount, setAvailableMembers, moveToTeam, moveToAvailable, reset } = useTeamSplitStore();
+  const { teamCount, availableMembers, teams, setTeamCount, setAvailableMembers, moveToTeam, moveToAvailable, reset, setSelectedVoteSessionId, completeTeamSelection } = useTeamSplitStore();
   const [activeMember, setActiveMember] = useState<Member | null>(null);
   const [filterMode, setFilterMode] = useState<'all' | 'attending'>('all');
   const [contextMenu, setContextMenu] = useState<{
@@ -132,14 +132,15 @@ export function TeamSplitManual() {
   };
 
   const handleVoteChange = (value: string) => {
-    setSelectedVoteId(value === 'none' ? null : value);
+    const voteId = value === 'none' ? null : value;
+    setSelectedVoteId(voteId);
+    setSelectedVoteSessionId(voteId);
     setFilterMode('all');
   };
 
-  const handleTeamClick = (teamName: TeamName) => {
-    if (teams[teamName].length > 0) {
-      router.push(`/team-division/${teamName}`);
-    }
+  const handleCompleteTeamSelection = () => {
+    completeTeamSelection();
+    router.push('/matches');
   };
 
   const handleMemberLongPress = (member: Member, e: React.MouseEvent | React.TouchEvent) => {
@@ -187,6 +188,9 @@ export function TeamSplitManual() {
   }, [teams]);
 
   const activeTeams = TEAM_NAMES.slice(0, teamCount);
+
+  // Check if at least 2 teams have members
+  const canCompleteTeamSelection = activeTeams.filter(t => teams[t].length > 0).length >= 2;
 
   if (isLoading) {
     return (
@@ -310,8 +314,6 @@ export function TeamSplitManual() {
               title={`Team ${teamName}`}
               count={teams[teamName].length}
               stats={teamStats[teamName]}
-              onClick={() => handleTeamClick(teamName)}
-              isClickable={teams[teamName].length > 0}
             >
               <SortableContext items={teams[teamName].map((m) => m.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-2">
@@ -352,6 +354,20 @@ export function TeamSplitManual() {
               </div>
             </CardContent>
           </Card>
+        )}
+
+        {/* Complete Team Selection Button */}
+        {canCompleteTeamSelection && (
+          <div className="flex justify-center">
+            <Button
+              size="lg"
+              onClick={handleCompleteTeamSelection}
+              className="w-full sm:w-auto"
+            >
+              <Check className="mr-2 h-5 w-5" />
+              팀 선택 완료하기
+            </Button>
+          </div>
         )}
       </div>
 

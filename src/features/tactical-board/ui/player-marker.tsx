@@ -13,6 +13,8 @@ interface PlayerMarkerProps {
   role: PositionRole;
   onPositionChange: (id: string, x: number, y: number) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
+  onClick?: () => void;
+  isSelected?: boolean;
 }
 
 const ROLE_COLORS = {
@@ -31,15 +33,19 @@ export function PlayerMarker({
   role,
   onPositionChange,
   containerRef,
+  onClick,
+  isSelected = false,
 }: PlayerMarkerProps) {
   const markerRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
   const dragStartPos = useRef({ x: 0, y: 0, initialX: 0, initialY: 0 });
 
   const handleStart = useCallback(
     (clientX: number, clientY: number) => {
       if (!containerRef.current) return;
 
+      setStartPos({ x: clientX, y: clientY });
       setIsDragging(true);
       const rect = containerRef.current.getBoundingClientRect();
 
@@ -76,9 +82,25 @@ export function PlayerMarker({
     [isDragging, id, onPositionChange, containerRef]
   );
 
-  const handleEnd = useCallback(() => {
-    setIsDragging(false);
-  }, []);
+  const handleEnd = useCallback(
+    (clientX?: number, clientY?: number) => {
+      const wasDragging = isDragging;
+      setIsDragging(false);
+
+      // Check if it was a click (not a drag)
+      if (onClick && startPos && clientX !== undefined && clientY !== undefined) {
+        const distance = Math.sqrt(
+          Math.pow(clientX - startPos.x, 2) + Math.pow(clientY - startPos.y, 2)
+        );
+        if (distance < 5) {
+          onClick();
+        }
+      }
+
+      setStartPos(null);
+    },
+    [isDragging, onClick, startPos]
+  );
 
   // Mouse events
   const handleMouseDown = (e: MouseEvent) => {
@@ -93,9 +115,12 @@ export function PlayerMarker({
     [handleMove]
   );
 
-  const handleMouseUp = useCallback(() => {
-    handleEnd();
-  }, [handleEnd]);
+  const handleMouseUp = useCallback(
+    (e: globalThis.MouseEvent) => {
+      handleEnd(e.clientX, e.clientY);
+    },
+    [handleEnd]
+  );
 
   // Touch events
   const handleTouchStart = (e: TouchEvent) => {
@@ -111,17 +136,21 @@ export function PlayerMarker({
     [handleMove]
   );
 
-  const handleTouchEnd = useCallback(() => {
-    handleEnd();
-  }, [handleEnd]);
+  const handleTouchEnd = useCallback(
+    (e: globalThis.TouchEvent) => {
+      const touch = e.changedTouches[0];
+      handleEnd(touch?.clientX, touch?.clientY);
+    },
+    [handleEnd]
+  );
 
   // Add/remove global event listeners
   useState(() => {
     if (typeof window !== 'undefined') {
       const onMouseMove = (e: globalThis.MouseEvent) => handleMouseMove(e);
-      const onMouseUp = () => handleMouseUp();
+      const onMouseUp = (e: globalThis.MouseEvent) => handleMouseUp(e);
       const onTouchMove = (e: globalThis.TouchEvent) => handleTouchMove(e);
-      const onTouchEnd = () => handleTouchEnd();
+      const onTouchEnd = (e: globalThis.TouchEvent) => handleTouchEnd(e);
 
       if (isDragging) {
         window.addEventListener('mousemove', onMouseMove);
@@ -142,9 +171,9 @@ export function PlayerMarker({
   return (
     <div
       ref={markerRef}
-      className={`absolute cursor-grab active:cursor-grabbing transition-opacity ${
-        isDragging ? 'opacity-80 z-50' : 'opacity-100 z-10'
-      }`}
+      className={`absolute cursor-pointer transition-all ${
+        isDragging ? 'opacity-80 z-50 cursor-grabbing' : 'opacity-100 z-10 cursor-grab'
+      } ${isSelected ? 'ring-4 ring-primary ring-offset-2 rounded-full' : ''}`}
       style={{
         left: `${x}%`,
         top: `${y}%`,

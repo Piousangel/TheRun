@@ -107,12 +107,18 @@ CREATE TABLE matches (
   team_a JSONB NOT NULL,
   team_b JSONB NOT NULL,
   notes TEXT,
+  vote_session_id UUID REFERENCES vote_sessions(id) ON DELETE SET NULL,
+  match_number INTEGER,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE matches ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow all for matches" ON matches FOR ALL USING (true);
+
+-- Create indexes for matches
+CREATE INDEX idx_matches_vote_session_id ON matches(vote_session_id);
+CREATE INDEX idx_matches_vote_session_match_number ON matches(vote_session_id, match_number);
 ```
 
 ### 3. 환경 변수 설정
