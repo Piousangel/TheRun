@@ -13,7 +13,7 @@ interface PlayerMarkerProps {
   role: PositionRole;
   onPositionChange: (id: string, x: number, y: number) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
   isSelected?: boolean;
 }
 
@@ -43,47 +43,22 @@ export function PlayerMarker({
 
   const handleStart = useCallback(
     (clientX: number, clientY: number) => {
-      if (!containerRef.current) return;
-
+      // Drag functionality disabled
       setStartPos({ x: clientX, y: clientY });
-      setIsDragging(true);
-      const rect = containerRef.current.getBoundingClientRect();
-
-      dragStartPos.current = {
-        x: clientX,
-        y: clientY,
-        initialX: x,
-        initialY: y,
-      };
     },
-    [x, y, containerRef]
+    []
   );
 
   const handleMove = useCallback(
     (clientX: number, clientY: number) => {
-      if (!isDragging || !containerRef.current) return;
-
-      const rect = containerRef.current.getBoundingClientRect();
-      const deltaX = clientX - dragStartPos.current.x;
-      const deltaY = clientY - dragStartPos.current.y;
-
-      const deltaXPercent = (deltaX / rect.width) * 100;
-      const deltaYPercent = (deltaY / rect.height) * 100;
-
-      let newX = dragStartPos.current.initialX + deltaXPercent;
-      let newY = dragStartPos.current.initialY + deltaYPercent;
-
-      // Constrain to field bounds
-      newX = Math.max(5, Math.min(95, newX));
-      newY = Math.max(5, Math.min(95, newY));
-
-      onPositionChange(id, newX, newY);
+      // Drag functionality disabled
+      return;
     },
-    [isDragging, id, onPositionChange, containerRef]
+    []
   );
 
   const handleEnd = useCallback(
-    (clientX?: number, clientY?: number) => {
+    (clientX?: number, clientY?: number, originalEvent?: any) => {
       const wasDragging = isDragging;
       setIsDragging(false);
 
@@ -92,8 +67,8 @@ export function PlayerMarker({
         const distance = Math.sqrt(
           Math.pow(clientX - startPos.x, 2) + Math.pow(clientY - startPos.y, 2)
         );
-        if (distance < 5) {
-          onClick();
+        if (distance < 5 && originalEvent) {
+          onClick(originalEvent);
         }
       }
 
@@ -104,7 +79,7 @@ export function PlayerMarker({
 
   // Mouse events
   const handleMouseDown = (e: MouseEvent) => {
-    e.preventDefault();
+    // Just track for click detection, no drag
     handleStart(e.clientX, e.clientY);
   };
 
@@ -117,7 +92,7 @@ export function PlayerMarker({
 
   const handleMouseUp = useCallback(
     (e: globalThis.MouseEvent) => {
-      handleEnd(e.clientX, e.clientY);
+      handleEnd(e.clientX, e.clientY, e);
     },
     [handleEnd]
   );
@@ -169,14 +144,13 @@ export function PlayerMarker({
   return (
     <div
       ref={markerRef}
-      className={`absolute cursor-pointer transition-all ${
-        isDragging ? 'opacity-80 z-50 cursor-grabbing' : 'opacity-100 z-10 cursor-grab'
-      } ${isSelected ? 'ring-4 ring-primary ring-offset-2 rounded-full' : ''}`}
+      className={`absolute cursor-pointer transition-all opacity-100 z-10 ${
+        isSelected ? 'ring-4 ring-primary ring-offset-2 rounded-full' : ''
+      }`}
       style={{
         left: `${x}%`,
         top: `${y}%`,
         transform: 'translate(-50%, -50%)',
-        touchAction: 'none',
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}

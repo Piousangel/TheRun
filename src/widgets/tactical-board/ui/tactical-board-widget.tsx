@@ -55,13 +55,11 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     // Regenerate formation with new player count
     const newPositions = generateDefaultFormation(teamMembers, count);
     setPositions(newPositions);
-    setSelectedPosition(null);
   };
 
   const handleReset = () => {
     const defaultPositions = generateDefaultFormation(teamMembers, playerCount);
     setPositions(defaultPositions);
-    setSelectedPosition(null);
   };
 
   const getMemberById = (memberId: string | null) => {
@@ -124,7 +122,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 Team {teamName} 전술 보드
               </CardTitle>
               <CardDescription className="mt-1">
-                선수를 클릭하여 포지션 프리셋 선택 또는 드래그로 이동
+                선수를 클릭하여 포지션 변경 (GK, DF, MF, FW)
               </CardDescription>
             </div>
             <Badge variant="secondary">{teamMembers.length}명</Badge>
@@ -158,20 +156,8 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
         </CardContent>
       </Card>
 
-      {/* Position Preset Selector */}
-      {selectedPosition && (
-        <PositionPresetSelector
-          member={getMemberById(selectedPosition.memberId)!}
-          role={selectedPosition.role}
-          currentX={selectedPosition.x}
-          currentY={selectedPosition.y}
-          onSelectPreset={handlePresetSelect}
-          onClose={() => setSelectedPosition(null)}
-        />
-      )}
-
       {/* Tactical Board */}
-      <div ref={containerRef} className="relative" onClick={() => setSelectedPosition(null)}>
+      <div ref={containerRef} className="relative">
         <SoccerField>
           {/* Opponent markers */}
           {showOpponents && opponentPositions.map((pos, index) => (
@@ -208,10 +194,10 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 x={position.x}
                 y={position.y}
                 role={position.role}
-                onPositionChange={updatePosition}
+                onPositionChange={() => {}} // No drag functionality
                 containerRef={containerRef}
-                onClick={() => handleFieldPlayerClick(position)}
-                isSelected={selectedPosition?.id === position.id || (substituteToSwap ? true : false)}
+                onClick={(e) => handlePlayerClick(position, e)}
+                isSelected={substituteToSwap ? true : false}
               />
             );
           })}
@@ -292,6 +278,15 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Position Change Menu */}
+      <PositionChangeMenu
+        isOpen={positionMenu.isOpen}
+        position={positionMenu.position}
+        currentRole={positionMenu.playerPosition?.role || 'DF'}
+        onSelectRole={handlePositionRoleChange}
+        onClose={() => setPositionMenu({ isOpen: false, position: { x: 0, y: 0 }, playerPosition: null })}
+      />
     </div>
   );
 }
