@@ -74,10 +74,10 @@ export function MatchesList() {
       )}
 
       {/* Match Schedule - Only show if team selection is complete */}
-      {isTeamSelectionComplete && hasTeams && selectedVoteSession && (
+      {isTeamSelectionComplete && hasTeams && (
         <div className="space-y-6">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">일정별 경기</h3>
+            <h3 className="text-lg font-semibold">경기 스케줄</h3>
           </div>
           <MatchScheduleCard voteSession={selectedVoteSession} />
         </div>

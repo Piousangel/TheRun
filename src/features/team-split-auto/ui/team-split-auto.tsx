@@ -1,11 +1,11 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { useState } from 'react';
 import { useMembers } from '@/entities/member/model/queries';
+import { useActiveVoteSessions } from '@/entities/vote/model/queries';
 import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
 import { autoBalanceMultipleTeams, calculateTeamStats } from '@/features/team-split-auto/model/algorithm';
 import { DraggableMember } from '@/features/team-split-manual/ui/draggable-member';
@@ -13,8 +13,9 @@ import { DroppableTeam } from '@/features/team-split-manual/ui/droppable-team';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { Badge } from '@/shared/ui/badge';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { Shuffle, Check } from 'lucide-react';
+import { Shuffle, Check, Vote } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
 
 type TeamName = 'A' | 'B' | 'C' | 'D';
@@ -23,7 +24,9 @@ const TEAM_NAMES: TeamName[] = ['A', 'B', 'C', 'D'];
 export function TeamSplitAuto() {
   const router = useRouter();
   const { data: members, isLoading } = useMembers();
-  const { teamCount, teams, setTeamCount, moveToTeam, moveToAvailable, reset, completeTeamSelection } = useTeamSplitStore();
+  const { data: voteSessions } = useActiveVoteSessions();
+  const [selectedVoteId, setSelectedVoteId] = useState<string | null>(null);
+  const { teamCount, teams, setTeamCount, moveToTeam, moveToAvailable, reset, completeTeamSelection, setSelectedVoteSessionId } = useTeamSplitStore();
   const [activeMember, setActiveMember] = useState<Member | null>(null);
 
   const handleAutoBalance = () => {
@@ -51,6 +54,12 @@ export function TeamSplitAuto() {
   const handleCompleteTeamSelection = () => {
     completeTeamSelection();
     router.push('/matches');
+  };
+
+  const handleVoteChange = (value: string) => {
+    const voteId = value === 'none' ? null : value;
+    setSelectedVoteId(voteId);
+    setSelectedVoteSessionId(voteId);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -117,9 +126,38 @@ export function TeamSplitAuto() {
     );
   }
 
+  const matchVotes = voteSessions?.filter(s => s.type === 'match') || [];
+
   return (
     <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="space-y-6">
+        {/* Vote Integration Section */}
+        {matchVotes.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Vote className="h-5 w-5 text-primary" />
+                투표 연동
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Select value={selectedVoteId || 'none'} onValueChange={handleVoteChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="투표 선택" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">투표 없음 (전체 멤버)</SelectItem>
+                  {matchVotes.map((session) => (
+                    <SelectItem key={session.id} value={session.id}>
+                      {session.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h3 className="text-xl font-semibold">자동 밸런싱</h3>

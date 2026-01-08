@@ -9,7 +9,7 @@ import { Plus, Calendar } from 'lucide-react';
 import type { VoteSession } from '@/shared/types/vote';
 
 interface MatchScheduleCardProps {
-  voteSession: VoteSession;
+  voteSession?: VoteSession;
 }
 
 export function MatchScheduleCard({ voteSession }: MatchScheduleCardProps) {
@@ -23,6 +23,12 @@ export function MatchScheduleCard({ voteSession }: MatchScheduleCardProps) {
     setMatchCount(prev => Math.max(1, prev - 1));
   };
 
+  const today = new Date().toISOString();
+  const title = voteSession?.title || '일반 경기';
+  const description = voteSession?.description;
+  const eventDate = voteSession?.event_date || today;
+  const voteSessionId = voteSession?.id || null;
+
   return (
     <Card className="border-2">
       <CardHeader>
@@ -30,14 +36,14 @@ export function MatchScheduleCard({ voteSession }: MatchScheduleCardProps) {
           <div className="space-y-1">
             <CardTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              {voteSession.title}
+              {title}
             </CardTitle>
-            {voteSession.description && (
-              <p className="text-sm text-muted-foreground">{voteSession.description}</p>
+            {description && (
+              <p className="text-sm text-muted-foreground">{description}</p>
             )}
           </div>
           <Badge variant="default">
-            {new Date(voteSession.event_date).toLocaleDateString('ko-KR', {
+            {new Date(eventDate).toLocaleDateString('ko-KR', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'
@@ -52,9 +58,9 @@ export function MatchScheduleCard({ voteSession }: MatchScheduleCardProps) {
             <MatchGameCard
               key={i}
               matchNumber={i + 1}
-              voteSessionId={voteSession.id}
-              voteTitle={voteSession.title}
-              eventDate={voteSession.event_date}
+              voteSessionId={voteSessionId || ''}
+              voteTitle={title}
+              eventDate={eventDate}
               onDelete={matchCount > 1 ? () => handleDeleteMatch(i + 1) : undefined}
             />
           ))}
