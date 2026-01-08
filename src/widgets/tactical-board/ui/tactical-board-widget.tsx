@@ -1,16 +1,20 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
 import { useTacticalBoardStore } from '@/features/tactical-board/model/store';
 import { generateDefaultFormation } from '@/features/tactical-board/model/formations';
+import { generateOpponentFormation } from '@/features/tactical-board/model/opponent-formation';
 import { SoccerField } from '@/entities/field/ui/soccer-field';
 import { PlayerMarker } from '@/features/tactical-board/ui/player-marker';
+import { OpponentMarker } from '@/features/tactical-board/ui/opponent-marker';
+import { PositionPresetSelector } from '@/features/tactical-board/ui/position-preset-selector';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
-import { RotateCcw, Users } from 'lucide-react';
+import { RotateCcw, Users, ArrowLeftRight } from 'lucide-react';
+import type { PlayerPosition } from '@/shared/types/formation';
 
 interface TacticalBoardWidgetProps {
   teamName: string;
@@ -21,7 +25,9 @@ type TeamName = 'A' | 'B' | 'C' | 'D';
 export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { teams } = useTeamSplitStore();
-  const { positions, playerCount, setPositions, updatePosition, setPlayerCount } = useTacticalBoardStore();
+  const { positions, playerCount, setPositions, updatePosition, setPlayerCount, swapPlayers } = useTacticalBoardStore();
+  const [selectedPosition, setSelectedPosition] = useState<PlayerPosition | null>(null);
+  const [showOpponents, setShowOpponents] = useState(true);
 
   const teamMembers = teams[teamName as TeamName] || [];
 
@@ -39,11 +45,13 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     // Regenerate formation with new player count
     const newPositions = generateDefaultFormation(teamMembers, count);
     setPositions(newPositions);
+    setSelectedPosition(null);
   };
 
   const handleReset = () => {
     const defaultPositions = generateDefaultFormation(teamMembers, playerCount);
     setPositions(defaultPositions);
+    setSelectedPosition(null);
   };
 
   const getMemberById = (memberId: string | null) => {
@@ -51,8 +59,29 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     return teamMembers.find((m) => m.id === memberId) || null;
   };
 
+  const handlePlayerClick = (position: PlayerPosition) => {
+    setSelectedPosition(position);
+  };
+
+  const handlePresetSelect = (x: number, y: number) => {
+    if (selectedPosition) {
+      updatePosition(selectedPosition.id, x, y);
+    }
+  };
+
+  const handleSubstituteClick = (subPosition: PlayerPosition) => {
+    // Find a field position to swap with
+    const fieldPositions = positions.filter((p) => p.role !== 'SUB');
+
+    // For now, swap with the first field player of any role
+    if (fieldPositions.length > 0) {
+      swapPlayers(subPosition.id, fieldPositions[0].id);
+    }
+  };
+
   const fieldPlayers = positions.filter((p) => p.role !== 'SUB');
   const substitutes = positions.filter((p) => p.role === 'SUB');
+  const opponentPositions = generateOpponentFormation(playerCount);
 
   return (
     <div className="space-y-6">
@@ -66,14 +95,14 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 Team {teamName} 전술 보드
               </CardTitle>
               <CardDescription className="mt-1">
-                선수를 드래그하여 포지션을 조정하세요
+                선수를 클릭하여 포지션 프리셋 선택 또는 드래그로 이동
               </CardDescription>
             </div>
             <Badge variant="secondary">{teamMembers.length}명</Badge>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Select value={playerCount.toString()} onValueChange={handlePlayerCountChange}>
               <SelectTrigger className="w-[150px]">
                 <SelectValue />
@@ -90,13 +119,41 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
               <RotateCcw className="mr-2 h-4 w-4" />
               초기화
             </Button>
+            <Button
+              onClick={() => setShowOpponents(!showOpponents)}
+              variant={showOpponents ? 'default' : 'outline'}
+            >
+              {showOpponents ? '상대팀 숨기기' : '상대팀 보기'}
+            </Button>
           </div>
         </CardContent>
       </Card>
 
+      {/* Position Preset Selector */}
+      {selectedPosition && (
+        <PositionPresetSelector
+          member={getMemberById(selectedPosition.memberId)!}
+          role={selectedPosition.role}
+          currentX={selectedPosition.x}
+          currentY={selectedPosition.y}
+          onSelectPreset={handlePresetSelect}
+          onClose={() => setSelectedPosition(null)}
+        />
+      )}
+
       {/* Tactical Board */}
-      <div ref={containerRef} className="relative">
+      <div ref={containerRef} className="relative" onClick={() => setSelectedPosition(null)}>
         <SoccerField>
+          {/* Opponent markers */}
+          {showOpponents && opponentPositions.map((pos, index) => (
+            <OpponentMarker
+              key={`opponent-${index}`}
+              x={pos.x}
+              y={pos.y}
+              role={pos.role}
+            />
+          ))}
+
           {/* Field players */}
           {fieldPlayers.map((position) => {
             const member = getMemberById(position.memberId);
@@ -110,6 +167,8 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 role={position.role}
                 onPositionChange={updatePosition}
                 containerRef={containerRef}
+                onClick={() => handlePlayerClick(position)}
+                isSelected={selectedPosition?.id === position.id}
               />
             );
           })}
@@ -120,22 +179,29 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       {substitutes.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">후보 선수</CardTitle>
+            <CardTitle className="text-lg">
+              후보 선수 ({substitutes.length}명)
+            </CardTitle>
+            <CardDescription>
+              후보 선수를 클릭하여 교체하세요
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {substitutes.map((position) => {
                 const member = getMemberById(position.memberId);
                 return member ? (
-                  <div
+                  <button
                     key={position.id}
-                    className="flex items-center gap-2 p-2 bg-muted rounded-lg"
+                    onClick={() => handleSubstituteClick(position)}
+                    className="flex items-center gap-2 p-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors cursor-pointer"
                   >
                     <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
                       SUB
                     </div>
                     <span className="text-sm font-medium">{member.name}</span>
-                  </div>
+                    <ArrowLeftRight className="ml-auto h-4 w-4 text-muted-foreground" />
+                  </button>
                 ) : null;
               })}
             </div>
@@ -146,29 +212,33 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       {/* Legend */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">포지션 범례</CardTitle>
+          <CardTitle className="text-lg">범례</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-yellow-500 border-2 border-white" />
-              <span className="text-sm">GK (골키퍼)</span>
+              <span className="text-sm">우리팀 GK</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-blue-500 border-2 border-white" />
-              <span className="text-sm">DF (수비수)</span>
+              <span className="text-sm">우리팀 DF</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-green-500 border-2 border-white" />
-              <span className="text-sm">MF (미드필더)</span>
+              <span className="text-sm">우리팀 MF</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-red-500 border-2 border-white" />
-              <span className="text-sm">FW (공격수)</span>
+              <span className="text-sm">우리팀 FW</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-gray-500 border-2 border-dashed border-gray-400 opacity-40" />
+              <span className="text-sm">상대팀</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-white" />
-              <span className="text-sm">SUB (후보)</span>
+              <span className="text-sm">후보</span>
             </div>
           </div>
         </CardContent>
