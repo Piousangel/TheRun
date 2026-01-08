@@ -346,68 +346,68 @@ export function MatchGameCardEnhanced({
             )}
 
             {/* Score Board */}
-            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-6">
-              <div className="text-center mb-3">
-                <p className="text-sm font-medium text-muted-foreground">경기 스코어</p>
+            <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-lg p-4">
+              <div className="text-center mb-2">
+                <p className="text-xs font-medium text-muted-foreground">경기 스코어</p>
               </div>
-              <div className="flex items-center justify-center gap-6">
+              <div className="flex items-center justify-center gap-3">
                 {/* Team A Score */}
-                <div className="text-center flex-1">
-                  <p className="text-sm font-semibold mb-2">Team {selectedTeamA}</p>
-                  <p className="text-xs text-muted-foreground mb-3">({teams[selectedTeamA].length}명)</p>
-                  <div className="flex items-center justify-center gap-2">
+                <div className="text-center flex-1 max-w-[140px]">
+                  <p className="text-xs font-semibold mb-1">Team {selectedTeamA}</p>
+                  <p className="text-[10px] text-muted-foreground mb-2">({teams[selectedTeamA].length}명)</p>
+                  <div className="flex items-center justify-center gap-1">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-6 w-6 rounded-full shrink-0"
                       onClick={() => handleScoreChange('A', -1)}
                       disabled={matchStatus === 'finished' || scoreA === 0}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
-                    <div className="bg-background rounded-lg px-6 py-3 min-w-[80px] shadow-sm border-2 border-primary/20">
-                      <div className="text-5xl font-bold text-primary">{scoreA}</div>
+                    <div className="bg-background rounded-lg px-3 py-2 min-w-[50px] shadow-sm border-2 border-primary/20">
+                      <div className="text-3xl font-bold text-primary">{scoreA}</div>
                     </div>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-6 w-6 rounded-full shrink-0"
                       onClick={() => handleScoreChange('A', 1)}
                       disabled={matchStatus === 'finished'}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
 
                 {/* VS Divider */}
-                <div className="text-2xl font-bold text-muted-foreground px-3">VS</div>
+                <div className="text-lg font-bold text-muted-foreground px-1">VS</div>
 
                 {/* Team B Score */}
-                <div className="text-center flex-1">
-                  <p className="text-sm font-semibold mb-2">Team {selectedTeamB}</p>
-                  <p className="text-xs text-muted-foreground mb-3">({teams[selectedTeamB].length}명)</p>
-                  <div className="flex items-center justify-center gap-2">
+                <div className="text-center flex-1 max-w-[140px]">
+                  <p className="text-xs font-semibold mb-1">Team {selectedTeamB}</p>
+                  <p className="text-[10px] text-muted-foreground mb-2">({teams[selectedTeamB].length}명)</p>
+                  <div className="flex items-center justify-center gap-1">
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-6 w-6 rounded-full shrink-0"
                       onClick={() => handleScoreChange('B', -1)}
                       disabled={matchStatus === 'finished' || scoreB === 0}
                     >
-                      <Minus className="h-4 w-4" />
+                      <Minus className="h-3 w-3" />
                     </Button>
-                    <div className="bg-background rounded-lg px-6 py-3 min-w-[80px] shadow-sm border-2 border-primary/20">
-                      <div className="text-5xl font-bold text-primary">{scoreB}</div>
+                    <div className="bg-background rounded-lg px-3 py-2 min-w-[50px] shadow-sm border-2 border-primary/20">
+                      <div className="text-3xl font-bold text-primary">{scoreB}</div>
                     </div>
                     <Button
                       variant="outline"
                       size="icon"
-                      className="h-8 w-8 rounded-full"
+                      className="h-6 w-6 rounded-full shrink-0"
                       onClick={() => handleScoreChange('B', 1)}
                       disabled={matchStatus === 'finished'}
                     >
-                      <Plus className="h-4 w-4" />
+                      <Plus className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>

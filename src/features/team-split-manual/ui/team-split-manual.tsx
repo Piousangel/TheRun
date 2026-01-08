@@ -218,11 +218,11 @@ export function TeamSplitManual() {
                     경기 탭에서 경기를 시작하거나, 새로운 팀을 나눌 수 있습니다.
                   </p>
                 </div>
-                <div className="flex gap-2 justify-center">
-                  <Button onClick={() => router.push('/matches')} size="lg">
+                <div className="flex flex-col gap-2 w-full max-w-md mx-auto">
+                  <Button onClick={() => router.push('/matches')} size="lg" className="w-full">
                     경기 시작하러 가기
                   </Button>
-                  <Button onClick={clearTeamSelection} variant="outline" size="lg">
+                  <Button onClick={clearTeamSelection} variant="outline" size="lg" className="w-full">
                     <PlusCircle className="mr-2 h-5 w-5" />
                     새로운 팀 나누기
                   </Button>
