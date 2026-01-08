@@ -8,6 +8,7 @@ import { generateOpponentFormation } from '@/features/tactical-board/model/oppon
 import { SoccerField } from '@/entities/field/ui/soccer-field';
 import { PlayerMarker } from '@/features/tactical-board/ui/player-marker';
 import { OpponentMarker } from '@/features/tactical-board/ui/opponent-marker';
+import { PositionSlot } from '@/features/tactical-board/ui/position-slot';
 import { PositionPresetSelector } from '@/features/tactical-board/ui/position-preset-selector';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
@@ -163,9 +164,22 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
             />
           ))}
 
-          {/* Field players */}
+          {/* Position slots (show all slots, including empty ones) */}
+          {fieldPlayers.map((position) => (
+            <PositionSlot
+              key={`slot-${position.id}`}
+              x={position.x}
+              y={position.y}
+              role={position.role}
+              isEmpty={!position.memberId}
+            />
+          ))}
+
+          {/* Field players (only render if slot has a player) */}
           {fieldPlayers.map((position) => {
             const member = getMemberById(position.memberId);
+            if (!member) return null; // Skip empty slots
+
             return (
               <PlayerMarker
                 key={position.id}
