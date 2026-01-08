@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { PlayerPosition } from '@/shared/types/formation';
+import type { PlayerPosition, PositionRole } from '@/shared/types/formation';
 
 interface TacticalBoardState {
   positions: PlayerPosition[];
@@ -7,6 +7,7 @@ interface TacticalBoardState {
   playerCount: number;
   setPositions: (positions: PlayerPosition[]) => void;
   updatePosition: (id: string, x: number, y: number) => void;
+  updatePositionRole: (id: string, role: PositionRole) => void;
   setSelectedPlayer: (id: string | null) => void;
   swapPlayers: (id1: string, id2: string) => void;
   setPlayerCount: (count: number) => void;
@@ -23,6 +24,12 @@ export const useTacticalBoardStore = create<TacticalBoardState>((set) => ({
   updatePosition: (id, x, y) => set((state) => ({
     positions: state.positions.map((pos) =>
       pos.id === id ? { ...pos, x, y } : pos
+    ),
+  })),
+
+  updatePositionRole: (id, role) => set((state) => ({
+    positions: state.positions.map((pos) =>
+      pos.id === id ? { ...pos, role } : pos
     ),
   })),
 

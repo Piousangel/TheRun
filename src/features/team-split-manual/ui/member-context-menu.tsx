@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { Card } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
-import { Users } from 'lucide-react';
+import { Users, UserMinus } from 'lucide-react';
 
 type TeamName = 'A' | 'B' | 'C' | 'D';
 
@@ -12,7 +12,9 @@ interface MemberContextMenuProps {
   position: { x: number; y: number };
   availableTeams: TeamName[];
   onSelectTeam: (teamName: TeamName) => void;
+  onSelectAvailable?: () => void;
   onClose: () => void;
+  showAvailableOption?: boolean;
 }
 
 export function MemberContextMenu({
@@ -20,7 +22,9 @@ export function MemberContextMenu({
   position,
   availableTeams,
   onSelectTeam,
+  onSelectAvailable,
   onClose,
+  showAvailableOption = false,
 }: MemberContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -65,8 +69,22 @@ export function MemberContextMenu({
       >
         <div className="p-2 space-y-1 min-w-[140px]">
           <div className="text-xs font-semibold text-muted-foreground px-2 py-1">
-            팀 선택
+            {showAvailableOption ? '이동하기' : '팀 선택'}
           </div>
+          {showAvailableOption && onSelectAvailable && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full justify-start"
+              onClick={() => {
+                onSelectAvailable();
+                onClose();
+              }}
+            >
+              <UserMinus className="mr-2 h-4 w-4" />
+              대기 멤버로
+            </Button>
+          )}
           {availableTeams.map((teamName) => (
             <Button
               key={teamName}

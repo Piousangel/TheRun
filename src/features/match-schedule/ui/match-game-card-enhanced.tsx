@@ -374,6 +374,43 @@ export function MatchGameCardEnhanced({
         {/* Match Display with Timer and Score */}
         {selectedTeamA && selectedTeamB && (
           <>
+            {/* Match Finished Result Screen */}
+            {displayStatus === 'finished' && (
+              <div className="bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg p-6 space-y-4">
+                <div className="text-center">
+                  <div className="inline-block px-4 py-2 bg-primary/20 rounded-full mb-4">
+                    <p className="text-sm font-bold text-primary">경기 종료</p>
+                  </div>
+                  <div className="text-2xl font-bold mb-2">
+                    {scoreA > scoreB && `🏆 Team ${selectedTeamA} 승리!`}
+                    {scoreB > scoreA && `🏆 Team ${selectedTeamB} 승리!`}
+                    {scoreA === scoreB && '⚖️ 무승부'}
+                  </div>
+                  <div className="text-4xl font-bold text-primary flex items-center justify-center gap-4 mb-4">
+                    <span>{scoreA}</span>
+                    <span className="text-2xl text-muted-foreground">:</span>
+                    <span>{scoreB}</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="text-center p-3 bg-background/50 rounded-lg">
+                      <p className="text-muted-foreground mb-1">Team {selectedTeamA}</p>
+                      <p className="font-bold">{teams[selectedTeamA].length}명</p>
+                    </div>
+                    <div className="text-center p-3 bg-background/50 rounded-lg">
+                      <p className="text-muted-foreground mb-1">Team {selectedTeamB}</p>
+                      <p className="font-bold">{teams[selectedTeamB].length}명</p>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-border/50">
+                    <div className="text-sm text-muted-foreground space-y-1">
+                      <p>경기 시간: {matchDurationMinutes}분</p>
+                      <p>경기 일시: {new Date(eventDate).toLocaleString('ko-KR')}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Timer */}
             {displayStatus !== 'finished' && (
               <>

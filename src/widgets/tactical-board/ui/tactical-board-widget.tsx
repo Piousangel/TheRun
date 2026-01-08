@@ -9,13 +9,13 @@ import { SoccerField } from '@/entities/field/ui/soccer-field';
 import { PlayerMarker } from '@/features/tactical-board/ui/player-marker';
 import { OpponentMarker } from '@/features/tactical-board/ui/opponent-marker';
 import { PositionSlot } from '@/features/tactical-board/ui/position-slot';
-import { PositionPresetSelector } from '@/features/tactical-board/ui/position-preset-selector';
+import { PositionChangeMenu } from '@/features/tactical-board/ui/position-change-menu';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import { RotateCcw, Users, ArrowLeftRight } from 'lucide-react';
-import type { PlayerPosition } from '@/shared/types/formation';
+import type { PlayerPosition, PositionRole } from '@/shared/types/formation';
 
 interface TacticalBoardWidgetProps {
   teamName: string;
@@ -26,10 +26,18 @@ type TeamName = 'A' | 'B' | 'C' | 'D';
 export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { teams } = useTeamSplitStore();
-  const { positions, playerCount, setPositions, updatePosition, setPlayerCount, swapPlayers } = useTacticalBoardStore();
-  const [selectedPosition, setSelectedPosition] = useState<PlayerPosition | null>(null);
+  const { positions, playerCount, setPositions, updatePositionRole, setPlayerCount, swapPlayers } = useTacticalBoardStore();
   const [showOpponents, setShowOpponents] = useState(true);
   const [substituteToSwap, setSubstituteToSwap] = useState<PlayerPosition | null>(null);
+  const [positionMenu, setPositionMenu] = useState<{
+    isOpen: boolean;
+    position: { x: number; y: number };
+    playerPosition: PlayerPosition | null;
+  }>({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    playerPosition: null,
+  });
 
   const teamMembers = teams[teamName as TeamName] || [];
 
@@ -61,10 +69,24 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     return teamMembers.find((m) => m.id === memberId) || null;
   };
 
+  const handlePlayerClick = (position: PlayerPosition, e: React.MouseEvent) => {
+    if (substituteToSwap) {
+      // Swap substitute with this field player
+      swapPlayers(substituteToSwap.id, position.id);
+      setSubstituteToSwap(null);
+    } else if (position.role !== 'SUB') {
+      // Show position change menu for field players only
+      setPositionMenu({
+        isOpen: true,
+        position: { x: e.clientX, y: e.clientY },
+        playerPosition: position,
+      });
+    }
+  };
 
-  const handlePresetSelect = (x: number, y: number) => {
-    if (selectedPosition) {
-      updatePosition(selectedPosition.id, x, y);
+  const handlePositionRoleChange = (role: PositionRole) => {
+    if (positionMenu.playerPosition) {
+      updatePositionRole(positionMenu.playerPosition.id, role);
     }
   };
 
@@ -75,17 +97,6 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     } else {
       // Select this substitute for swapping
       setSubstituteToSwap(subPosition);
-    }
-  };
-
-  const handleFieldPlayerClick = (position: PlayerPosition) => {
-    if (substituteToSwap) {
-      // Swap substitute with this field player
-      swapPlayers(substituteToSwap.id, position.id);
-      setSubstituteToSwap(null);
-    } else {
-      // Normal position selection
-      setSelectedPosition(position);
     }
   };
 

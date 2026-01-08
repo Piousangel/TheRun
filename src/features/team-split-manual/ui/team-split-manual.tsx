@@ -2,15 +2,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DndContext, DragEndEvent, DragOverlay, DragStartEvent, closestCenter } from '@dnd-kit/core';
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useMembers } from '@/entities/member/model/queries';
 import { useActiveVoteSessions, useVoteResponses } from '@/entities/vote/model/queries';
 import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
 import { calculateTeamStats } from '@/features/team-split-auto/model/algorithm';
-import { DraggableMember } from './draggable-member';
-import { DroppableTeam } from './droppable-team';
 import { MemberContextMenu } from './member-context-menu';
+import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
@@ -30,7 +27,6 @@ export function TeamSplitManual() {
   const [selectedVoteId, setSelectedVoteId] = useState<string | null>(null);
   const { data: voteResponses } = useVoteResponses(selectedVoteId || '');
   const { teamCount, availableMembers, teams, isTeamSelectionComplete, setTeamCount, setAvailableMembers, moveToTeam, moveToAvailable, reset, setSelectedVoteSessionId, completeTeamSelection, clearTeamSelection } = useTeamSplitStore();
-  const [activeMember, setActiveMember] = useState<Member | null>(null);
   const [filterMode, setFilterMode] = useState<'all' | 'attending'>('all');
   const [contextMenu, setContextMenu] = useState<{
     isOpen: boolean;
@@ -59,56 +55,27 @@ export function TeamSplitManual() {
     return members.filter(m => getMemberVoteStatus(m.id) === 'attending');
   }, [members, filterMode, voteResponses, selectedVoteId]);
 
+  // Sort available members: attending first, then others
+  const sortedAvailableMembers = useMemo(() => {
+    if (!selectedVoteId) return availableMembers;
+
+    return [...availableMembers].sort((a, b) => {
+      const aStatus = getMemberVoteStatus(a.id);
+      const bStatus = getMemberVoteStatus(b.id);
+
+      // attending first
+      if (aStatus === 'attending' && bStatus !== 'attending') return -1;
+      if (aStatus !== 'attending' && bStatus === 'attending') return 1;
+
+      return 0;
+    });
+  }, [availableMembers, selectedVoteId, voteResponses]);
+
   useEffect(() => {
     if (filteredMembers.length > 0 && availableMembers.length === 0 && Object.values(teams).every(t => t.length === 0)) {
       setAvailableMembers(filteredMembers);
     }
   }, [filteredMembers, availableMembers, teams, setAvailableMembers]);
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const memberId = event.active.id as string;
-    const allMembers = [availableMembers, ...Object.values(teams)].flat();
-    const member = allMembers.find((m) => m.id === memberId);
-    setActiveMember(member || null);
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveMember(null);
-
-    if (!over) return;
-
-    const memberId = active.id as string;
-    const targetContainer = over.id as string;
-
-    const allMembers = [availableMembers, ...Object.values(teams)].flat();
-    const member = allMembers.find((m) => m.id === memberId);
-    if (!member) return;
-
-    const isInAvailable = availableMembers.some((m) => m.id === memberId);
-    let fromTeam: TeamName | null = null;
-
-    for (const teamName of TEAM_NAMES) {
-      if (teams[teamName].some((m) => m.id === memberId)) {
-        fromTeam = teamName;
-        break;
-      }
-    }
-
-    if (targetContainer === 'available') {
-      if (fromTeam) {
-        moveToAvailable(member, fromTeam);
-      }
-    } else if (TEAM_NAMES.includes(targetContainer as TeamName)) {
-      const targetTeam = targetContainer as TeamName;
-      if (isInAvailable) {
-        moveToTeam(member, targetTeam);
-      } else if (fromTeam && fromTeam !== targetTeam) {
-        moveToAvailable(member, fromTeam);
-        moveToTeam(member, targetTeam);
-      }
-    }
-  };
 
   const handleReset = () => {
     if (filteredMembers) {
@@ -143,9 +110,9 @@ export function TeamSplitManual() {
     router.push('/matches');
   };
 
-  const handleMemberLongPress = (member: Member, e: React.MouseEvent | React.TouchEvent) => {
-    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+  const handleMemberClick = (member: Member, e: React.MouseEvent) => {
+    const clientX = e.clientX;
+    const clientY = e.clientY;
 
     setContextMenu({
       isOpen: true,
@@ -172,6 +139,20 @@ export function TeamSplitManual() {
       }
       // Then move to new team
       moveToTeam(contextMenu.member, teamName);
+    }
+
+    setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, member: null });
+  };
+
+  const handleContextMenuAvailable = () => {
+    if (!contextMenu.member) return;
+
+    // Find which team the member is in and move back to available
+    for (const tn of TEAM_NAMES) {
+      if (teams[tn].some(m => m.id === contextMenu.member!.id)) {
+        moveToAvailable(contextMenu.member, tn);
+        break;
+      }
     }
 
     setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, member: null });
@@ -205,8 +186,7 @@ export function TeamSplitManual() {
   const matchVotes = voteSessions?.filter(s => s.type === 'match') || [];
 
   return (
-    <DndContext collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* New Team Division Button - Show when team selection is complete */}
         {isTeamSelectionComplete && (
           <Card className="border-2 border-primary">
@@ -293,7 +273,7 @@ export function TeamSplitManual() {
           <div>
             <h2 className="text-2xl font-bold">수동 팀 분배</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              드래그하여 팀에 멤버를 배치하세요
+              멤버를 클릭하여 팀에 배치하세요
             </p>
           </div>
           <div className="flex gap-2">
@@ -316,44 +296,96 @@ export function TeamSplitManual() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* Available Members */}
-          <DroppableTeam id="available" title="대기 멤버" count={availableMembers.length}>
-            <SortableContext items={availableMembers.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>대기 멤버</span>
+                <Badge variant="secondary">{sortedAvailableMembers.length}</Badge>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-2">
-                {availableMembers.map((member) => (
-                  <DraggableMember
-                    key={member.id}
-                    member={member}
-                    voteStatus={selectedVoteId ? getMemberVoteStatus(member.id) : undefined}
-                    onLongPress={(e) => handleMemberLongPress(member, e)}
-                  />
-                ))}
+                {sortedAvailableMembers.map((member) => {
+                  const voteStatus = selectedVoteId ? getMemberVoteStatus(member.id) : undefined;
+                  return (
+                    <button
+                      key={member.id}
+                      onClick={(e) => handleMemberClick(member, e)}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
+                    >
+                      <MemberAvatar
+                        src={member.profile_photo}
+                        alt={member.name}
+                        size="sm"
+                      />
+                      <div className="flex-1 text-left">
+                        <div className="font-medium">{member.name}</div>
+                      </div>
+                      {voteStatus && (
+                        <Badge
+                          variant={voteStatus === 'attending' ? 'default' : voteStatus === 'absent' ? 'destructive' : 'secondary'}
+                          className="text-xs"
+                        >
+                          {voteStatus === 'attending' ? '참석' : voteStatus === 'absent' ? '불참' : '미응답'}
+                        </Badge>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-            </SortableContext>
-          </DroppableTeam>
+            </CardContent>
+          </Card>
 
           {/* Teams */}
-          {activeTeams.map((teamName) => (
-            <DroppableTeam
-              key={teamName}
-              id={teamName}
-              title={`Team ${teamName}`}
-              count={teams[teamName].length}
-              stats={teamStats[teamName]}
-            >
-              <SortableContext items={teams[teamName].map((m) => m.id)} strategy={verticalListSortingStrategy}>
-                <div className="space-y-2">
-                  {teams[teamName].map((member) => (
-                    <DraggableMember
-                      key={member.id}
-                      member={member}
-                      voteStatus={selectedVoteId ? getMemberVoteStatus(member.id) : undefined}
-                      onLongPress={(e) => handleMemberLongPress(member, e)}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DroppableTeam>
-          ))}
+          {activeTeams.map((teamName) => {
+            const stats = teamStats[teamName];
+            return (
+              <Card key={teamName}>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>Team {teamName}</span>
+                    <Badge variant="secondary">{teams[teamName].length}</Badge>
+                  </CardTitle>
+                  {stats && (
+                    <div className="text-sm text-muted-foreground mt-1">
+                      종합: <span className="font-bold text-primary">{stats.totalScore.toFixed(1)}</span>
+                    </div>
+                  )}
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {teams[teamName].map((member) => {
+                      const voteStatus = selectedVoteId ? getMemberVoteStatus(member.id) : undefined;
+                      return (
+                        <button
+                          key={member.id}
+                          onClick={(e) => handleMemberClick(member, e)}
+                          className="w-full flex items-center gap-3 p-3 rounded-lg bg-muted hover:bg-muted/80 transition-colors cursor-pointer"
+                        >
+                          <MemberAvatar
+                            src={member.profile_photo}
+                            alt={member.name}
+                            size="sm"
+                          />
+                          <div className="flex-1 text-left">
+                            <div className="font-medium">{member.name}</div>
+                          </div>
+                          {voteStatus && (
+                            <Badge
+                              variant={voteStatus === 'attending' ? 'default' : voteStatus === 'absent' ? 'destructive' : 'secondary'}
+                              className="text-xs"
+                            >
+                              {voteStatus === 'attending' ? '참석' : voteStatus === 'absent' ? '불참' : '미응답'}
+                            </Badge>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Team Balance Analysis */}
@@ -394,11 +426,6 @@ export function TeamSplitManual() {
             </Button>
           </div>
         )}
-      </div>
-
-      <DragOverlay>
-        {activeMember ? <DraggableMember member={activeMember} isDragging /> : null}
-      </DragOverlay>
 
       {/* Context Menu */}
       <MemberContextMenu
@@ -406,8 +433,14 @@ export function TeamSplitManual() {
         position={contextMenu.position}
         availableTeams={activeTeams}
         onSelectTeam={handleContextMenuTeamSelect}
+        onSelectAvailable={handleContextMenuAvailable}
+        showAvailableOption={
+          contextMenu.member
+            ? !availableMembers.some(m => m.id === contextMenu.member!.id)
+            : false
+        }
         onClose={() => setContextMenu({ isOpen: false, position: { x: 0, y: 0 }, member: null })}
       />
-    </DndContext>
+    </div>
   );
 }
