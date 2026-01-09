@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
@@ -92,6 +92,7 @@ export function MatchGameCardEnhanced({
         setCreatedMatch({ id: storedMatchId } as Match);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update display time every second when match is in progress
@@ -117,7 +118,7 @@ export function MatchGameCardEnhanced({
         clearInterval(intervalRef.current);
       }
     };
-  }, [matchStatus, storedMatchNumber, matchNumber]);
+  }, [matchStatus, storedMatchNumber, matchNumber, getRemainingSeconds, handleMatchFinish]);
 
   // Update time when duration changes (only for pending matches)
   const handleDurationChange = (minutes: string) => {
@@ -221,7 +222,7 @@ export function MatchGameCardEnhanced({
     resumeMatch();
   };
 
-  const handleMatchFinish = () => {
+  const handleMatchFinish = useCallback(() => {
     if (!createdMatch) return;
 
     // Finish match in store
@@ -238,7 +239,7 @@ export function MatchGameCardEnhanced({
         team_b: { ...createdMatch.team_b, score: scoreB },
       },
     });
-  };
+  }, [createdMatch, finishMatch, updateMatch, scoreA, scoreB]);
 
   const handleScoreChange = (team: 'A' | 'B', delta: number) => {
     if (matchStatus === 'finished') return;
