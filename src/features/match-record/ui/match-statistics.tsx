@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { MemberAvatar } from '@/entities/member/ui/member-avatar';
-import { Badge } from '@/shared/ui/badge';
-import { Trophy, Target, Users as UsersIcon, Hand } from 'lucide-react';
-import type { Member } from '@/shared/types/member';
-import type { PlayerMatchRecord } from '@/shared/types/match';
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { MemberAvatar } from "@/entities/member/ui/member-avatar";
+import { Badge } from "@/shared/ui/badge";
+import { Trophy, Target, Users as UsersIcon, Hand } from "lucide-react";
+import type { Member } from "@/shared/types/member";
+import type { PlayerMatchRecord } from "@/shared/types/match";
 
 interface MatchStatisticsProps {
   teamName: string;
@@ -13,7 +13,11 @@ interface MatchStatisticsProps {
   playerRecords: PlayerMatchRecord[];
 }
 
-export function MatchStatistics({ teamName, teamMembers, playerRecords }: MatchStatisticsProps) {
+export function MatchStatistics({
+  teamName,
+  teamMembers,
+  playerRecords,
+}: MatchStatisticsProps) {
   const getMemberById = (memberId: string) => {
     return teamMembers.find((m) => m.id === memberId);
   };
@@ -91,8 +95,14 @@ export function MatchStatistics({ teamName, teamMembers, playerRecords }: MatchS
                         <span className="text-sm font-bold text-muted-foreground w-6">
                           {index + 1}위
                         </span>
-                        <MemberAvatar src={member.profile_photo} alt={member.name} size="xs" />
-                        <span className="text-sm font-medium">{member.name}</span>
+                        <MemberAvatar
+                          src={member.profile_photo}
+                          alt={member.name}
+                          size="sm"
+                        />
+                        <span className="text-sm font-medium">
+                          {member.name}
+                        </span>
                       </div>
                       <Badge variant="secondary">⚽ {record.goals}골</Badge>
                     </div>
@@ -122,8 +132,14 @@ export function MatchStatistics({ teamName, teamMembers, playerRecords }: MatchS
                         <span className="text-sm font-bold text-muted-foreground w-6">
                           {index + 1}위
                         </span>
-                        <MemberAvatar src={member.profile_photo} alt={member.name} size="xs" />
-                        <span className="text-sm font-medium">{member.name}</span>
+                        <MemberAvatar
+                          src={member.profile_photo}
+                          alt={member.name}
+                          size="sm"
+                        />
+                        <span className="text-sm font-medium">
+                          {member.name}
+                        </span>
                       </div>
                       <Badge variant="secondary">🎯 {record.assists}도움</Badge>
                     </div>
@@ -153,8 +169,14 @@ export function MatchStatistics({ teamName, teamMembers, playerRecords }: MatchS
                         <span className="text-sm font-bold text-muted-foreground w-6">
                           {index + 1}위
                         </span>
-                        <MemberAvatar src={member.profile_photo} alt={member.name} size="xs" />
-                        <span className="text-sm font-medium">{member.name}</span>
+                        <MemberAvatar
+                          src={member.profile_photo}
+                          alt={member.name}
+                          size="sm"
+                        />
+                        <span className="text-sm font-medium">
+                          {member.name}
+                        </span>
                       </div>
                       <Badge variant="secondary">🧤 {record.saves}선방</Badge>
                     </div>
@@ -168,7 +190,9 @@ export function MatchStatistics({ teamName, teamMembers, playerRecords }: MatchS
             sortedByAssists.length === 0 &&
             sortedBySaves.length === 0 &&
             !mvpPlayer && (
-              <p className="text-center text-muted-foreground py-4">기록이 없습니다</p>
+              <p className="text-center text-muted-foreground py-4">
+                기록이 없습니다
+              </p>
             )}
         </CardContent>
       </Card>

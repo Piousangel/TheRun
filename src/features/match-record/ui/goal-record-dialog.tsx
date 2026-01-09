@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,13 +8,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Label } from '@/shared/ui/label';
-import { MemberAvatar } from '@/entities/member/ui/member-avatar';
-import type { Member } from '@/shared/types/member';
-import type { GoalRecord } from '@/shared/types/match';
+} from "@/shared/ui/dialog";
+import { Button } from "@/shared/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
+import { Label } from "@/shared/ui/label";
+import { MemberAvatar } from "@/entities/member/ui/member-avatar";
+import type { Member } from "@/shared/types/member";
+import type { GoalRecord } from "@/shared/types/match";
 
 interface GoalRecordDialogProps {
   isOpen: boolean;
@@ -22,7 +28,7 @@ interface GoalRecordDialogProps {
   teamName: string;
   teamMembers: Member[];
   currentMinute: number;
-  onSave: (goal: Omit<GoalRecord, 'timestamp'>) => void;
+  onSave: (goal: Omit<GoalRecord, "timestamp">) => void;
 }
 
 export function GoalRecordDialog({
@@ -33,8 +39,8 @@ export function GoalRecordDialog({
   currentMinute,
   onSave,
 }: GoalRecordDialogProps) {
-  const [scorerId, setScorerId] = useState<string>('');
-  const [assistId, setAssistId] = useState<string>('none');
+  const [scorerId, setScorerId] = useState<string>("");
+  const [assistId, setAssistId] = useState<string>("none");
 
   const handleSave = () => {
     if (!scorerId) return;
@@ -42,18 +48,18 @@ export function GoalRecordDialog({
     onSave({
       minute: currentMinute,
       scorer_id: scorerId,
-      assist_id: assistId === 'none' ? null : assistId,
+      assist_id: assistId === "none" ? null : assistId,
     });
 
     // Reset form
-    setScorerId('');
-    setAssistId('none');
+    setScorerId("");
+    setAssistId("none");
     onClose();
   };
 
   const handleCancel = () => {
-    setScorerId('');
-    setAssistId('none');
+    setScorerId("");
+    setAssistId("none");
     onClose();
   };
 
@@ -62,7 +68,9 @@ export function GoalRecordDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>⚽ 골 기록 - {teamName}</DialogTitle>
-          <DialogDescription>득점자와 어시스트를 선택하세요 ({currentMinute}분)</DialogDescription>
+          <DialogDescription>
+            득점자와 어시스트를 선택하세요 ({currentMinute}분)
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -77,7 +85,11 @@ export function GoalRecordDialog({
                 {teamMembers.map((member) => (
                   <SelectItem key={member.id} value={member.id}>
                     <div className="flex items-center gap-2">
-                      <MemberAvatar src={member.profile_photo} alt={member.name} size="xs" />
+                      <MemberAvatar
+                        src={member.profile_photo}
+                        alt={member.name}
+                        size="sm"
+                      />
                       {member.name}
                     </div>
                   </SelectItem>
@@ -100,7 +112,11 @@ export function GoalRecordDialog({
                   .map((member) => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
-                        <MemberAvatar src={member.profile_photo} alt={member.name} size="xs" />
+                        <MemberAvatar
+                          src={member.profile_photo}
+                          alt={member.name}
+                          size="sm"
+                        />
                         {member.name}
                       </div>
                     </SelectItem>

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,14 +8,20 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Label } from '@/shared/ui/label';
-import { MemberAvatar } from '@/entities/member/ui/member-avatar';
-import { ArrowLeftRight } from 'lucide-react';
-import type { Member } from '@/shared/types/member';
-import type { SubstitutionRecord } from '@/shared/types/match';
+} from "@/shared/ui/dialog";
+import { Button } from "@/shared/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
+import { Label } from "@/shared/ui/label";
+import { MemberAvatar } from "@/entities/member/ui/member-avatar";
+import { ArrowLeftRight } from "lucide-react";
+import type { Member } from "@/shared/types/member";
+import type { SubstitutionRecord } from "@/shared/types/match";
 
 interface SubstitutionDialogProps {
   isOpen: boolean;
@@ -23,7 +29,7 @@ interface SubstitutionDialogProps {
   teamName: string;
   teamMembers: Member[];
   currentMinute: number;
-  onSave: (substitution: Omit<SubstitutionRecord, 'timestamp'>) => void;
+  onSave: (substitution: Omit<SubstitutionRecord, "timestamp">) => void;
 }
 
 export function SubstitutionDialog({
@@ -34,8 +40,8 @@ export function SubstitutionDialog({
   currentMinute,
   onSave,
 }: SubstitutionDialogProps) {
-  const [playerOutId, setPlayerOutId] = useState<string>('');
-  const [playerInId, setPlayerInId] = useState<string>('');
+  const [playerOutId, setPlayerOutId] = useState<string>("");
+  const [playerInId, setPlayerInId] = useState<string>("");
 
   const handleSave = () => {
     if (!playerOutId || !playerInId || playerOutId === playerInId) return;
@@ -47,14 +53,14 @@ export function SubstitutionDialog({
     });
 
     // Reset form
-    setPlayerOutId('');
-    setPlayerInId('');
+    setPlayerOutId("");
+    setPlayerInId("");
     onClose();
   };
 
   const handleCancel = () => {
-    setPlayerOutId('');
-    setPlayerInId('');
+    setPlayerOutId("");
+    setPlayerInId("");
     onClose();
   };
 
@@ -63,7 +69,9 @@ export function SubstitutionDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>🔄 교체 기록 - {teamName}</DialogTitle>
-          <DialogDescription>교체될 선수와 투입될 선수를 선택하세요 ({currentMinute}분)</DialogDescription>
+          <DialogDescription>
+            교체될 선수와 투입될 선수를 선택하세요 ({currentMinute}분)
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
@@ -76,9 +84,17 @@ export function SubstitutionDialog({
               </SelectTrigger>
               <SelectContent>
                 {teamMembers.map((member) => (
-                  <SelectItem key={member.id} value={member.id} disabled={member.id === playerInId}>
+                  <SelectItem
+                    key={member.id}
+                    value={member.id}
+                    disabled={member.id === playerInId}
+                  >
                     <div className="flex items-center gap-2">
-                      <MemberAvatar src={member.profile_photo} alt={member.name} size="xs" />
+                      <MemberAvatar
+                        src={member.profile_photo}
+                        alt={member.name}
+                        size="sm"
+                      />
                       {member.name}
                     </div>
                   </SelectItem>
@@ -100,9 +116,17 @@ export function SubstitutionDialog({
               </SelectTrigger>
               <SelectContent>
                 {teamMembers.map((member) => (
-                  <SelectItem key={member.id} value={member.id} disabled={member.id === playerOutId}>
+                  <SelectItem
+                    key={member.id}
+                    value={member.id}
+                    disabled={member.id === playerOutId}
+                  >
                     <div className="flex items-center gap-2">
-                      <MemberAvatar src={member.profile_photo} alt={member.name} size="xs" />
+                      <MemberAvatar
+                        src={member.profile_photo}
+                        alt={member.name}
+                        size="sm"
+                      />
                       {member.name}
                     </div>
                   </SelectItem>
