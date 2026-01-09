@@ -8,12 +8,16 @@ import { ko } from 'date-fns/locale';
 import { useMatch, useUpdateMatch } from '@/entities/match/model/queries';
 import { useMembers } from '@/entities/member/model/queries';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
+import { GoalRecordDialog } from '@/features/match-record/ui/goal-record-dialog';
+import { SaveRecordDialog } from '@/features/match-record/ui/save-record-dialog';
+import { SubstitutionDialog } from '@/features/match-record/ui/substitution-dialog';
+import { MatchStatistics } from '@/features/match-record/ui/match-statistics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
-import { Input } from '@/shared/ui/input';
 import { Badge } from '@/shared/ui/badge';
 import { Separator } from '@/shared/ui/separator';
 import { LoadingState } from '@/shared/ui/loading-spinner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import {
   Play,
   Pause,
@@ -24,8 +28,12 @@ import {
   MapPin,
   Calendar,
   Users,
+  Target,
+  Hand,
+  ArrowLeftRight,
 } from 'lucide-react';
-import type { Match } from '@/shared/types/match';
+import type { Match, GoalRecord, SubstitutionRecord, PlayerMatchRecord, TeamMatchData } from '@/shared/types/match';
+import type { Member } from '@/shared/types/member';
 
 interface MatchDetailWidgetProps {
   matchId: string;
@@ -46,6 +54,11 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
   // Score state
   const [scoreA, setScoreA] = useState(0);
   const [scoreB, setScoreB] = useState(0);
+
+  // Dialog states
+  const [goalDialogOpen, setGoalDialogOpen] = useState<{ team: 'A' | 'B' } | null>(null);
+  const [saveDialogOpen, setSaveDialogOpen] = useState<{ team: 'A' | 'B' } | null>(null);
+  const [substitutionDialogOpen, setSubstitutionDialogOpen] = useState<{ team: 'A' | 'B' } | null>(null);
 
   // Initialize scores and timer from match data
   useEffect(() => {
@@ -95,21 +108,54 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
     };
   }, [isRunning]);
 
+  const getCurrentMinute = () => {
+    return Math.floor((initialTime - timeInSeconds) / 60);
+  };
+
   const handleMatchStart = () => {
     if (!match) return;
 
     const startTime = new Date().toISOString();
-    updateMatch({
-      id: matchId,
-      data: {
-        status: 'in_progress',
-        start_time: startTime,
-        duration: initialTime,
-        team_a: { ...match.team_a, score: scoreA },
-        team_b: { ...match.team_b, score: scoreB },
+    // Initialize player records for all team members
+    const initializePlayerRecords = (memberIds: string[]): PlayerMatchRecord[] => {
+      return memberIds.map((id) => ({
+        member_id: id,
+        goals: 0,
+        assists: 0,
+        saves: 0,
+        is_mvp: false,
+      }));
+    };
+
+    updateMatch(
+      {
+        id: matchId,
+        data: {
+          status: 'in_progress',
+          start_time: startTime,
+          duration: initialTime,
+          team_a: {
+            ...match.team_a,
+            score: scoreA,
+            players: match.team_a.players?.length > 0 ? match.team_a.players : initializePlayerRecords(match.team_a.member_ids),
+            goals_detail: match.team_a.goals_detail || [],
+            substitutions: match.team_a.substitutions || [],
+          },
+          team_b: {
+            ...match.team_b,
+            score: scoreB,
+            players: match.team_b.players?.length > 0 ? match.team_b.players : initializePlayerRecords(match.team_b.member_ids),
+            goals_detail: match.team_b.goals_detail || [],
+            substitutions: match.team_b.substitutions || [],
+          },
+        },
       },
-    });
-    setIsRunning(true);
+      {
+        onSuccess: () => {
+          setIsRunning(true);
+        },
+      }
+    );
   };
 
   const handleMatchPause = () => {
@@ -176,6 +222,96 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
     }
   };
 
+  const handleGoalSave = (team: 'A' | 'B', goal: Omit<GoalRecord, 'timestamp'>) => {
+    if (!match) return;
+
+    const teamData = team === 'A' ? match.team_a : match.team_b;
+    const newGoal: GoalRecord = {
+      ...goal,
+      timestamp: new Date().toISOString(),
+    };
+
+    // Update goals_detail
+    const updatedGoalsDetail = [...(teamData.goals_detail || []), newGoal];
+
+    // Update player records
+    const updatedPlayers = (teamData.players || []).map((p) => {
+      if (p.member_id === goal.scorer_id) {
+        return { ...p, goals: p.goals + 1 };
+      }
+      if (goal.assist_id && p.member_id === goal.assist_id) {
+        return { ...p, assists: p.assists + 1 };
+      }
+      return p;
+    });
+
+    // Update score
+    const newScore = (team === 'A' ? scoreA : scoreB) + 1;
+    if (team === 'A') {
+      setScoreA(newScore);
+    } else {
+      setScoreB(newScore);
+    }
+
+    updateMatch({
+      id: matchId,
+      data: {
+        [team === 'A' ? 'team_a' : 'team_b']: {
+          ...teamData,
+          score: newScore,
+          goals_detail: updatedGoalsDetail,
+          players: updatedPlayers,
+        },
+      },
+    });
+  };
+
+  const handleSaveSave = (team: 'A' | 'B', goalkeeperIds: string[]) => {
+    if (!match) return;
+
+    const teamData = team === 'A' ? match.team_a : match.team_b;
+
+    // Update player records - add 1 save to each selected goalkeeper
+    const updatedPlayers = (teamData.players || []).map((p) => {
+      if (goalkeeperIds.includes(p.member_id)) {
+        return { ...p, saves: p.saves + 1 };
+      }
+      return p;
+    });
+
+    updateMatch({
+      id: matchId,
+      data: {
+        [team === 'A' ? 'team_a' : 'team_b']: {
+          ...teamData,
+          players: updatedPlayers,
+        },
+      },
+    });
+  };
+
+  const handleSubstitutionSave = (team: 'A' | 'B', substitution: Omit<SubstitutionRecord, 'timestamp'>) => {
+    if (!match) return;
+
+    const teamData = team === 'A' ? match.team_a : match.team_b;
+    const newSubstitution: SubstitutionRecord = {
+      ...substitution,
+      timestamp: new Date().toISOString(),
+    };
+
+    const updatedSubstitutions = [...(teamData.substitutions || []), newSubstitution];
+
+    updateMatch({
+      id: matchId,
+      data: {
+        [team === 'A' ? 'team_a' : 'team_b']: {
+          ...teamData,
+          substitutions: updatedSubstitutions,
+        },
+      },
+    });
+  };
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -186,7 +322,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
 
   const getMembersByIds = (memberIds: string[]) => {
     if (!members) return [];
-    return memberIds.map((id) => members.find((m) => m.id === id)).filter(Boolean);
+    return memberIds.map((id) => members.find((m) => m.id === id)).filter(Boolean) as Member[];
   };
 
   if (isLoading) {
@@ -319,7 +455,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
 
             <div className="text-center text-sm text-muted-foreground">
               {timeInSeconds === 0 && '⏰ 경기 종료!'}
-              {isRunning && timeInSeconds > 0 && '⚽ 경기 진행 중'}
+              {isRunning && timeInSeconds > 0 && `⚽ 경기 진행 중 (${getCurrentMinute()}분)`}
               {!isRunning && timeInSeconds > 0 && timeInSeconds < initialTime && '⏸️ 일시정지'}
               {!isRunning && timeInSeconds === initialTime && match.status === 'pending' && '⏱️ 준비'}
             </div>
@@ -377,64 +513,238 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
               </div>
             </div>
           </div>
+
+          {/* Match Recording Buttons */}
+          {match.status === 'in_progress' && (
+            <>
+              <Separator />
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-center">경기 기록</p>
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Team A Records */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-center text-muted-foreground font-medium">Team A</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setGoalDialogOpen({ team: 'A' })}
+                    >
+                      <Target className="mr-2 h-4 w-4" />
+                      골 기록
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setSaveDialogOpen({ team: 'A' })}
+                    >
+                      <Hand className="mr-2 h-4 w-4" />
+                      선방 기록
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setSubstitutionDialogOpen({ team: 'A' })}
+                    >
+                      <ArrowLeftRight className="mr-2 h-4 w-4" />
+                      교체
+                    </Button>
+                  </div>
+
+                  {/* Team B Records */}
+                  <div className="space-y-2">
+                    <p className="text-xs text-center text-muted-foreground font-medium">Team B</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setGoalDialogOpen({ team: 'B' })}
+                    >
+                      <Target className="mr-2 h-4 w-4" />
+                      골 기록
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setSaveDialogOpen({ team: 'B' })}
+                    >
+                      <Hand className="mr-2 h-4 w-4" />
+                      선방 기록
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => setSubstitutionDialogOpen({ team: 'B' })}
+                    >
+                      <ArrowLeftRight className="mr-2 h-4 w-4" />
+                      교체
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 
-      {/* Match Summary (Only show when finished) */}
-      {match.status === 'finished' && (
+      {/* Match Details - Goals, Saves, Substitutions */}
+      {(match.team_a.goals_detail?.length > 0 ||
+        match.team_b.goals_detail?.length > 0 ||
+        match.team_a.substitutions?.length > 0 ||
+        match.team_b.substitutions?.length > 0) && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-primary" />
-              경기 기록
-            </CardTitle>
+            <CardTitle>경기 상세 기록</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">경기 시간</p>
-                <p className="text-lg font-bold">
-                  {match.duration ? `${Math.floor(match.duration / 60)}분` : '-'}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">최종 스코어</p>
-                <p className="text-2xl font-bold text-primary">
-                  {scoreA} : {scoreB}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-1">결과</p>
-                <p className="text-lg font-bold">
-                  {winner === 'draw' ? '무승부' : `Team ${winner} 승리`}
-                </p>
-              </div>
-            </div>
+          <CardContent>
+            <Tabs defaultValue="goals">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="goals">골 기록</TabsTrigger>
+                <TabsTrigger value="substitutions">교체 기록</TabsTrigger>
+              </TabsList>
 
-            <Separator />
+              <TabsContent value="goals" className="space-y-4 mt-4">
+                {/* Team A Goals */}
+                {match.team_a.goals_detail && match.team_a.goals_detail.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Team A 득점</h3>
+                    <div className="space-y-2">
+                      {match.team_a.goals_detail.map((goal, index) => {
+                        const scorer = members?.find((m) => m.id === goal.scorer_id);
+                        const assister = goal.assist_id
+                          ? members?.find((m) => m.id === goal.assist_id)
+                          : null;
+                        return (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded">
+                            <Badge variant="outline">{goal.minute}'</Badge>
+                            <Target className="h-4 w-4 text-blue-600" />
+                            <span className="font-medium">{scorer?.name || '알 수 없음'}</span>
+                            {assister && (
+                              <>
+                                <span className="text-xs text-muted-foreground">→</span>
+                                <span className="text-sm text-muted-foreground">
+                                  어시스트: {assister.name}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Team A 출전</p>
-                <p className="text-base font-medium">{teamAMembers.length}명</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground mb-2">Team B 출전</p>
-                <p className="text-base font-medium">{teamBMembers.length}명</p>
-              </div>
-            </div>
+                {/* Team B Goals */}
+                {match.team_b.goals_detail && match.team_b.goals_detail.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Team B 득점</h3>
+                    <div className="space-y-2">
+                      {match.team_b.goals_detail.map((goal, index) => {
+                        const scorer = members?.find((m) => m.id === goal.scorer_id);
+                        const assister = goal.assist_id
+                          ? members?.find((m) => m.id === goal.assist_id)
+                          : null;
+                        return (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-red-50 rounded">
+                            <Badge variant="outline">{goal.minute}'</Badge>
+                            <Target className="h-4 w-4 text-red-600" />
+                            <span className="font-medium">{scorer?.name || '알 수 없음'}</span>
+                            {assister && (
+                              <>
+                                <span className="text-xs text-muted-foreground">→</span>
+                                <span className="text-sm text-muted-foreground">
+                                  어시스트: {assister.name}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-            {match.notes && (
-              <>
-                <Separator />
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">메모</p>
-                  <p className="text-sm">{match.notes}</p>
-                </div>
-              </>
-            )}
+                {!match.team_a.goals_detail?.length && !match.team_b.goals_detail?.length && (
+                  <p className="text-center text-muted-foreground py-4">골 기록이 없습니다</p>
+                )}
+              </TabsContent>
+
+              <TabsContent value="substitutions" className="space-y-4 mt-4">
+                {/* Team A Substitutions */}
+                {match.team_a.substitutions && match.team_a.substitutions.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Team A 교체</h3>
+                    <div className="space-y-2">
+                      {match.team_a.substitutions.map((sub, index) => {
+                        const playerOut = members?.find((m) => m.id === sub.player_out_id);
+                        const playerIn = members?.find((m) => m.id === sub.player_in_id);
+                        return (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                            <Badge variant="outline">{sub.minute}'</Badge>
+                            <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">
+                              <span className="text-red-600">{playerOut?.name || '알 수 없음'}</span>
+                              {' → '}
+                              <span className="text-green-600">{playerIn?.name || '알 수 없음'}</span>
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Team B Substitutions */}
+                {match.team_b.substitutions && match.team_b.substitutions.length > 0 && (
+                  <div>
+                    <h3 className="font-semibold mb-2">Team B 교체</h3>
+                    <div className="space-y-2">
+                      {match.team_b.substitutions.map((sub, index) => {
+                        const playerOut = members?.find((m) => m.id === sub.player_out_id);
+                        const playerIn = members?.find((m) => m.id === sub.player_in_id);
+                        return (
+                          <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
+                            <Badge variant="outline">{sub.minute}'</Badge>
+                            <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">
+                              <span className="text-red-600">{playerOut?.name || '알 수 없음'}</span>
+                              {' → '}
+                              <span className="text-green-600">{playerIn?.name || '알 수 없음'}</span>
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {!match.team_a.substitutions?.length && !match.team_b.substitutions?.length && (
+                  <p className="text-center text-muted-foreground py-4">교체 기록이 없습니다</p>
+                )}
+              </TabsContent>
+            </Tabs>
           </CardContent>
         </Card>
+      )}
+
+      {/* Player Statistics */}
+      {match.status === 'finished' && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <MatchStatistics
+            teamName="Team A"
+            teamMembers={teamAMembers}
+            playerRecords={match.team_a.players || []}
+          />
+          <MatchStatistics
+            teamName="Team B"
+            teamMembers={teamBMembers}
+            playerRecords={match.team_b.players || []}
+          />
+        </div>
       )}
 
       {/* Team Rosters */}
@@ -449,7 +759,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {teamAMembers.map((member: any) => (
+              {teamAMembers.map((member: Member) => (
                 <div
                   key={member.id}
                   className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
@@ -479,7 +789,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           </CardHeader>
           <CardContent>
             <div className="space-y-2">
-              {teamBMembers.map((member: any) => (
+              {teamBMembers.map((member: Member) => (
                 <div
                   key={member.id}
                   className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
@@ -499,6 +809,40 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Dialogs */}
+      {goalDialogOpen && (
+        <GoalRecordDialog
+          isOpen={true}
+          onClose={() => setGoalDialogOpen(null)}
+          teamName={`Team ${goalDialogOpen.team}`}
+          teamMembers={goalDialogOpen.team === 'A' ? teamAMembers : teamBMembers}
+          currentMinute={getCurrentMinute()}
+          onSave={(goal) => handleGoalSave(goalDialogOpen.team, goal)}
+        />
+      )}
+
+      {saveDialogOpen && (
+        <SaveRecordDialog
+          isOpen={true}
+          onClose={() => setSaveDialogOpen(null)}
+          teamName={`Team ${saveDialogOpen.team}`}
+          teamMembers={saveDialogOpen.team === 'A' ? teamAMembers : teamBMembers}
+          currentMinute={getCurrentMinute()}
+          onSave={(goalkeeperIds) => handleSaveSave(saveDialogOpen.team, goalkeeperIds)}
+        />
+      )}
+
+      {substitutionDialogOpen && (
+        <SubstitutionDialog
+          isOpen={true}
+          onClose={() => setSubstitutionDialogOpen(null)}
+          teamName={`Team ${substitutionDialogOpen.team}`}
+          teamMembers={substitutionDialogOpen.team === 'A' ? teamAMembers : teamBMembers}
+          currentMinute={getCurrentMinute()}
+          onSave={(substitution) => handleSubstitutionSave(substitutionDialogOpen.team, substitution)}
+        />
+      )}
     </div>
   );
 }

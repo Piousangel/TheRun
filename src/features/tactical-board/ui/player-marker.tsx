@@ -67,8 +67,17 @@ export function PlayerMarker({
         const distance = Math.sqrt(
           Math.pow(clientX - startPos.x, 2) + Math.pow(clientY - startPos.y, 2)
         );
-        if (distance < 5 && originalEvent) {
-          onClick(originalEvent);
+        // Increased threshold for better click detection, especially on mobile
+        if (distance < 10 && originalEvent) {
+          // Create a synthetic React MouseEvent
+          const syntheticEvent = {
+            ...originalEvent,
+            clientX,
+            clientY,
+            preventDefault: () => originalEvent.preventDefault?.(),
+            stopPropagation: () => originalEvent.stopPropagation?.(),
+          } as React.MouseEvent;
+          onClick(syntheticEvent);
         }
       }
 
@@ -114,7 +123,7 @@ export function PlayerMarker({
   const handleTouchEnd = useCallback(
     (e: globalThis.TouchEvent) => {
       const touch = e.changedTouches[0];
-      handleEnd(touch?.clientX, touch?.clientY);
+      handleEnd(touch?.clientX, touch?.clientY, e);
     },
     [handleEnd]
   );
