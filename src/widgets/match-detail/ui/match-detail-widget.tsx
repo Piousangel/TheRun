@@ -12,6 +12,7 @@ import { GoalRecordDialog } from '@/features/match-record/ui/goal-record-dialog'
 import { SaveRecordDialog } from '@/features/match-record/ui/save-record-dialog';
 import { SubstitutionDialog } from '@/features/match-record/ui/substitution-dialog';
 import { MatchStatistics } from '@/features/match-record/ui/match-statistics';
+import { MVPSelectionDialog } from '@/features/match-record/ui/mvp-selection-dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
@@ -59,6 +60,10 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
   const [goalDialogOpen, setGoalDialogOpen] = useState<{ team: 'A' | 'B' } | null>(null);
   const [saveDialogOpen, setSaveDialogOpen] = useState<{ team: 'A' | 'B' } | null>(null);
   const [substitutionDialogOpen, setSubstitutionDialogOpen] = useState<{ team: 'A' | 'B' } | null>(null);
+  const [mvpDialogOpen, setMvpDialogOpen] = useState(false);
+
+  // Track if timer was manually started
+  const timerStartedRef = useRef(false);
 
   // Initialize scores and timer from match data
   useEffect(() => {
@@ -71,12 +76,18 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         const remaining = Math.max(0, match.duration - elapsed);
         setTimeInSeconds(remaining);
         setInitialTime(match.duration);
-        if (remaining > 0) {
+        if (remaining > 0 && !timerStartedRef.current) {
+          timerStartedRef.current = true;
           setIsRunning(true);
         }
       } else if (match.duration) {
         setInitialTime(match.duration);
         setTimeInSeconds(match.duration);
+      }
+
+      if (match.status === 'finished') {
+        timerStartedRef.current = false;
+        setIsRunning(false);
       }
     }
   }, [match]);
@@ -86,9 +97,11 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
         setTimeInSeconds((prev) => {
-          if (prev <= 0) {
+          if (prev <= 1) {
             setIsRunning(false);
-            handleMatchFinish();
+            if (match) {
+              handleMatchFinish();
+            }
             return 0;
           }
           return prev - 1;
@@ -104,9 +117,10 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
-  }, [isRunning]);
+  }, [isRunning, match]);
 
   const getCurrentMinute = () => {
     return Math.floor((initialTime - timeInSeconds) / 60);
@@ -127,35 +141,32 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
       }));
     };
 
-    updateMatch(
-      {
-        id: matchId,
-        data: {
-          status: 'in_progress',
-          start_time: startTime,
-          duration: initialTime,
-          team_a: {
-            ...match.team_a,
-            score: scoreA,
-            players: match.team_a.players?.length > 0 ? match.team_a.players : initializePlayerRecords(match.team_a.member_ids),
-            goals_detail: match.team_a.goals_detail || [],
-            substitutions: match.team_a.substitutions || [],
-          },
-          team_b: {
-            ...match.team_b,
-            score: scoreB,
-            players: match.team_b.players?.length > 0 ? match.team_b.players : initializePlayerRecords(match.team_b.member_ids),
-            goals_detail: match.team_b.goals_detail || [],
-            substitutions: match.team_b.substitutions || [],
-          },
+    // Start the timer immediately
+    timerStartedRef.current = true;
+    setIsRunning(true);
+
+    updateMatch({
+      id: matchId,
+      data: {
+        status: 'in_progress',
+        start_time: startTime,
+        duration: initialTime,
+        team_a: {
+          ...match.team_a,
+          score: scoreA,
+          players: match.team_a.players?.length > 0 ? match.team_a.players : initializePlayerRecords(match.team_a.member_ids),
+          goals_detail: match.team_a.goals_detail || [],
+          substitutions: match.team_a.substitutions || [],
+        },
+        team_b: {
+          ...match.team_b,
+          score: scoreB,
+          players: match.team_b.players?.length > 0 ? match.team_b.players : initializePlayerRecords(match.team_b.member_ids),
+          goals_detail: match.team_b.goals_detail || [],
+          substitutions: match.team_b.substitutions || [],
         },
       },
-      {
-        onSuccess: () => {
-          setIsRunning(true);
-        },
-      }
-    );
+    });
   };
 
   const handleMatchPause = () => {
@@ -210,6 +221,10 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           team_a: { ...match.team_a, score: newScore },
         },
       });
+      // Auto-open goal dialog when score increases
+      if (delta > 0 && match.status === 'in_progress') {
+        setGoalDialogOpen({ team: 'A' });
+      }
     } else {
       const newScore = Math.max(0, scoreB + delta);
       setScoreB(newScore);
@@ -219,6 +234,10 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           team_b: { ...match.team_b, score: newScore },
         },
       });
+      // Auto-open goal dialog when score increases
+      if (delta > 0 && match.status === 'in_progress') {
+        setGoalDialogOpen({ team: 'B' });
+      }
     }
   };
 
@@ -245,20 +264,13 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
       return p;
     });
 
-    // Update score
-    const newScore = (team === 'A' ? scoreA : scoreB) + 1;
-    if (team === 'A') {
-      setScoreA(newScore);
-    } else {
-      setScoreB(newScore);
-    }
-
+    // Don't update score here - it's already updated in handleScoreChange
+    // Just save the goal details and player records
     updateMatch({
       id: matchId,
       data: {
         [team === 'A' ? 'team_a' : 'team_b']: {
           ...teamData,
-          score: newScore,
           goals_detail: updatedGoalsDetail,
           players: updatedPlayers,
         },
@@ -307,6 +319,36 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         [team === 'A' ? 'team_a' : 'team_b']: {
           ...teamData,
           substitutions: updatedSubstitutions,
+        },
+      },
+    });
+  };
+
+  const handleMVPSave = (teamAMvpId: string | null, teamBMvpId: string | null) => {
+    if (!match) return;
+
+    // Update Team A players
+    const updatedTeamAPlayers = (match.team_a.players || []).map((p) => ({
+      ...p,
+      is_mvp: p.member_id === teamAMvpId,
+    }));
+
+    // Update Team B players
+    const updatedTeamBPlayers = (match.team_b.players || []).map((p) => ({
+      ...p,
+      is_mvp: p.member_id === teamBMvpId,
+    }));
+
+    updateMatch({
+      id: matchId,
+      data: {
+        team_a: {
+          ...match.team_a,
+          players: updatedTeamAPlayers,
+        },
+        team_b: {
+          ...match.team_b,
+          players: updatedTeamBPlayers,
         },
       },
     });
@@ -384,6 +426,69 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           </div>
         </CardHeader>
       </Card>
+
+      {/* Team Rosters - Moved above Timer for better accessibility */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Team A */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              Team A ({teamAMembers.length}명)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {teamAMembers.map((member: Member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
+                >
+                  <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
+                  <span className="text-sm font-medium">{member.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4">
+              <Link href={`/team-division/A`}>
+                <Button variant="outline" className="w-full">
+                  전술 보드
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Team B */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-blue-500" />
+              Team B ({teamBMembers.length}명)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {teamBMembers.map((member: Member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
+                >
+                  <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
+                  <span className="text-sm font-medium">{member.name}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4">
+              <Link href={`/team-division/B`}>
+                <Button variant="outline" className="w-full">
+                  전술 보드
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Timer & Score */}
       <Card>
@@ -731,6 +836,23 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         </Card>
       )}
 
+      {/* MVP Selection Button */}
+      {match.status === 'finished' && (
+        <Card>
+          <CardContent className="pt-6">
+            <Button
+              onClick={() => setMvpDialogOpen(true)}
+              size="lg"
+              className="w-full"
+              variant="default"
+            >
+              <Trophy className="mr-2 h-5 w-5" />
+              MVP 선정하기
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Player Statistics */}
       {match.status === 'finished' && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -746,69 +868,6 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           />
         </div>
       )}
-
-      {/* Team Rosters */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Team A */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              Team A ({teamAMembers.length}명)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {teamAMembers.map((member: Member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
-                >
-                  <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
-                  <span className="text-sm font-medium">{member.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Link href={`/team-division/A`}>
-                <Button variant="outline" className="w-full">
-                  전술 보드
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Team B */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              Team B ({teamBMembers.length}명)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {teamBMembers.map((member: Member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
-                >
-                  <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
-                  <span className="text-sm font-medium">{member.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Link href={`/team-division/B`}>
-                <Button variant="outline" className="w-full">
-                  전술 보드
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Dialogs */}
       {goalDialogOpen && (
@@ -841,6 +900,20 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           teamMembers={substitutionDialogOpen.team === 'A' ? teamAMembers : teamBMembers}
           currentMinute={getCurrentMinute()}
           onSave={(substitution) => handleSubstitutionSave(substitutionDialogOpen.team, substitution)}
+        />
+      )}
+
+      {mvpDialogOpen && (
+        <MVPSelectionDialog
+          isOpen={true}
+          onClose={() => setMvpDialogOpen(false)}
+          teamAName="Team A"
+          teamBName="Team B"
+          teamAMembers={teamAMembers}
+          teamBMembers={teamBMembers}
+          teamARecords={match.team_a.players || []}
+          teamBRecords={match.team_b.players || []}
+          onSave={handleMVPSave}
         />
       )}
     </div>

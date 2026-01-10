@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback, TouchEvent, MouseEvent } from 'react';
+import { useRef, useState, MouseEvent as ReactMouseEvent } from 'react';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import type { Member } from '@/shared/types/member';
 import type { PositionRole } from '@/shared/types/formation';
@@ -37,118 +37,15 @@ export function PlayerMarker({
   isSelected = false,
 }: PlayerMarkerProps) {
   const markerRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
-  const dragStartPos = useRef({ x: 0, y: 0, initialX: 0, initialY: 0 });
 
-  const handleStart = useCallback(
-    (clientX: number, clientY: number) => {
-      // Drag functionality disabled
-      setStartPos({ x: clientX, y: clientY });
-    },
-    []
-  );
+  const handleClick = (e: ReactMouseEvent) => {
+    // Prevent event bubbling
+    e.stopPropagation();
 
-  const handleMove = useCallback(
-    (clientX: number, clientY: number) => {
-      // Drag functionality disabled
-      return;
-    },
-    []
-  );
-
-  const handleEnd = useCallback(
-    (clientX?: number, clientY?: number, originalEvent?: any) => {
-      const wasDragging = isDragging;
-      setIsDragging(false);
-
-      // Check if it was a click (not a drag)
-      if (onClick && startPos && clientX !== undefined && clientY !== undefined) {
-        const distance = Math.sqrt(
-          Math.pow(clientX - startPos.x, 2) + Math.pow(clientY - startPos.y, 2)
-        );
-        // Increased threshold for better click detection, especially on mobile
-        if (distance < 10 && originalEvent) {
-          // Create a synthetic React MouseEvent
-          const syntheticEvent = {
-            ...originalEvent,
-            clientX,
-            clientY,
-            preventDefault: () => originalEvent.preventDefault?.(),
-            stopPropagation: () => originalEvent.stopPropagation?.(),
-          } as React.MouseEvent;
-          onClick(syntheticEvent);
-        }
-      }
-
-      setStartPos(null);
-    },
-    [isDragging, onClick, startPos]
-  );
-
-  // Mouse events
-  const handleMouseDown = (e: MouseEvent) => {
-    // Just track for click detection, no drag
-    handleStart(e.clientX, e.clientY);
-  };
-
-  const handleMouseMove = useCallback(
-    (e: globalThis.MouseEvent) => {
-      handleMove(e.clientX, e.clientY);
-    },
-    [handleMove]
-  );
-
-  const handleMouseUp = useCallback(
-    (e: globalThis.MouseEvent) => {
-      handleEnd(e.clientX, e.clientY, e);
-    },
-    [handleEnd]
-  );
-
-  // Touch events
-  const handleTouchStart = (e: TouchEvent) => {
-    const touch = e.touches[0];
-    handleStart(touch.clientX, touch.clientY);
-  };
-
-  const handleTouchMove = useCallback(
-    (e: globalThis.TouchEvent) => {
-      const touch = e.touches[0];
-      handleMove(touch.clientX, touch.clientY);
-    },
-    [handleMove]
-  );
-
-  const handleTouchEnd = useCallback(
-    (e: globalThis.TouchEvent) => {
-      const touch = e.changedTouches[0];
-      handleEnd(touch?.clientX, touch?.clientY, e);
-    },
-    [handleEnd]
-  );
-
-  // Add/remove global event listeners
-  useEffect(() => {
-    if (typeof window !== 'undefined' && isDragging) {
-      const onMouseMove = (e: globalThis.MouseEvent) => handleMouseMove(e);
-      const onMouseUp = (e: globalThis.MouseEvent) => handleMouseUp(e);
-      const onTouchMove = (e: globalThis.TouchEvent) => handleTouchMove(e);
-      const onTouchEnd = (e: globalThis.TouchEvent) => handleTouchEnd(e);
-
-      window.addEventListener('mousemove', onMouseMove);
-      window.addEventListener('mouseup', onMouseUp);
-      window.addEventListener('touchmove', onTouchMove);
-      window.addEventListener('touchend', onTouchEnd);
-
-      return () => {
-        window.removeEventListener('mousemove', onMouseMove);
-        window.removeEventListener('mouseup', onMouseUp);
-        window.removeEventListener('touchmove', onTouchMove);
-        window.removeEventListener('touchend', onTouchEnd);
-      };
+    if (onClick) {
+      onClick(e);
     }
-  }, [isDragging, handleMouseMove, handleMouseUp, handleTouchMove, handleTouchEnd]);
+  };
 
   return (
     <div
@@ -161,8 +58,7 @@ export function PlayerMarker({
         top: `${y}%`,
         transform: 'translate(-50%, -50%)',
       }}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
+      onClick={handleClick}
     >
       <div className="relative">
         {/* Player avatar/marker */}
