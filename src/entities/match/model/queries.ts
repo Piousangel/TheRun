@@ -79,15 +79,17 @@ export function useUpdateMatch() {
 
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateMatchData }) => {
-      const { data: match, error } = await supabase
+      const { data: matches, error } = await supabase
         .from('matches')
         .update(data)
         .eq('id', id)
-        .select()
-        .single();
+        .select();
 
       if (error) throw error;
-      return match as Match;
+      if (!matches || matches.length === 0) {
+        throw new Error('No match found or updated');
+      }
+      return matches[0] as Match;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: matchKeys.detail(variables.id) });
