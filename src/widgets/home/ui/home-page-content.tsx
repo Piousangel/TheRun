@@ -9,6 +9,7 @@ import { Badge } from '@/shared/ui/badge';
 import { cn } from '@/shared/lib/utils';
 import { RevealSection } from './reveal-section';
 import { AiSceneCard } from './ai-scene-card';
+import { MobileLandingCarousel } from './mobile-landing-carousel';
 
 const landingFeatures = [
   {
@@ -79,6 +80,39 @@ const aiScenes = [
     subtitle: '멤버가 휴대폰으로 투표와 공지를 확인하는 흐름을 중심으로, 실제 동호회 사용 장면처럼 구성한 모바일 중심 비주얼입니다.',
     accent: 'blue' as const,
     chips: ['모바일 피드', '읽지 않은 공지', '즉시 응답 흐름'],
+  },
+];
+
+const mobileLandingSlides = [
+  {
+    eyebrow: 'Weekly Readiness',
+    title: '이번 주 참석 여부를 빠르게 정리',
+    body: '경기, 회식, 번개 응답을 같은 흐름으로 모아 운영자가 인원 파악을 즉시 할 수 있게 구성합니다.',
+    chips: ['참석 희망 14명', '미응답 5명', '마감 D-1'],
+  },
+  {
+    eyebrow: 'Match Flow',
+    title: '팀 나누기에서 경기 기록까지 한 번에 연결',
+    body: '응답 인원 기반 팀 편성, 실시간 경기 운영, 경기 후 기록 저장까지 같은 루틴 안에서 이어집니다.',
+    chips: ['자동 밸런싱', '실시간 스코어', '기록 히스토리'],
+  },
+  {
+    eyebrow: 'Mobile First',
+    title: '운동장 가는 길에도 바로 쓰는 모바일 UX',
+    body: '휴대폰 환경을 우선해, 멤버도 운영자도 이동 중에 바로 확인할 수 있게 구성했습니다.',
+    chips: ['내 응답 중심', '관리자 권한 분리', '한 화면 요약'],
+  },
+  {
+    eyebrow: 'Welcome Flow',
+    title: '처음 써도 헷갈리지 않는 주간 루틴',
+    body: '로그인 → 멤버 연결 → 투표/출석 응답 → 경기 확인 흐름을 단계별로 짧게 보여줍니다.',
+    chips: ['로그인 후 연결', '이번 주 응답 확인', '운영자 경기 관리'],
+  },
+  {
+    eyebrow: 'AI Visual Campaign',
+    title: '제품 세계관이 더 또렷해지는 축구 비주얼',
+    body: '실제 사용 장면이 떠오르도록 축구 경기와 운영 흐름을 AI 캠페인 컷처럼 풀어냅니다.',
+    chips: ['Floodlit Match', 'Tactical Split', 'Mobile Club Pulse'],
   },
 ];
 
@@ -172,7 +206,11 @@ export function HomePageContent() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl space-y-20 px-4 py-20 sm:px-8 lg:px-10">
+      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-8 lg:px-10 md:hidden">
+        <MobileLandingCarousel slides={mobileLandingSlides} />
+      </section>
+
+      <section className="mx-auto hidden max-w-6xl space-y-20 px-4 py-20 sm:px-8 lg:px-10 md:block">
         {landingShowcase.map((item, index) => (
           <RevealSection key={item.title} className={cn('grid gap-8 lg:grid-cols-2 lg:items-center', index % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
             <div className="space-y-4">
@@ -201,7 +239,7 @@ export function HomePageContent() {
         ))}
       </section>
 
-      <section className="mx-auto max-w-6xl space-y-10 px-4 py-10 sm:px-8 lg:px-10">
+      <section className="mx-auto hidden max-w-6xl space-y-10 px-4 py-10 sm:px-8 lg:px-10 md:block">
         <RevealSection className="text-center">
           <p className="text-sm font-medium text-primary uppercase tracking-[0.24em]">AI Visual Campaign</p>
           <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">스크롤할수록 제품 세계관이 더 또렷해지도록.</h2>
@@ -218,7 +256,7 @@ export function HomePageContent() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10">
+      <section className="mx-auto hidden max-w-7xl px-4 py-6 sm:px-8 lg:px-10 md:block">
         <div className="grid gap-4 md:grid-cols-3">
           {landingFeatures.map(({ title, description, icon: Icon }) => (
             <Card key={title} className="border-primary/15 bg-gradient-to-br from-card via-card to-primary/5 shadow-[0_14px_50px_rgba(0,0,0,0.05)]">
@@ -234,7 +272,7 @@ export function HomePageContent() {
         </div>
       </section>
 
-      <section className="bg-muted/40 py-14">
+      <section className="hidden bg-muted/40 py-14 md:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
           <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
