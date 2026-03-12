@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { MobileNav } from '@/shared/components/mobile-nav';
 import './globals.css';
@@ -17,8 +18,10 @@ export default function RootLayout({
     <html lang="ko">
       <body>
         <QueryProvider>
-          <div className="pb-16 md:pb-0">{children}</div>
-          <MobileNav />
+          <AuthProvider>
+            <div className="pb-16 md:pb-0">{children}</div>
+            <MobileNav />
+          </AuthProvider>
         </QueryProvider>
       </body>
     </html>
