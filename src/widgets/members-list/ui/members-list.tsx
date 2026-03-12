@@ -92,7 +92,7 @@ export function MembersList() {
             <DialogHeader>
               <DialogTitle>새 멤버 추가</DialogTitle>
               <DialogDescription>
-                새로운 팀 멤버를 등록합니다.
+                새로운 팀 멤버를 등록하고 이후 투표, 출석, 팀 구성 흐름에 자연스럽게 연결합니다.
               </DialogDescription>
             </DialogHeader>
             <MemberCreateForm onSuccess={handleCreateSuccess} />

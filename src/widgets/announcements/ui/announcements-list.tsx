@@ -80,7 +80,7 @@ export function AnnouncementsList() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>새 공지 작성</DialogTitle>
-              <DialogDescription>운영 공지, 일정 변경, 긴급 알림을 등록합니다.</DialogDescription>
+              <DialogDescription>운영 공지, 일정 변경, 긴급 알림을 제품 수준의 톤으로 정리해 멤버에게 전달합니다.</DialogDescription>
             </DialogHeader>
             <AnnouncementCreateForm onSuccess={() => setIsCreateOpen(false)} />
           </DialogContent>

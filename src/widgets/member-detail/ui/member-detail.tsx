@@ -157,7 +157,7 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
             <DialogHeader>
               <DialogTitle>멤버 정보 수정</DialogTitle>
               <DialogDescription>
-                {member.name} 멤버의 정보를 수정합니다.
+                {member.name} 멤버의 프로필과 능력치를 현재 팀 운영 기준에 맞게 갱신합니다.
               </DialogDescription>
             </DialogHeader>
             <MemberEditForm member={member} onSuccess={handleEditSuccess} />

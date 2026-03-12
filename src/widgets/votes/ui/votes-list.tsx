@@ -141,7 +141,7 @@ export function VotesList() {
             <DialogHeader>
               <DialogTitle>새 투표 생성</DialogTitle>
               <DialogDescription>
-                다양한 이벤트 투표를 만들 수 있습니다.
+                경기, 회식, 번개 같은 이벤트를 같은 운영 흐름 안에서 관리할 수 있게 만듭니다.
               </DialogDescription>
             </DialogHeader>
             <VoteCreateForm onSuccess={handleCreateSuccess} />
