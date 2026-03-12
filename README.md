@@ -150,6 +150,24 @@ where email = 'your-admin-email@example.com';
 3. 위 SQL로 `admin` 승격
 4. 이후부터 멤버/투표/경기 운영 기능 사용
 
+### 3-2. 공지 기능 적용
+
+공지 보드를 사용하려면 아래 migration도 Supabase에 적용해야 합니다.
+
+- `supabase/migrations/20260312_add_announcements.sql`
+
+만약 앱에서 아래 오류가 나오면:
+
+- `could not find the table public.announcements in the schema cache`
+
+의미는 거의 항상 `코드는 먼저 배포됐지만 원격 DB에 announcements 테이블이 아직 생성되지 않은 상태`입니다.
+
+해결 순서:
+
+1. Supabase SQL Editor에서 `supabase/migrations/20260312_add_announcements.sql` 실행
+2. 새로고침 후 `/announcements` 페이지 재확인
+3. 필요하면 한 번 더 로그아웃/로그인해서 읽음 상태 쿼리 재검증
+
 ### 4. 개발 서버 실행
 ```bash
 npm run dev

@@ -9,6 +9,14 @@ import type {
   UpdateAnnouncementData,
 } from '@/shared/types/announcement';
 
+function isAnnouncementSchemaMissing(error: { code?: string; message?: string } | null) {
+  if (!error) {
+    return false;
+  }
+
+  return error.code === 'PGRST205' || error.message?.includes('schema cache') || error.message?.includes('announcements');
+}
+
 export const announcementKeys = {
   all: ['announcements'] as const,
   lists: () => [...announcementKeys.all, 'list'] as const,
@@ -27,6 +35,10 @@ export function useAnnouncements() {
         .order('is_pinned', { ascending: false })
         .order('publish_at', { ascending: false });
 
+      if (isAnnouncementSchemaMissing(error)) {
+        return [] as Announcement[];
+      }
+
       if (error) throw error;
       return data as Announcement[];
     },
@@ -38,6 +50,9 @@ export function useAnnouncement(id: string) {
     queryKey: announcementKeys.detail(id),
     queryFn: async () => {
       const { data, error } = await supabase.from('announcements').select('*').eq('id', id).single();
+      if (isAnnouncementSchemaMissing(error)) {
+        return null;
+      }
       if (error) throw error;
       return data as Announcement;
     },
@@ -57,6 +72,10 @@ export function useAnnouncementReads(userId?: string | null) {
         .from('announcement_reads')
         .select('*')
         .eq('user_id', userId);
+
+      if (isAnnouncementSchemaMissing(error)) {
+        return [] as AnnouncementRead[];
+      }
 
       if (error) throw error;
       return data as AnnouncementRead[];
@@ -79,6 +98,10 @@ export function useCreateAnnouncement() {
         .select('*')
         .single();
 
+      if (isAnnouncementSchemaMissing(error)) {
+        throw new Error('공지 테이블이 아직 배포되지 않았습니다. Supabase SQL Editor에서 announcements migration을 먼저 적용해주세요.');
+      }
+
       if (error) throw error;
       return announcement as Announcement;
     },
@@ -100,6 +123,10 @@ export function useUpdateAnnouncement() {
         .select('*')
         .single();
 
+      if (isAnnouncementSchemaMissing(error)) {
+        throw new Error('공지 테이블이 아직 배포되지 않았습니다. announcements migration 적용이 필요합니다.');
+      }
+
       if (error) throw error;
       return announcement as Announcement;
     },
@@ -116,6 +143,9 @@ export function useDeleteAnnouncement() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('announcements').delete().eq('id', id);
+      if (isAnnouncementSchemaMissing(error)) {
+        throw new Error('공지 테이블이 아직 배포되지 않았습니다. announcements migration 적용이 필요합니다.');
+      }
       if (error) throw error;
     },
     onSuccess: () => {
@@ -144,6 +174,10 @@ export function useMarkAnnouncementRead(userId?: string | null) {
         )
         .select('*')
         .single();
+
+      if (isAnnouncementSchemaMissing(error)) {
+        throw new Error('공지 읽음 테이블이 아직 배포되지 않았습니다. announcements migration 적용이 필요합니다.');
+      }
 
       if (error) throw error;
       return data as AnnouncementRead;
