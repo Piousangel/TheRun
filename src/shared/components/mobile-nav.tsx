@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Users, Vote, Trophy, ClipboardList, CalendarCheck, UserRound, LogIn } from "lucide-react";
+import { Home, Users, Vote, Trophy, ClipboardList, CalendarCheck, UserRound, LogIn, Bell } from "lucide-react";
 import { useAuth } from '@/providers/auth-provider';
 import { cn } from "@/shared/lib/utils";
 
@@ -12,6 +12,7 @@ export function MobileNav() {
 
   const navItems = [
     { href: "/", label: "홈", icon: Home },
+    { href: "/announcements", label: "공지", icon: Bell },
     { href: "/votes", label: "투표", icon: Vote },
     { href: "/attendance", label: "출석", icon: CalendarCheck },
     { href: "/matches", label: "경기", icon: Trophy },
@@ -21,8 +22,8 @@ export function MobileNav() {
   ];
 
   if (isAdmin) {
-    navItems.splice(1, 0, { href: "/members", label: "멤버", icon: Users });
-    navItems.splice(4, 0, { href: "/team-division", label: "팀", icon: ClipboardList });
+    navItems.splice(2, 0, { href: "/members", label: "멤버", icon: Users });
+    navItems.splice(6, 0, { href: "/team-division", label: "팀", icon: ClipboardList });
   }
 
   return (

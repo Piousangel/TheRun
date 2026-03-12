@@ -5,6 +5,7 @@ import { format, formatDistanceToNowStrict } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import {
   ArrowRight,
+  BellRing,
   CalendarDays,
   CheckCircle2,
   ClipboardList,
@@ -25,10 +26,13 @@ import { useMembers } from '@/entities/member/model/queries';
 import { useActiveVoteSessions, useVoteResponses, useVoteSessions } from '@/entities/vote/model/queries';
 import { useCurrentAttendanceSession, useAttendanceVotes } from '@/entities/attendance/model/queries';
 import { useMatches } from '@/entities/match/model/queries';
+import { useAnnouncements, useAnnouncementReads } from '@/entities/announcement/model/queries';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { cn } from '@/shared/lib/utils';
+import { RevealSection } from './reveal-section';
+import { AiSceneCard } from './ai-scene-card';
 
 const landingFeatures = [
   {
@@ -99,6 +103,27 @@ const landingShowcase = [
   },
 ];
 
+const aiScenes = [
+  {
+    title: 'Floodlit Match Vision',
+    subtitle: '야간 경기장의 조명과 역동적인 선수 실루엣을 바탕으로, 경기 운영 보드가 살아 있는 것처럼 보이게 구성한 히어로 장면입니다.',
+    accent: 'gold' as const,
+    chips: ['조명 강조', '경기장 실루엣', '운영 보드 오버레이'],
+  },
+  {
+    title: 'Tactical Split Engine',
+    subtitle: '팀 밸런싱과 전술 보드를 동시에 보여주는 장면으로, 운영자가 팀을 나누는 순간의 긴장감을 시각화합니다.',
+    accent: 'emerald' as const,
+    chips: ['팀 밸런싱 HUD', '전술 포인트', '라인업 시각화'],
+  },
+  {
+    title: 'Mobile Club Pulse',
+    subtitle: '멤버가 휴대폰으로 투표와 공지를 확인하는 흐름을 중심으로, 실제 동호회 사용 장면처럼 구성한 모바일 중심 비주얼입니다.',
+    accent: 'blue' as const,
+    chips: ['모바일 피드', '읽지 않은 공지', '즉시 응답 흐름'],
+  },
+];
+
 function formatDeadline(deadline: string) {
   const date = new Date(deadline);
   const relative = formatDistanceToNowStrict(date, { addSuffix: true, locale: ko });
@@ -112,6 +137,8 @@ export function HomePageContent() {
   const { data: voteSessions } = useVoteSessions();
   const { data: attendanceSession } = useCurrentAttendanceSession();
   const { data: matches } = useMatches();
+  const { data: announcements } = useAnnouncements();
+  const { data: announcementReads } = useAnnouncementReads(user?.id ?? null);
 
   const activeVoteSession = activeVoteSessions?.[0] ?? null;
   const { data: activeVoteResponses } = useVoteResponses(activeVoteSession?.id ?? '');
@@ -132,6 +159,10 @@ export function HomePageContent() {
   const latestMatch = matches?.[0] ?? null;
   const liveMatch = matches?.find((match) => match.status === 'in_progress') ?? null;
   const pendingMatch = matches?.find((match) => match.status === 'pending') ?? null;
+  const latestAnnouncements = announcements?.slice(0, 3) ?? [];
+  const unreadAnnouncementCount = latestAnnouncements.filter(
+    (announcement) => !(announcementReads ?? []).some((read) => read.announcement_id === announcement.id)
+  ).length;
 
   if (!user) {
     return (
@@ -225,7 +256,7 @@ export function HomePageContent() {
 
         <section className="mx-auto max-w-6xl space-y-20 px-4 py-20 sm:px-8 lg:px-10">
           {landingShowcase.map((item, index) => (
-            <div key={item.title} className={cn('grid gap-8 lg:grid-cols-2 lg:items-center', index % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
+            <RevealSection key={item.title} className={cn('grid gap-8 lg:grid-cols-2 lg:items-center', index % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
               <div className="space-y-4">
                 <p className="text-sm font-medium text-primary uppercase tracking-[0.22em]">{item.eyebrow}</p>
                 <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{item.title}</h2>
@@ -251,8 +282,26 @@ export function HomePageContent() {
                   </div>
                 </div>
               </div>
-            </div>
+            </RevealSection>
           ))}
+        </section>
+
+        <section className="mx-auto max-w-6xl space-y-10 px-4 py-10 sm:px-8 lg:px-10">
+          <RevealSection className="text-center">
+            <p className="text-sm font-medium text-primary uppercase tracking-[0.24em]">AI Visual Campaign</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">스크롤할수록 제품 세계관이 더 또렷해지도록.</h2>
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
+              단순한 기능 설명보다, 실제로 이 앱을 쓰는 장면이 떠오르게 만드는 비주얼이 필요합니다. 그래서 축구 경기와 운영 흐름을 AI 캠페인 컷처럼 풀어낸 섹션을 추가합니다.
+            </p>
+          </RevealSection>
+
+          <div className="space-y-8">
+            {aiScenes.map((scene) => (
+              <RevealSection key={scene.title}>
+                <AiSceneCard {...scene} />
+              </RevealSection>
+            ))}
+          </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10">
@@ -285,13 +334,15 @@ export function HomePageContent() {
 
             <div className="grid gap-4 lg:grid-cols-3">
               {landingWorkflow.map((item) => (
-                <Card key={item.step} className="overflow-hidden border-border/70 bg-background/90">
+                <RevealSection key={item.step}>
+                  <Card className="overflow-hidden border-border/70 bg-background/90">
                   <CardHeader>
                     <div className="text-xs font-semibold tracking-[0.22em] text-primary">STEP {item.step}</div>
                     <CardTitle className="text-xl">{item.title}</CardTitle>
                     <CardDescription className="leading-6">{item.body}</CardDescription>
                   </CardHeader>
-                </Card>
+                  </Card>
+                </RevealSection>
               ))}
             </div>
           </div>
@@ -581,6 +632,7 @@ export function HomePageContent() {
                   ]
                 : [
                     { href: '/votes', title: '내 투표 확인', body: '이번 주 응답 상태와 마감 확인', icon: Vote },
+                    { href: '/announcements', title: '공지 보기', body: '운영 공지와 일정 변경 확인', icon: BellRing },
                     { href: '/attendance', title: '내 출석 확인', body: '출석 세션 상태와 내 응답 확인', icon: CalendarDays },
                     { href: '/matches', title: '경기 기록 보기', body: '최근 경기 결과와 스코어 확인', icon: Trophy },
                     { href: '/me', title: '내 계정', body: '멤버 연결과 권한 상태 확인', icon: UserRound },
@@ -621,6 +673,55 @@ export function HomePageContent() {
                 <p className="mt-3 text-sm font-medium leading-6">{item}</p>
               </div>
             ))}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <CardTitle className="text-2xl">공지와 알림</CardTitle>
+                <CardDescription className="mt-2 leading-6">
+                  일정 변경, 경기 공지, 긴급 안내를 홈에서 바로 확인할 수 있게 붙였습니다.
+                </CardDescription>
+              </div>
+              <Link href="/announcements">
+                <Button variant="outline" className="w-full sm:w-auto">
+                  공지 보드 열기
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="secondary">최근 공지 {latestAnnouncements.length}개</Badge>
+              <Badge className={cn('border px-3 py-1', unreadAnnouncementCount > 0 ? 'border-amber-300/40 bg-amber-100/70 text-amber-900' : 'border-primary/20 bg-primary/10 text-primary')}>
+                읽지 않은 공지 {unreadAnnouncementCount}개
+              </Badge>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-3">
+              {latestAnnouncements.length > 0 ? (
+                latestAnnouncements.map((announcement) => {
+                  const isUnread = !(announcementReads ?? []).some((read) => read.announcement_id === announcement.id);
+
+                  return (
+                    <div key={announcement.id} className="rounded-2xl border bg-muted/30 p-4">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="text-sm font-semibold leading-6">{announcement.title}</p>
+                        {isUnread && <Badge className="bg-amber-100 text-amber-900 hover:bg-amber-100">NEW</Badge>}
+                      </div>
+                      <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">{announcement.body}</p>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="rounded-2xl border bg-muted/30 p-4 text-sm text-muted-foreground md:col-span-3">
+                  아직 등록된 공지가 없습니다. 운영 공지나 시간 변경 사항이 생기면 이곳에 요약됩니다.
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
       </section>
