@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { MobileNav } from '@/shared/components/mobile-nav';
+import { AppChrome } from '@/shared/ui/app-chrome';
 import { Toaster } from 'sonner';
 import './globals.css';
 
@@ -20,7 +21,9 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <AuthProvider>
-            <div className="pb-16 md:pb-0">{children}</div>
+            <AppChrome>
+              <div className="pb-16 xl:pb-0">{children}</div>
+            </AppChrome>
             <MobileNav />
             <Toaster richColors position="top-center" />
           </AuthProvider>

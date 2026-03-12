@@ -84,6 +84,22 @@ Goal:
 - keep app routes visually consistent
 - centralize spacing rules for future projects
 
+### `AppChrome`
+
+Location: `src/shared/ui/app-chrome.tsx`
+
+Use for:
+
+- authenticated app shell only
+- desktop side rail + sticky header
+- separating product workspace from landing/auth surfaces
+
+Goal:
+
+- make the app feel launch-ready on desktop
+- give navigation and role context a permanent home
+- preserve lightweight public pages while upgrading in-app structure
+
 ### `StatePanel`
 
 Location: `src/shared/ui/state-panel.tsx`
