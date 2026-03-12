@@ -15,6 +15,7 @@ import {
 } from '@/shared/ui/dialog';
 import { LoadingState } from '@/shared/ui/loading-spinner';
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import { Badge } from '@/shared/ui/badge';
 import { Plus, Users, ShieldCheck } from 'lucide-react';
@@ -70,10 +71,12 @@ export function MembersList() {
         </div>
 
         {members && members.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground mb-4">아직 등록된 멤버가 없습니다.</p>
-            {isAdmin && <Button onClick={() => setIsCreateOpen(true)}>첫 멤버 추가하기</Button>}
-          </div>
+          <StatePanel
+            icon={<Users className="h-6 w-6" />}
+            title="등록된 멤버가 아직 없습니다"
+            description={isAdmin ? '멤버를 먼저 등록해야 투표, 출석, 팀 나누기, 경기 기록 흐름이 자연스럽게 연결됩니다.' : '운영진이 멤버를 등록하면 이곳에서 프로필과 스탯을 확인할 수 있습니다.'}
+            action={isAdmin ? <Button onClick={() => setIsCreateOpen(true)}>첫 멤버 추가하기</Button> : undefined}
+          />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {members?.map((member) => (

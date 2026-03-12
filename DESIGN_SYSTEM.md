@@ -68,6 +68,22 @@ Goal:
 - keep auth screens visually distinct from in-app screens
 - make future social login pages reusable across projects
 
+### `StatePanel`
+
+Location: `src/shared/ui/state-panel.tsx`
+
+Use for:
+
+- empty list states
+- setup required states
+- role-based guidance states
+- warning or soft-block states
+
+Goal:
+
+- replace raw “없습니다 / 필요합니다” messages with product-quality guidance
+- always explain the next best action
+
 ## Visual utilities
 
 Defined in `src/app/globals.css`.
@@ -113,6 +129,7 @@ These utilities are the current visual vocabulary for premium landing and dashbo
 ## Reuse guidance for future projects
 
 - Start by reusing `AuthShell`, `PageHero`, and `StatTile`.
+- Use `StatePanel` whenever a screen would otherwise show a plain empty paragraph.
 - Reuse the flow split: landing -> auth -> app hub.
 - Reuse the editorial utility classes before introducing new color systems.
 - Only add new surface variants if an existing primitive cannot reasonably fit.

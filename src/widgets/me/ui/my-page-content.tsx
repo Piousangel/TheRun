@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 
@@ -73,22 +74,12 @@ export function MyPageContent() {
   if (!user) {
     return (
       <div className="space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">내 계정</h1>
-          <p className="text-sm text-muted-foreground">로그인 후 내 멤버와 연결하면 개인 투표/출석 흐름을 사용할 수 있습니다.</p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>로그인이 필요합니다</CardTitle>
-            <CardDescription>이메일 링크 로그인을 사용하면 바로 내 계정으로 들어올 수 있습니다.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href="/login">
-              <Button>로그인하러 가기</Button>
-            </Link>
-          </CardContent>
-        </Card>
+        <StatePanel
+          icon={<UserRound className="h-6 w-6" />}
+          title="내 계정을 먼저 열어주세요"
+          description="로그인 후 내 멤버와 연결하면 투표와 출석을 본인 기준으로 처리할 수 있고, 공지 읽음 상태도 개인별로 관리됩니다."
+          action={<Link href="/login"><Button>로그인하러 가기</Button></Link>}
+        />
       </div>
     );
   }

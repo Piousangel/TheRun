@@ -7,10 +7,10 @@ import { AnnouncementCard } from '@/entities/announcement/ui/announcement-card';
 import { AnnouncementCreateForm } from '@/features/announcement-create/ui/announcement-create-form';
 import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/shared/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { LoadingState } from '@/shared/ui/loading-spinner';
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import { Badge } from '@/shared/ui/badge';
 
@@ -57,20 +57,12 @@ export function AnnouncementsList() {
       </div>
 
       {!announcements?.length ? (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Megaphone className="h-5 w-5 text-primary" />
-              아직 등록된 공지가 없습니다
-            </CardTitle>
-            <CardDescription>중요 공지나 경기 관련 안내를 이곳에 정리할 수 있습니다.</CardDescription>
-          </CardHeader>
-          {isAdmin && (
-            <CardContent>
-              <Button onClick={() => setIsCreateOpen(true)}>첫 공지 작성하기</Button>
-            </CardContent>
-          )}
-        </Card>
+        <StatePanel
+          icon={<Megaphone className="h-6 w-6" />}
+          title="첫 공지를 아직 올리지 않았습니다"
+          description={isAdmin ? '이번 주 일정 변경, 경기 안내, 긴급 공지를 먼저 올려두면 멤버가 홈과 공지 보드에서 바로 확인할 수 있습니다.' : '운영진이 공지를 올리면 이곳에서 읽음 상태와 함께 바로 확인할 수 있습니다.'}
+          action={isAdmin ? <Button onClick={() => setIsCreateOpen(true)}>첫 공지 작성하기</Button> : undefined}
+        />
       ) : (
         <div className="space-y-4">
           {announcements.map((announcement) => (

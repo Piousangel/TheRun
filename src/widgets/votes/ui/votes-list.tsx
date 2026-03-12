@@ -17,6 +17,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { LoadingState } from "@/shared/ui/loading-spinner";
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import { Badge } from '@/shared/ui/badge';
 import { CalendarClock, Plus, Vote as VoteIcon } from "lucide-react";
@@ -92,12 +93,12 @@ export function VotesList() {
 
           <TabsContent value="match" className="mt-6">
             {matchVotes.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  진행 중인 경기 투표가 없습니다.
-                </p>
-                {isAdmin && <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button>}
-              </div>
+              <StatePanel
+                icon={<VoteIcon className="h-6 w-6" />}
+                title="열려 있는 경기 투표가 없습니다"
+                description={isAdmin ? '경기 운영을 시작하기 전에 이번 주 경기 참석 여부 투표를 열어두면 팀 구성과 출석 흐름이 쉬워집니다.' : '운영진이 경기 투표를 열면 이곳에서 바로 응답할 수 있습니다.'}
+                action={isAdmin ? <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button> : undefined}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {matchVotes.map((session) => (
@@ -113,12 +114,12 @@ export function VotesList() {
 
           <TabsContent value="other" className="mt-6">
             {otherVotes.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground mb-4">
-                  진행 중인 기타 투표가 없습니다.
-                </p>
-                {isAdmin && <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button>}
-              </div>
+              <StatePanel
+                icon={<CalendarClock className="h-6 w-6" />}
+                title="진행 중인 기타 투표가 없습니다"
+                description={isAdmin ? '회식, 야유회, 번개 같은 비경기 이벤트도 같은 투표 흐름으로 운영할 수 있습니다.' : '운영진이 새 이벤트 투표를 열면 이곳에서 바로 확인할 수 있습니다.'}
+                action={isAdmin ? <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button> : undefined}
+              />
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {otherVotes.map((session) => (
