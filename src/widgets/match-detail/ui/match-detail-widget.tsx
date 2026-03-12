@@ -16,6 +16,8 @@ import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
 import { Separator } from '@/shared/ui/separator';
 import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
@@ -26,7 +28,6 @@ import {
   Plus,
   Minus,
   Trophy,
-  MapPin,
   Calendar,
   Users,
   Target,
@@ -396,34 +397,23 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
 
   return (
     <div className="space-y-6">
-      {/* Match Info */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <CardTitle>
-                  {format(new Date(match.date), 'yyyy년 MM월 dd일 (EEEE)', { locale: ko })}
-                </CardTitle>
-                {match.status === 'pending' && <Badge variant="secondary">대기</Badge>}
-                {match.status === 'in_progress' && <Badge variant="default">진행중</Badge>}
-                {match.status === 'finished' && <Badge variant="outline">종료</Badge>}
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4" />
-                {match.location}
-              </div>
-            </div>
-            {winner && (
-              <Badge variant="default" className="text-lg">
-                <Trophy className="h-4 w-4 mr-1" />
-                {winner === 'draw' ? '무승부' : `Team ${winner} 승`}
-              </Badge>
-            )}
-          </div>
-        </CardHeader>
-      </Card>
+      <PageHero
+        eyebrow="Match Detail"
+        title={format(new Date(match.date), 'yyyy년 MM월 dd일 (EEEE)', { locale: ko })}
+        description={`${match.location} 경기의 타이머, 스코어, 교체, 상세 기록을 하나의 운영 화면에서 관리합니다.`}
+        meta={<>
+          {match.status === 'pending' && <Badge variant="secondary">대기</Badge>}
+          {match.status === 'in_progress' && <Badge variant="default">진행중</Badge>}
+          {match.status === 'finished' && <Badge variant="outline">종료</Badge>}
+          {winner && <Badge variant="secondary">{winner === 'draw' ? '무승부' : `Team ${winner} 승`}</Badge>}
+        </>}
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatTile label="현재 스코어" value={`${scoreA} : ${scoreB}`} icon={<Trophy className="h-5 w-5" />} />
+        <StatTile label="남은 시간" value={formatTime(timeInSeconds)} icon={<Calendar className="h-5 w-5" />} tone={match.status === 'in_progress' ? 'success' : 'muted'} />
+        <StatTile label="참가 인원" value={teamAMembers.length + teamBMembers.length} icon={<Users className="h-5 w-5" />} />
+      </div>
 
       {/* Team Rosters - Moved above Timer for better accessibility */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

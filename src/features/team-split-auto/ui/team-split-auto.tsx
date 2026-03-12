@@ -11,7 +11,9 @@ import { autoBalanceMultipleTeams, calculateTeamStats } from '@/features/team-sp
 import { DraggableMember } from '@/features/team-split-manual/ui/draggable-member';
 import { DroppableTeam } from '@/features/team-split-manual/ui/droppable-team';
 import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { StatTile } from '@/shared/ui/stat-tile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Shuffle, Check, Vote } from 'lucide-react';
@@ -153,6 +155,10 @@ export function TeamSplitAuto() {
                   ))}
                 </SelectContent>
               </Select>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Badge variant="secondary">투표 연동</Badge>
+                <Badge variant="secondary">전체 멤버 fallback</Badge>
+              </div>
             </CardContent>
           </Card>
         )}
@@ -180,6 +186,12 @@ export function TeamSplitAuto() {
               자동 밸런싱
             </Button>
           </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatTile label="생성 팀 수" value={teamCount} icon={<Shuffle className="h-5 w-5" />} />
+          <StatTile label="활성 투표" value={matchVotes.length} icon={<Vote className="h-5 w-5" />} tone="muted" />
+          <StatTile label="팀 선택 상태" value={canCompleteTeamSelection ? 'READY' : 'PENDING'} icon={<Check className="h-5 w-5" />} tone={canCompleteTeamSelection ? 'success' : 'danger'} />
         </div>
 
         {!hasTeams ? (
