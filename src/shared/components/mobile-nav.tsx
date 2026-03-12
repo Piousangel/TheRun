@@ -28,7 +28,7 @@ export function MobileNav() {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50 md:hidden">
-      <div className="flex justify-around items-center h-16">
+      <div className="flex h-16 items-center gap-1 overflow-x-auto px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             pathname === href || (href !== "/" && pathname.startsWith(href));
@@ -38,7 +38,7 @@ export function MobileNav() {
               key={href}
               href={href}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 h-full gap-1 transition-colors",
+                "flex min-w-[72px] flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 transition-colors",
                 isActive
                   ? "text-primary"
                   : "text-muted-foreground hover:text-foreground"
