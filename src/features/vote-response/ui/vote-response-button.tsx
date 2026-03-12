@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useVote } from '@/entities/vote/model/queries';
-import { Button } from '@/shared/ui/button';
+import { useState } from "react";
+import { useVote } from "@/entities/vote/model/queries";
+import { Button } from "@/shared/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/shared/ui/dialog';
-import { Check, X } from 'lucide-react';
-import type { Member } from '@/shared/types/member';
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
+import { Check, X } from "lucide-react";
+import type { Member } from "@/shared/types/member";
 
 interface VoteResponseButtonProps {
   sessionId: string;
   member: Member;
-  currentVote?: 'attending' | 'absent' | null;
+  currentVote?: "attending" | "absent" | null;
 }
 
 export function VoteResponseButton({
@@ -28,7 +28,7 @@ export function VoteResponseButton({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { mutate: vote, isPending } = useVote();
 
-  const handleVote = (status: 'attending' | 'absent') => {
+  const handleVote = (status: "attending" | "absent") => {
     vote(
       {
         sessionId,
@@ -39,27 +39,27 @@ export function VoteResponseButton({
         onSuccess: () => {
           setIsDialogOpen(false);
         },
-      }
+      },
     );
   };
 
   const getButtonVariant = () => {
-    if (currentVote === 'absent') return 'destructive';
-    if (currentVote === 'attending') return 'outline';
-    return 'outline';
+    if (currentVote === "absent") return "destructive";
+    if (currentVote === "attending") return "outline";
+    return "outline";
   };
 
   const getButtonText = () => {
-    if (currentVote === 'attending') return '참석';
-    if (currentVote === 'absent') return '불참';
-    return '미응답';
+    if (currentVote === "attending") return "참석";
+    if (currentVote === "absent") return "불참";
+    return "미응답";
   };
 
   const getButtonClassName = () => {
-    if (currentVote === 'attending') {
-      return 'border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600';
+    if (currentVote === "attending") {
+      return "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600";
     }
-    return '';
+    return "";
   };
 
   return (
@@ -73,16 +73,16 @@ export function VoteResponseButton({
         {getButtonText()}
       </Button>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{member.name} 투표</DialogTitle>
-            <DialogDescription>참석 여부를 선택해주세요.</DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="flex gap-2">
+      <Drawer open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{member.name} 투표</DrawerTitle>
+            <DrawerDescription>참석 여부를 선택해주세요.</DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter className="sm:flex-row">
             <Button
               variant="outline"
-              onClick={() => handleVote('attending')}
+              onClick={() => handleVote("attending")}
               disabled={isPending}
               className="flex-1 border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:border-blue-600"
             >
@@ -91,16 +91,16 @@ export function VoteResponseButton({
             </Button>
             <Button
               variant="destructive"
-              onClick={() => handleVote('absent')}
+              onClick={() => handleVote("absent")}
               disabled={isPending}
               className="flex-1"
             >
               <X className="mr-2 h-4 w-4" />
               불참
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }
