@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useUpdateMatch } from '@/entities/match/model/queries';
+import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
@@ -27,6 +28,7 @@ interface MatchCardEnhancedProps {
 }
 
 export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
+  const { isAdmin } = useAuth();
   const { mutate: updateMatch } = useUpdateMatch();
 
   // Timer state
@@ -199,17 +201,17 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
 
             <div className="flex gap-2 justify-center">
               {match.status === 'pending' && (
-                <Button onClick={handleMatchStart} size="sm" className="flex-1">
+                <Button onClick={handleMatchStart} size="sm" className="flex-1" disabled={!isAdmin}>
                   <Play className="mr-2 h-4 w-4" />
                   경기 시작
                 </Button>
               )}
               {match.status === 'in_progress' && (
                 <>
-                  <Button onClick={handleMatchPause} size="sm" variant="outline">
+                  <Button onClick={handleMatchPause} size="sm" variant="outline" disabled={!isAdmin}>
                     <Pause className="h-4 w-4" />
                   </Button>
-                  <Button onClick={handleMatchFinish} size="sm" variant="destructive">
+                  <Button onClick={handleMatchFinish} size="sm" variant="destructive" disabled={!isAdmin}>
                     <Square className="mr-2 h-4 w-4" />
                     종료
                   </Button>
@@ -237,7 +239,7 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
                   size="icon"
                   className="h-6 w-6 rounded-full shrink-0"
                   onClick={() => handleScoreChange('A', -1)}
-                  disabled={match.status === 'finished' || scoreA === 0}
+                  disabled={!isAdmin || match.status === 'finished' || scoreA === 0}
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
@@ -249,7 +251,7 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
                   size="icon"
                   className="h-6 w-6 rounded-full shrink-0"
                   onClick={() => handleScoreChange('A', 1)}
-                  disabled={match.status === 'finished'}
+                  disabled={!isAdmin || match.status === 'finished'}
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -269,7 +271,7 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
                   size="icon"
                   className="h-6 w-6 rounded-full shrink-0"
                   onClick={() => handleScoreChange('B', -1)}
-                  disabled={match.status === 'finished' || scoreB === 0}
+                  disabled={!isAdmin || match.status === 'finished' || scoreB === 0}
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
@@ -281,7 +283,7 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
                   size="icon"
                   className="h-6 w-6 rounded-full shrink-0"
                   onClick={() => handleScoreChange('B', 1)}
-                  disabled={match.status === 'finished'}
+                  disabled={!isAdmin || match.status === 'finished'}
                 >
                   <Plus className="h-3 w-3" />
                 </Button>
@@ -305,6 +307,12 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
             </Button>
           </Link>
         </div>
+
+        {!isAdmin && match.status !== 'finished' && (
+          <p className="text-center text-xs text-muted-foreground">
+            실시간 경기 운영은 관리자 계정에서만 가능합니다.
+          </p>
+        )}
 
         <Link href={`/matches/${match.id}`}>
           <Button variant="ghost" className="w-full" size="sm">

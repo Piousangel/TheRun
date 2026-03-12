@@ -1,10 +1,24 @@
 'use client';
 
+import { useAuth } from '@/providers/auth-provider';
+import { Card, CardContent } from '@/shared/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs';
 import { TeamSplitAuto } from '@/features/team-split-auto/ui/team-split-auto';
 import { TeamSplitManual } from '@/features/team-split-manual/ui/team-split-manual';
 
 export function TeamDivisionWidget() {
+  const { isAdmin } = useAuth();
+
+  if (!isAdmin) {
+    return (
+      <Card>
+        <CardContent className="pt-6 text-sm text-muted-foreground">
+          팀 나누기와 전술 보드는 현재 관리자 운영 화면입니다. 일반 멤버는 경기/투표/출석 흐름에 집중할 수 있도록 분리했습니다.
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>

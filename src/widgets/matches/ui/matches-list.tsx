@@ -6,13 +6,15 @@ import { useActiveVoteSessions } from '@/entities/vote/model/queries';
 import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
 import { MatchCard } from '@/entities/match/ui/match-card';
 import { MatchScheduleCard } from '@/features/match-schedule/ui/match-schedule-card';
+import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent } from '@/shared/ui/card';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { Plus, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 
 export function MatchesList() {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const { data: matches, isLoading, error } = useMatches();
   const { data: voteSessions, isLoading: isLoadingVotes } = useActiveVoteSessions();
   const { isTeamSelectionComplete, selectedVoteSessionId, teams, teamCount } = useTeamSplitStore();
@@ -52,7 +54,7 @@ export function MatchesList() {
       </div>
 
       {/* Team Selection Required Message */}
-      {!isTeamSelectionComplete && (
+      {isAdmin && !isTeamSelectionComplete && (
         <Card className="border-2 border-primary/50">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -62,7 +64,7 @@ export function MatchesList() {
               <div>
                 <h3 className="text-lg font-semibold">팀 나누기를 먼저 완료해주세요</h3>
                 <p className="text-sm text-muted-foreground mt-2">
-                  "팀 나누기" 탭에서 팀을 구성하고 "팀 선택 완료하기" 버튼을 눌러주세요.
+                  &quot;팀 나누기&quot; 탭에서 팀을 구성하고 &quot;팀 선택 완료하기&quot; 버튼을 눌러주세요.
                 </p>
               </div>
               <Button onClick={() => router.push('/team-division')}>
@@ -74,7 +76,7 @@ export function MatchesList() {
       )}
 
       {/* Match Schedule - Only show if team selection is complete */}
-      {isTeamSelectionComplete && hasTeams && (
+      {isAdmin && isTeamSelectionComplete && hasTeams && (
         <div className="space-y-6">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-semibold">경기 스케줄</h3>
@@ -93,6 +95,14 @@ export function MatchesList() {
             ))}
           </div>
         </div>
+      )}
+
+      {!isAdmin && (
+        <Card>
+          <CardContent className="pt-6 text-sm text-muted-foreground">
+            팀 편성, 경기 생성, 실시간 운영은 관리자 화면에서 진행됩니다. 일반 멤버는 지난 경기 결과와 상세 기록을 확인할 수 있습니다.
+          </CardContent>
+        </Card>
       )}
     </div>
   );
