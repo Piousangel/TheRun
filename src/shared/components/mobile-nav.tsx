@@ -18,13 +18,14 @@ import type { LucideIcon } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/shared/lib/utils";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/shared/ui/dialog";
+  DrawerClose,
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/shared/ui/drawer";
 
 type NavItem = {
   href: string;
@@ -119,8 +120,8 @@ export function MobileNav() {
           );
         })}
 
-        <Dialog>
-          <DialogTrigger asChild>
+        <Drawer>
+          <DrawerTrigger asChild>
             <button
               type="button"
               aria-label="더 많은 메뉴 열기"
@@ -136,59 +137,60 @@ export function MobileNav() {
                 더보기
               </span>
             </button>
-          </DialogTrigger>
+          </DrawerTrigger>
 
-          <DialogContent className="bottom-0 top-auto max-w-none translate-x-[-50%] translate-y-0 rounded-t-[2rem] rounded-b-none border-x-0 border-b-0 px-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5 sm:max-w-none">
-            <DialogHeader className="text-left">
-              <DialogTitle>빠른 이동</DialogTitle>
-              <DialogDescription>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>빠른 이동</DrawerTitle>
+              <DrawerDescription>
                 자주 쓰는 화면은 아래에 고정하고, 나머지 관리 메뉴는 이곳에
                 정리했습니다.
-              </DialogDescription>
-            </DialogHeader>
+              </DrawerDescription>
+            </DrawerHeader>
 
             <div className="grid gap-3 pt-2">
               {secondaryItems.map(({ href, label, shortLabel, icon: Icon }) => {
                 const isActive = isRouteActive(pathname, href);
 
                 return (
-                  <Link
-                    key={href}
-                    href={href}
-                    className={cn(
-                      "flex items-center justify-between rounded-[1.35rem] border px-4 py-4 transition-all duration-200",
-                      isActive
-                        ? "border-primary/25 bg-primary/10 text-primary"
-                        : "border-border/70 bg-muted/20 hover:border-primary/20 hover:bg-primary/5",
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className={cn(
-                          "flex h-11 w-11 items-center justify-center rounded-2xl",
-                          isActive ? "bg-primary/12" : "bg-background",
-                        )}
-                      >
-                        <Icon className="h-5 w-5" />
+                  <DrawerClose asChild key={href}>
+                    <Link
+                      href={href}
+                      className={cn(
+                        "flex items-center justify-between rounded-[1.35rem] border px-4 py-4 transition-all duration-200",
+                        isActive
+                          ? "border-primary/25 bg-primary/10 text-primary"
+                          : "border-border/70 bg-muted/20 hover:border-primary/20 hover:bg-primary/5",
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={cn(
+                            "flex h-11 w-11 items-center justify-center rounded-2xl",
+                            isActive ? "bg-primary/12" : "bg-background",
+                          )}
+                        >
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-foreground">
+                            {label}
+                          </p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {shortLabel} 바로가기
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">
-                          {label}
-                        </p>
-                        <p className="mt-1 text-xs text-muted-foreground">
-                          {shortLabel} 바로가기
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                      Open
-                    </span>
-                  </Link>
+                      <span className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                        Open
+                      </span>
+                    </Link>
+                  </DrawerClose>
                 );
               })}
             </div>
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
       </div>
     </nav>
   );
