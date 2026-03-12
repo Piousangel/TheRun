@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useActiveVoteSessions } from "@/entities/vote/model/queries";
 import { VoteCard } from "@/entities/vote/ui/vote-card";
 import { VoteCreateForm } from "@/features/vote-create/ui/vote-create-form";
+import { useAuth } from '@/providers/auth-provider';
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -19,6 +20,7 @@ import { Plus } from "lucide-react";
 
 export function VotesList() {
   const router = useRouter();
+  const { isAdmin } = useAuth();
   const { data: sessions, isLoading, error } = useActiveVoteSessions();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
@@ -59,10 +61,12 @@ export function VotesList() {
               다양한 투표를 만들고 관리하세요
             </p>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            투표 생성
-          </Button>
+          {isAdmin && (
+            <Button onClick={() => setIsCreateOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              투표 생성
+            </Button>
+          )}
         </div>
 
         <Tabs defaultValue="match" className="w-full">
@@ -81,9 +85,7 @@ export function VotesList() {
                 <p className="text-muted-foreground mb-4">
                   진행 중인 경기 투표가 없습니다.
                 </p>
-                <Button onClick={() => setIsCreateOpen(true)}>
-                  첫 투표 만들기
-                </Button>
+                {isAdmin && <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button>}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -104,9 +106,7 @@ export function VotesList() {
                 <p className="text-muted-foreground mb-4">
                   진행 중인 기타 투표가 없습니다.
                 </p>
-                <Button onClick={() => setIsCreateOpen(true)}>
-                  첫 투표 만들기
-                </Button>
+                {isAdmin && <Button onClick={() => setIsCreateOpen(true)}>첫 투표 만들기</Button>}
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -123,17 +123,19 @@ export function VotesList() {
         </Tabs>
       </div>
 
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>새 투표 생성</DialogTitle>
-            <DialogDescription>
-              다양한 이벤트 투표를 만들 수 있습니다.
-            </DialogDescription>
-          </DialogHeader>
-          <VoteCreateForm onSuccess={handleCreateSuccess} />
-        </DialogContent>
-      </Dialog>
+      {isAdmin && (
+        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>새 투표 생성</DialogTitle>
+              <DialogDescription>
+                다양한 이벤트 투표를 만들 수 있습니다.
+              </DialogDescription>
+            </DialogHeader>
+            <VoteCreateForm onSuccess={handleCreateSuccess} />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }

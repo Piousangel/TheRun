@@ -9,6 +9,7 @@ import { Button } from '@/shared/ui/button';
 import { useVoteResponses } from '@/entities/vote/model/queries';
 import { useMembers } from '@/entities/member/model/queries';
 import { VoteDeleteButton } from '@/features/vote-delete/ui/vote-delete-button';
+import { useAuth } from '@/providers/auth-provider';
 import { Calendar, Clock, Users, UserX } from 'lucide-react';
 import type { VoteSession } from '@/shared/types/vote';
 
@@ -32,6 +33,7 @@ const voteTypeLabels = {
 };
 
 export function VoteCard({ session, onVoteClick }: VoteCardProps) {
+  const { isAdmin } = useAuth();
   const { data: responses } = useVoteResponses(session.id);
   const { data: members } = useMembers();
 
@@ -42,7 +44,6 @@ export function VoteCard({ session, onVoteClick }: VoteCardProps) {
       return { attending: 0, absent: 0, noResponse: members?.length || 0 };
     }
 
-    const voteMap = new Map(responses.map((r) => [r.member_id, r.status]));
     const attending = responses.filter((r) => r.status === 'attending').length;
     const absent = responses.filter((r) => r.status === 'absent').length;
     const noResponse = members.length - attending - absent;
@@ -69,7 +70,7 @@ export function VoteCard({ session, onVoteClick }: VoteCardProps) {
               <CardDescription className="mt-1">{session.description}</CardDescription>
             )}
           </div>
-          <VoteDeleteButton sessionId={session.id} sessionTitle={session.title} />
+          {isAdmin && <VoteDeleteButton sessionId={session.id} sessionTitle={session.title} />}
         </div>
       </CardHeader>
 

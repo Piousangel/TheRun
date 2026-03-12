@@ -76,7 +76,7 @@ export function VoteCreateForm({ onSuccess }: VoteCreateFormProps) {
         <Label htmlFor="type">투표 유형</Label>
         <Select
           value={selectedType}
-          onValueChange={(value: any) => setValue('type', value)}
+          onValueChange={(value) => setValue('type', value as VoteCreateFormData['type'])}
           disabled={isPending}
         >
           <SelectTrigger>

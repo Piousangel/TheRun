@@ -6,6 +6,7 @@ import type {
   CreateVoteSessionData,
   UpdateVoteSessionData,
 } from '@/shared/types/vote';
+import type { Member } from '@/shared/types/member';
 
 export const voteKeys = {
   all: ['votes'] as const,
@@ -78,7 +79,7 @@ export function useVoteResponses(sessionId: string) {
         .eq('session_id', sessionId);
 
       if (error) throw error;
-      return data as (VoteResponse & { members: any })[];
+      return data as (VoteResponse & { members: Member | null })[];
     },
     enabled: !!sessionId,
   });
