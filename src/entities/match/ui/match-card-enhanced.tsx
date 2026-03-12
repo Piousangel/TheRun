@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -58,32 +58,6 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
     }
   }, [match]);
 
-  // Timer effect
-  useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTimeInSeconds((prev) => {
-          if (prev <= 0) {
-            setIsRunning(false);
-            handleMatchFinish();
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, [isRunning]);
-
   const handleMatchStart = () => {
     const startTime = new Date().toISOString();
     updateMatch({
@@ -103,7 +77,7 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
     setIsRunning(false);
   };
 
-  const handleMatchFinish = () => {
+  const handleMatchFinish = useCallback(() => {
     const endTime = new Date().toISOString();
     updateMatch({
       id: match.id,
@@ -115,7 +89,31 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
       },
     });
     setIsRunning(false);
-  };
+  }, [match.id, match.team_a, match.team_b, scoreA, scoreB, updateMatch]);
+
+  // Timer effect
+  useEffect(() => {
+    if (isRunning) {
+      intervalRef.current = setInterval(() => {
+        setTimeInSeconds((prev) => {
+          if (prev <= 0) {
+            setIsRunning(false);
+            handleMatchFinish();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [handleMatchFinish, isRunning]);
 
   const handleScoreChange = (team: 'A' | 'B', delta: number) => {
     if (match.status === 'finished') return;

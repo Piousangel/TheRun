@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -92,36 +92,6 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
     }
   }, [match]);
 
-  // Timer effect
-  useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTimeInSeconds((prev) => {
-          if (prev <= 1) {
-            setIsRunning(false);
-            if (match) {
-              handleMatchFinish();
-            }
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [isRunning, match]);
-
   const getCurrentMinute = () => {
     return Math.floor((initialTime - timeInSeconds) / 60);
   };
@@ -173,7 +143,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
     setIsRunning(false);
   };
 
-  const handleMatchFinish = () => {
+  const handleMatchFinish = useCallback(() => {
     if (!match) return;
 
     const endTime = new Date().toISOString();
@@ -187,7 +157,35 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
       },
     });
     setIsRunning(false);
-  };
+  }, [match, matchId, scoreA, scoreB, updateMatch]);
+
+  // Timer effect
+  useEffect(() => {
+    if (isRunning) {
+      intervalRef.current = setInterval(() => {
+        setTimeInSeconds((prev) => {
+          if (prev <= 1) {
+            setIsRunning(false);
+            if (match) {
+              handleMatchFinish();
+            }
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [handleMatchFinish, isRunning, match]);
 
   const handleReset = () => {
     if (!match || match.status === 'in_progress') return;
