@@ -27,6 +27,17 @@ The Run is moving from a prototype into a real mobile-first futsal club app.
 - admin-authored notices with member read tracking
 - home dashboard summary and dedicated announcements page
 
+### Authentication
+
+- Google social login flow added with OAuth callback route
+- Naver login requires custom server-side OAuth integration because it is not a standard Supabase social provider path in this project
+- login UI is being shifted from utility flow to product-quality access screen
+
+### Screen redesign
+
+- introducing reusable `page hero` and `stat tile` primitives
+- upgrading vote, attendance, members, matches, announcements, and account surfaces toward a consistent editorial style
+
 ## Short-term roadmap
 
 1. Finish announcements feature and push
