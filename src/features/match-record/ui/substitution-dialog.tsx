@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/shared/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
 import { Button } from "@/shared/ui/button";
 import {
   Select,
@@ -65,14 +65,14 @@ export function SubstitutionDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>🔄 교체 기록 - {teamName}</DialogTitle>
-          <DialogDescription>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>🔄 교체 기록 - {teamName}</DrawerTitle>
+          <DrawerDescription>
             교체될 선수와 투입될 선수를 선택하세요 ({currentMinute}분)
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <div className="space-y-4">
           {/* Player Out */}
@@ -136,7 +136,7 @@ export function SubstitutionDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DrawerFooter className="sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={handleCancel}>
             취소
           </Button>
@@ -146,8 +146,8 @@ export function SubstitutionDialog({
           >
             저장
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

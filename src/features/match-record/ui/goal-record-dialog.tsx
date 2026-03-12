@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/shared/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
 import { Button } from "@/shared/ui/button";
 import {
   Select,
@@ -64,14 +64,14 @@ export function GoalRecordDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>⚽ 골 기록 - {teamName}</DialogTitle>
-          <DialogDescription>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>⚽ 골 기록 - {teamName}</DrawerTitle>
+          <DrawerDescription>
             득점자와 어시스트를 선택하세요 ({currentMinute}분)
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <div className="space-y-4">
           {/* Scorer Selection */}
@@ -126,15 +126,15 @@ export function GoalRecordDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DrawerFooter className="sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={handleCancel}>
             취소
           </Button>
           <Button onClick={handleSave} disabled={!scorerId}>
             저장
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

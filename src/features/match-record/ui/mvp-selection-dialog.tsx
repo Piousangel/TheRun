@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { MemberAvatar } from '@/entities/member/ui/member-avatar';
-import { Trophy, Target, Users as UsersIcon, Hand } from 'lucide-react';
-import { Badge } from '@/shared/ui/badge';
-import type { Member } from '@/shared/types/member';
-import type { PlayerMatchRecord } from '@/shared/types/match';
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
+import { Button } from "@/shared/ui/button";
+import { MemberAvatar } from "@/entities/member/ui/member-avatar";
+import { Trophy, Target, Users as UsersIcon, Hand } from "lucide-react";
+import { Badge } from "@/shared/ui/badge";
+import type { Member } from "@/shared/types/member";
+import type { PlayerMatchRecord } from "@/shared/types/match";
 
 interface MVPSelectionDialogProps {
   isOpen: boolean;
@@ -40,10 +40,10 @@ export function MVPSelectionDialog({
   onSave,
 }: MVPSelectionDialogProps) {
   const [teamAMvpId, setTeamAMvpId] = useState<string | null>(
-    teamARecords.find((r) => r.is_mvp)?.member_id || null
+    teamARecords.find((r) => r.is_mvp)?.member_id || null,
   );
   const [teamBMvpId, setTeamBMvpId] = useState<string | null>(
-    teamBRecords.find((r) => r.is_mvp)?.member_id || null
+    teamBRecords.find((r) => r.is_mvp)?.member_id || null,
   );
 
   const handleSave = () => {
@@ -63,15 +63,15 @@ export function MVPSelectionDialog({
     member: Member,
     record: PlayerMatchRecord,
     isSelected: boolean,
-    onSelect: () => void
+    onSelect: () => void,
   ) => (
     <button
       key={member.id}
       onClick={onSelect}
       className={`w-full p-3 rounded-lg border-2 transition-all ${
         isSelected
-          ? 'border-primary bg-primary/10'
-          : 'border-muted hover:border-muted-foreground/50 bg-muted/30'
+          ? "border-primary bg-primary/10"
+          : "border-muted hover:border-muted-foreground/50 bg-muted/30"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -100,9 +100,11 @@ export function MVPSelectionDialog({
                 {record.saves}선방
               </Badge>
             )}
-            {record.goals === 0 && record.assists === 0 && record.saves === 0 && (
-              <span className="text-muted-foreground">기록 없음</span>
-            )}
+            {record.goals === 0 &&
+              record.assists === 0 &&
+              record.saves === 0 && (
+                <span className="text-muted-foreground">기록 없음</span>
+              )}
           </div>
         </div>
       </div>
@@ -110,15 +112,17 @@ export function MVPSelectionDialog({
   );
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+    <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
+      <DrawerContent className="max-h-[88vh]">
+        <DrawerHeader>
+          <DrawerTitle className="flex items-center gap-2">
             <Trophy className="h-5 w-5 text-primary" />
             MVP 선정
-          </DialogTitle>
-          <DialogDescription>각 팀에서 MVP를 선정하세요 (선택 사항)</DialogDescription>
-        </DialogHeader>
+          </DrawerTitle>
+          <DrawerDescription>
+            각 팀에서 MVP를 선정하세요 (선택 사항)
+          </DrawerDescription>
+        </DrawerHeader>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Team A MVP Selection */}
@@ -144,7 +148,7 @@ export function MVPSelectionDialog({
                   member,
                   record,
                   teamAMvpId === member.id,
-                  () => setTeamAMvpId(member.id)
+                  () => setTeamAMvpId(member.id),
                 );
               })}
             </div>
@@ -173,14 +177,14 @@ export function MVPSelectionDialog({
                   member,
                   record,
                   teamBMvpId === member.id,
-                  () => setTeamBMvpId(member.id)
+                  () => setTeamBMvpId(member.id),
                 );
               })}
             </div>
           </div>
         </div>
 
-        <DialogFooter>
+        <DrawerFooter className="sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={handleCancel}>
             취소
           </Button>
@@ -188,8 +192,8 @@ export function MVPSelectionDialog({
             <Trophy className="mr-2 h-4 w-4" />
             MVP 선정 완료
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

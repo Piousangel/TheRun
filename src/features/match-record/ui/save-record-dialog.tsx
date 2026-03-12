@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/shared/ui/dialog';
-import { Button } from '@/shared/ui/button';
-import { Label } from '@/shared/ui/label';
-import { MemberAvatar } from '@/entities/member/ui/member-avatar';
-import type { Member } from '@/shared/types/member';
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
+import { Button } from "@/shared/ui/button";
+import { Label } from "@/shared/ui/label";
+import { MemberAvatar } from "@/entities/member/ui/member-avatar";
+import type { Member } from "@/shared/types/member";
 
 interface SaveRecordDialogProps {
   isOpen: boolean;
@@ -35,7 +35,9 @@ export function SaveRecordDialog({
 
   const handleToggleGoalkeeper = (memberId: string) => {
     setSelectedGoalkeepers((prev) =>
-      prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId]
+      prev.includes(memberId)
+        ? prev.filter((id) => id !== memberId)
+        : [...prev, memberId],
     );
   };
 
@@ -55,14 +57,14 @@ export function SaveRecordDialog({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>🧤 선방 기록 - {teamName}</DialogTitle>
-          <DialogDescription>
+    <Drawer open={isOpen} onOpenChange={(open) => !open && handleCancel()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>🧤 선방 기록 - {teamName}</DrawerTitle>
+          <DrawerDescription>
             선방을 기록한 골키퍼를 선택하세요 ({currentMinute}분)
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <div className="space-y-2">
           <Label>골키퍼 선택 (다중 선택 가능)</Label>
@@ -73,11 +75,15 @@ export function SaveRecordDialog({
                 onClick={() => handleToggleGoalkeeper(member.id)}
                 className={`flex items-center gap-3 p-3 rounded-lg border-2 transition-all ${
                   selectedGoalkeepers.includes(member.id)
-                    ? 'border-primary bg-primary/10'
-                    : 'border-muted hover:border-muted-foreground/50'
+                    ? "border-primary bg-primary/10"
+                    : "border-muted hover:border-muted-foreground/50"
                 }`}
               >
-                <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
+                <MemberAvatar
+                  src={member.profile_photo}
+                  alt={member.name}
+                  size="sm"
+                />
                 <span className="font-medium">{member.name}</span>
                 {selectedGoalkeepers.includes(member.id) && (
                   <span className="ml-auto text-primary font-bold">✓</span>
@@ -87,15 +93,18 @@ export function SaveRecordDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <DrawerFooter className="sm:flex-row sm:justify-end">
           <Button variant="outline" onClick={handleCancel}>
             취소
           </Button>
-          <Button onClick={handleSave} disabled={selectedGoalkeepers.length === 0}>
+          <Button
+            onClick={handleSave}
+            disabled={selectedGoalkeepers.length === 0}
+          >
             저장 (+{selectedGoalkeepers.length})
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
