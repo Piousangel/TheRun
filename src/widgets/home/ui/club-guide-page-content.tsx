@@ -40,8 +40,8 @@ const adminRoles = [
 export function ClubGuidePageContent() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-stone-50 to-white pb-24">
-      <section className="relative overflow-hidden border-b border-border/70 bg-gradient-to-b from-zinc-950 via-zinc-900 to-stone-100 text-white">
-        <div className="absolute left-0 top-0 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+      <section className="editorial-hero relative overflow-hidden border-b border-border/70 text-white">
+        <div className="editorial-glow-gold absolute left-0 top-0 h-64 w-64 rounded-full" />
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 lg:px-10">
           <p className="text-sm uppercase tracking-[0.24em] text-primary/85">Club Guide</p>
           <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">The Run 운영 가이드</h1>
@@ -63,7 +63,7 @@ export function ClubGuidePageContent() {
 
       <section className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-8 lg:px-10">
         <div className="grid gap-4 lg:grid-cols-2">
-          <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.08),rgba(255,255,255,0.95))]">
+          <Card className="section-surface border-primary/15">
             <CardHeader>
               <CardTitle className="text-2xl">신규 멤버 체크리스트</CardTitle>
               <CardDescription>처음 들어온 사람도 앱 안에서 무엇을 해야 하는지 바로 알 수 있게 정리했습니다.</CardDescription>
@@ -134,7 +134,7 @@ export function ClubGuidePageContent() {
           ))}
         </div>
 
-        <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.12),rgba(255,255,255,0.95))]">
+        <Card className="section-surface border-primary/15">
           <CardHeader>
             <CardTitle className="text-2xl">추천 운영 순서</CardTitle>
             <CardDescription>실제 앱 사용 시 가장 무난하고 덜 꼬이는 순서입니다.</CardDescription>

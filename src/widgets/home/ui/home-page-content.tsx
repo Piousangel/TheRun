@@ -72,6 +72,33 @@ const guideHighlights = [
   '경기 당일 담당 역할 가이드',
 ];
 
+const landingShowcase = [
+  {
+    eyebrow: 'Weekly Readiness',
+    title: '이번 주 참석 여부를 빠르게 정리',
+    body: '경기, 회식, 번개 응답을 같은 흐름으로 모아 운영자가 인원 파악을 즉시 할 수 있게 구성합니다.',
+    cardTitle: '이번 주 경기 응답',
+    cardBody: '현재 참석 의사 인원과 미응답 인원을 보고 바로 팀 구성을 준비합니다.',
+    metrics: ['참석 희망 14명', '미응답 5명', '마감 D-1'],
+  },
+  {
+    eyebrow: 'Match Flow',
+    title: '팀 나누기에서 경기 기록까지 한 번에 연결',
+    body: '응답 인원 기반 팀 편성, 실시간 경기 운영, 경기 후 기록 저장까지 같은 루틴 안에서 이어집니다.',
+    cardTitle: '운영 흐름',
+    cardBody: '투표 → 출석 → 팀 구성 → 경기 운영 → 기록 저장',
+    metrics: ['자동 밸런싱', '실시간 스코어', '기록 히스토리'],
+  },
+  {
+    eyebrow: 'Mobile First',
+    title: '운동장 가는 길에도 바로 쓰는 모바일 UX',
+    body: '큰 화면보다 휴대폰 환경을 우선해, 멤버도 운영자도 이동 중에 바로 확인할 수 있게 구성했습니다.',
+    cardTitle: '오늘의 체크리스트',
+    cardBody: '내 응답 상태, 경기 시간, 운영 가이드를 첫 화면에서 바로 확인합니다.',
+    metrics: ['내 응답 중심', '관리자 권한 분리', '한 화면 요약'],
+  },
+];
+
 function formatDeadline(deadline: string) {
   const date = new Date(deadline);
   const relative = formatDistanceToNowStrict(date, { addSuffix: true, locale: ko });
@@ -109,92 +136,85 @@ export function HomePageContent() {
   if (!user) {
     return (
       <main className="relative overflow-hidden pb-24">
-        <section className="relative overflow-hidden border-b border-border/60 bg-gradient-to-b from-zinc-950 via-zinc-900 to-stone-100 text-white">
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:48px_48px] opacity-20" />
-          <div className="absolute left-0 top-0 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-          <div className="absolute right-0 top-12 h-56 w-56 rounded-full bg-white/10 blur-3xl" />
-          <div className="relative mx-auto flex min-h-[82vh] max-w-7xl flex-col justify-between gap-12 px-4 py-8 sm:px-8 lg:px-10">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.28em] text-primary/90">The Run Futsal Club</p>
-                <h1 className="mt-3 text-4xl font-semibold leading-tight sm:text-6xl">
-                  우리 동호회의
-                  <br />
+        <section className="editorial-hero relative overflow-hidden border-b border-border/60 text-white">
+          <div className="editorial-grid absolute inset-0 opacity-20" />
+          <div className="editorial-glow-gold absolute left-0 top-0 h-72 w-72 rounded-full" />
+          <div className="editorial-glow-white absolute right-0 top-12 h-56 w-56 rounded-full" />
+          <div className="relative mx-auto flex min-h-[92vh] max-w-6xl flex-col items-center justify-center gap-10 px-4 py-14 text-center sm:px-8 lg:px-10">
+            <Badge className="border border-primary/25 bg-primary/10 px-4 py-1.5 text-primary hover:bg-primary/10">
+              The Run Futsal Club · Beta to Real Club App
+            </Badge>
+
+            <div className="space-y-5">
+              <p className="text-sm font-medium tracking-[0.28em] text-white/55 uppercase">Saturday Operating Board</p>
+              <h1 className="text-5xl font-semibold tracking-tight text-white sm:text-6xl lg:text-8xl">
+                우리 동호회의
+                <br />
+                <span className="editorial-highlight">
                   주간 운영을 한 화면으로.
-                </h1>
-              </div>
-              <Badge className="hidden border border-white/20 bg-white/10 px-3 py-1 text-white sm:inline-flex">
-                Beta to Real Club App
-              </Badge>
+                </span>
+              </h1>
+              <p className="mx-auto max-w-3xl text-base leading-8 text-white/75 sm:text-lg">
+                출석 체크, 투표, 팀 나누기, 경기 기록이 따로 놀지 않게 만들었습니다. 운동 가기 전에 응답하고,
+                운영자는 바로 인원과 경기 흐름을 잡고, 경기 후에는 기록까지 이어집니다.
+              </p>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-2 lg:items-end">
-              <div className="space-y-6">
-                <p className="max-w-2xl text-base leading-7 text-white/80 sm:text-lg">
-                  출석 체크, 투표, 팀 나누기, 경기 기록이 따로 놀지 않게 만들었습니다. 운동 가기 전에 응답하고,
-                  운영자는 바로 인원과 경기 흐름을 잡고, 경기 후에는 기록까지 이어집니다.
-                </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Link href="/login">
+                <Button size="lg" className="rounded-full px-8 shadow-[0_16px_40px_rgba(200,168,88,0.35)]">
+                  로그인하고 시작하기
+                  <LogIn className="h-4 w-4" />
+                </Button>
+              </Link>
+              <Link href="/club-guide">
+                <Button size="lg" variant="outline" className="rounded-full border-white/20 bg-white/10 px-8 text-white hover:bg-white/20 hover:text-white">
+                  운영 가이드 보기
+                </Button>
+              </Link>
+            </div>
 
-                <div className="flex flex-wrap gap-3">
-                  <Link href="/login">
-                    <Button size="lg" className="rounded-full px-7 shadow-[0_16px_40px_rgba(200,168,88,0.35)]">
-                      로그인하고 시작하기
-                      <LogIn className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                  <Link href="/club-guide">
-                    <Button size="lg" variant="outline" className="rounded-full border-white/20 bg-white/10 px-7 text-white hover:bg-white/20 hover:text-white">
-                      운영 가이드 보기
-                    </Button>
-                  </Link>
+            <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3">
+              {[
+                { label: 'Weekly Flow', value: 'Vote → Attendance → Match' },
+                { label: 'Member Experience', value: '내 응답 중심' },
+                { label: 'Admin Control', value: '운영 권한 분리' },
+              ].map((item) => (
+                <div key={item.label} className="glass-panel rounded-3xl p-5">
+                  <p className="text-xs uppercase tracking-[0.22em] text-white/50">{item.label}</p>
+                  <p className="mt-3 text-base font-medium text-white/90">{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="w-full max-w-xl rounded-[2rem] border border-white/15 bg-black/40 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+              <div className="editorial-preview rounded-[1.5rem] p-5 text-left">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs tracking-[0.22em] text-primary/80 uppercase">Saturday Run</p>
+                    <p className="mt-2 text-xl font-semibold text-white">이번 주 운영 보드</p>
+                  </div>
+                  <Waves className="h-5 w-5 text-primary" />
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {[
-                    { label: 'Weekly Flow', value: 'Vote → Attendance → Match' },
-                    { label: 'Member Experience', value: '내 응답 중심' },
-                    { label: 'Admin Control', value: '운영 권한 분리' },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur">
-                      <p className="text-xs uppercase tracking-[0.18em] text-white/50">{item.label}</p>
-                      <p className="mt-2 text-sm font-medium text-white/90">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="absolute -right-3 -top-6 h-28 w-28 rounded-full bg-primary/30 blur-3xl" />
-                <div className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-zinc-950/85 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur">
-                  <div className="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(180deg,rgba(200,168,88,0.14),rgba(255,255,255,0.03))] p-4">
+                <div className="mt-5 grid gap-3">
+                  <div className="glass-panel-soft rounded-2xl p-4">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs tracking-[0.22em] text-primary/80">SATURDAY RUN</p>
-                        <p className="mt-2 text-xl font-semibold">이번 주 운영 보드</p>
-                      </div>
-                      <Waves className="h-5 w-5 text-primary" />
+                      <p className="text-sm font-medium text-white">경기 투표</p>
+                      <Badge className="bg-primary/20 text-primary hover:bg-primary/20">마감 임박</Badge>
                     </div>
-
-                    <div className="mt-5 grid gap-3">
-                      <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium">경기 투표</p>
-                          <Badge className="bg-primary/20 text-primary hover:bg-primary/20">마감 임박</Badge>
-                        </div>
-                        <p className="mt-2 text-sm text-white/70">누가 오는지 바로 확인하고, 운영자는 인원 기반으로 팀을 나눕니다.</p>
-                      </div>
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                          <p className="text-xs uppercase tracking-[0.18em] text-white/50">Lineup</p>
-                          <p className="mt-2 text-lg font-semibold">자동 밸런싱</p>
-                          <p className="mt-1 text-sm text-white/70">스탯 기준 팀 구성</p>
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
-                          <p className="text-xs uppercase tracking-[0.18em] text-white/50">Match</p>
-                          <p className="mt-2 text-lg font-semibold">실시간 기록</p>
-                          <p className="mt-1 text-sm text-white/70">스코어/교체/기록 저장</p>
-                        </div>
-                      </div>
+                    <p className="mt-2 text-sm text-white/70">누가 오는지 바로 확인하고, 운영자는 인원 기반으로 팀을 나눕니다.</p>
+                  </div>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="glass-panel-soft rounded-2xl p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-white/50">Lineup</p>
+                      <p className="mt-2 text-lg font-semibold text-white">자동 밸런싱</p>
+                      <p className="mt-1 text-sm text-white/70">스탯 기준 팀 구성</p>
+                    </div>
+                    <div className="glass-panel-soft rounded-2xl p-4">
+                      <p className="text-xs uppercase tracking-[0.18em] text-white/50">Match</p>
+                      <p className="mt-2 text-lg font-semibold text-white">실시간 기록</p>
+                      <p className="mt-1 text-sm text-white/70">스코어/교체/기록 저장</p>
                     </div>
                   </div>
                 </div>
@@ -203,7 +223,39 @@ export function HomePageContent() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-14 sm:px-8 lg:px-10">
+        <section className="mx-auto max-w-6xl space-y-20 px-4 py-20 sm:px-8 lg:px-10">
+          {landingShowcase.map((item, index) => (
+            <div key={item.title} className={cn('grid gap-8 lg:grid-cols-2 lg:items-center', index % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
+              <div className="space-y-4">
+                <p className="text-sm font-medium text-primary uppercase tracking-[0.22em]">{item.eyebrow}</p>
+                <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">{item.title}</h2>
+                <p className="max-w-xl text-base leading-7 text-muted-foreground">{item.body}</p>
+              </div>
+
+              <div className="rounded-[2rem] border border-primary/15 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-800 p-4 text-white shadow-[0_24px_70px_rgba(0,0,0,0.18)]">
+                <div className="glass-panel-soft rounded-[1.5rem] p-5">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-primary/80">Preview</p>
+                      <p className="mt-2 text-xl font-semibold">{item.cardTitle}</p>
+                    </div>
+                    {index === 0 ? <Vote className="h-5 w-5 text-primary" /> : index === 1 ? <ClipboardList className="h-5 w-5 text-primary" /> : <Sparkles className="h-5 w-5 text-primary" />}
+                  </div>
+                  <p className="mt-4 text-sm leading-7 text-white/70">{item.cardBody}</p>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    {item.metrics.map((metric) => (
+                      <div key={metric} className="metric-chip rounded-2xl p-3 text-sm text-white/85">
+                        {metric}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </section>
+
+        <section className="mx-auto max-w-7xl px-4 py-6 sm:px-8 lg:px-10">
           <div className="grid gap-4 md:grid-cols-3">
             {landingFeatures.map(({ title, description, icon: Icon }) => (
               <Card key={title} className="border-primary/15 bg-gradient-to-br from-card via-card to-primary/5 shadow-[0_14px_50px_rgba(0,0,0,0.05)]">
@@ -288,8 +340,8 @@ export function HomePageContent() {
 
   return (
     <main className="min-h-screen pb-24">
-      <section className="relative overflow-hidden border-b border-border/70 bg-gradient-to-b from-zinc-950 via-zinc-900 to-stone-100 text-white">
-        <div className="absolute left-0 top-0 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
+      <section className="editorial-hero relative overflow-hidden border-b border-border/70 text-white">
+        <div className="editorial-glow-gold absolute left-0 top-0 h-64 w-64 rounded-full" />
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 lg:px-10">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-4">
@@ -326,7 +378,7 @@ export function HomePageContent() {
                 { label: '투표 세션', value: totalVoteSessions || '-', icon: Vote },
                 { label: '경기 기록', value: totalMatches || '-', icon: Trophy },
               ].map(({ label, value, icon: Icon }) => (
-                <div key={label} className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur">
+                <div key={label} className="glass-panel rounded-2xl p-4">
                   <div className="flex items-center justify-between">
                     <span className="text-xs uppercase tracking-[0.18em] text-white/50">{label}</span>
                     <Icon className="h-4 w-4 text-primary" />
@@ -341,7 +393,7 @@ export function HomePageContent() {
 
       <section className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-8 lg:px-10">
         <div className="grid gap-4 xl:grid-cols-2">
-          <Card className="overflow-hidden border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.1),rgba(255,255,255,0.9))]">
+          <Card className="section-surface overflow-hidden border-primary/15">
             <CardHeader>
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -510,7 +562,7 @@ export function HomePageContent() {
             </CardContent>
           </Card>
 
-          <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.08),rgba(255,255,255,0.95))]">
+          <Card className="section-surface border-primary/15">
             <CardHeader>
               <CardTitle className="text-2xl">{isAdmin ? '운영자 콕핏' : '멤버 빠른 동선'}</CardTitle>
               <CardDescription>
