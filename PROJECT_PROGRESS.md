@@ -33,6 +33,18 @@ The Run is moving from a prototype into a real mobile-first futsal club app.
 - Naver login requires custom server-side OAuth integration because it is not a standard Supabase social provider path in this project
 - login UI is being shifted from utility flow to product-quality access screen
 
+## Library / SDK notes
+
+### Adopted now
+
+- `sonner`: lightweight toast feedback for login, account linking, and announcement creation
+
+### Good next candidates
+
+- `motion` or `framer-motion`: richer scroll and section transitions on landing/detail pages
+- `@vercel/analytics` or `posthog-js`: understand which screens club members actually use most
+- push notification layer later via Supabase Edge Functions + Expo/Web Push if announcement delivery needs to leave the app
+
 ### Screen redesign
 
 - introducing reusable `page hero` and `stat tile` primitives
