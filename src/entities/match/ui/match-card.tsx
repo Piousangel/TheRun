@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
-import { Badge } from '@/shared/ui/badge';
-import { Button } from '@/shared/ui/button';
-import { Trophy, MapPin, Calendar } from 'lucide-react';
-import type { Match } from '@/shared/types/match';
+import Link from "next/link";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
+import { Badge } from "@/shared/ui/badge";
+import { Button } from "@/shared/ui/button";
+import { Trophy, MapPin, Calendar } from "lucide-react";
+import type { Match } from "@/shared/types/match";
 
 interface MatchCardProps {
   match: Match;
@@ -17,11 +17,7 @@ export function MatchCard({ match }: MatchCardProps) {
   const teamAScore = match.team_a.score;
   const teamBScore = match.team_b.score;
   const winner =
-    teamAScore > teamBScore
-      ? 'A'
-      : teamBScore > teamAScore
-      ? 'B'
-      : 'draw';
+    teamAScore > teamBScore ? "A" : teamBScore > teamAScore ? "B" : "draw";
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -30,16 +26,18 @@ export function MatchCard({ match }: MatchCardProps) {
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4 text-muted-foreground" />
             <CardTitle className="text-lg">
-              {format(new Date(match.date), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
+              {format(new Date(match.date), "yyyy년 MM월 dd일 (EEE)", {
+                locale: ko,
+              })}
             </CardTitle>
           </div>
-          {winner !== 'draw' && (
+          {winner !== "draw" && (
             <Badge variant="default">
               <Trophy className="h-3 w-3 mr-1" />
               Team {winner} 승
             </Badge>
           )}
-          {winner === 'draw' && <Badge variant="secondary">무승부</Badge>}
+          {winner === "draw" && <Badge variant="secondary">무승부</Badge>}
         </div>
       </CardHeader>
 
@@ -58,7 +56,9 @@ export function MatchCard({ match }: MatchCardProps) {
             </p>
           </div>
 
-          <div className="text-2xl font-bold text-muted-foreground px-4">vs</div>
+          <div className="text-2xl font-bold text-muted-foreground px-4">
+            vs
+          </div>
 
           <div className="text-center flex-1">
             <p className="text-sm text-muted-foreground mb-1">Team B</p>
@@ -69,11 +69,9 @@ export function MatchCard({ match }: MatchCardProps) {
           </div>
         </div>
 
-        <Link href={`/matches/${match.id}`}>
-          <Button variant="outline" className="w-full" size="sm">
-            상세 보기
-          </Button>
-        </Link>
+        <Button asChild variant="outline" className="w-full" size="sm">
+          <Link href={`/matches/${match.id}`}>상세 보기</Link>
+        </Button>
       </CardContent>
     </Card>
   );
