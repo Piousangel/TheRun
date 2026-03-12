@@ -1,5 +1,5 @@
-import { HomePageContent } from '@/widgets/home/ui/home-page-content';
+import { AppDashboardContent } from '@/widgets/dashboard/ui/app-dashboard-content';
 
 export default function DashboardPage() {
-  return <HomePageContent mode="dashboard" />;
+  return <AppDashboardContent />;
 }
