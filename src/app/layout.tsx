@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { MobileNav } from '@/shared/components/mobile-nav';
+import { Toaster } from 'sonner';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -21,6 +22,7 @@ export default function RootLayout({
           <AuthProvider>
             <div className="pb-16 md:pb-0">{children}</div>
             <MobileNav />
+            <Toaster richColors position="top-center" />
           </AuthProvider>
         </QueryProvider>
       </body>

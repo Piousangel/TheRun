@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { UserRound, Shield, Link2, LogOut } from 'lucide-react';
+import { toast } from 'sonner';
 import { useMembers } from '@/entities/member/model/queries';
 import { useLinkMemberProfile, useUnlinkMemberProfile } from '@/entities/auth/model/queries';
 import { useAuth } from '@/providers/auth-provider';
@@ -41,9 +42,12 @@ export function MyPageContent() {
         phoneNumber,
       });
       setMessage('내 멤버 연결이 완료되었습니다.');
+      toast.success('내 멤버 연결이 완료되었습니다.');
       setPhoneNumber('');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '멤버 연결에 실패했습니다.');
+      const errorMessage = error instanceof Error ? error.message : '멤버 연결에 실패했습니다.';
+      setMessage(errorMessage);
+      toast.error(errorMessage);
     }
   };
 
@@ -54,8 +58,11 @@ export function MyPageContent() {
       await unlinkMutation.mutateAsync();
       setSelectedMemberId('');
       setMessage('멤버 연결을 해제했습니다.');
+      toast.success('멤버 연결을 해제했습니다.');
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '연결 해제에 실패했습니다.');
+      const errorMessage = error instanceof Error ? error.message : '연결 해제에 실패했습니다.';
+      setMessage(errorMessage);
+      toast.error(errorMessage);
     }
   };
 

@@ -2,6 +2,7 @@
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
 import { useCreateAnnouncement } from '@/entities/announcement/model/queries';
 import { announcementCreateSchema, type AnnouncementCreateFormData } from '../model/schema';
 import { Button } from '@/shared/ui/button';
@@ -46,7 +47,11 @@ export function AnnouncementCreateForm({ onSuccess }: AnnouncementCreateFormProp
   const onSubmit = (data: AnnouncementCreateFormData) => {
     createAnnouncement(data, {
       onSuccess: () => {
+        toast.success('공지 등록이 완료되었습니다.');
         onSuccess();
+      },
+      onError: (error) => {
+        toast.error(error.message);
       },
     });
   };

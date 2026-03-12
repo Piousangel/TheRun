@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { Globe, ShieldCheck } from 'lucide-react';
 import type { Provider } from '@supabase/supabase-js';
+import { toast } from 'sonner';
 import { supabase } from '@/shared/api/supabase/config';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
@@ -48,16 +49,19 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
 
     if (error) {
       setMessage(error.message);
+      toast.error(error.message);
       setIsSubmitting(null);
       return;
     }
 
+    toast.success('Google 로그인 화면으로 이동합니다.');
     setIsSubmitting(null);
   };
 
   const handleNaverClick = () => {
     setIsSubmitting('naver');
     setMessage('네이버 로그인은 다음 단계에서 서버 키 설정 후 연결합니다. 지금은 Google 로그인을 먼저 사용해주세요.');
+    toast.message('Naver 로그인은 추가 서버 설정 후 활성화됩니다.');
     setIsSubmitting(null);
   };
 
