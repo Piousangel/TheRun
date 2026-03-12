@@ -125,8 +125,8 @@ export function HomePageContent() {
         <div className="editorial-grid absolute inset-0 opacity-20" />
         <div className="editorial-glow-gold absolute left-0 top-0 h-72 w-72 rounded-full" />
         <div className="editorial-glow-white absolute right-0 top-12 h-56 w-56 rounded-full" />
-        <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col items-center justify-center gap-8 px-4 py-10 text-center sm:px-8 lg:min-h-[92vh] lg:gap-10 lg:py-14 lg:text-center lg:px-10">
-          <Badge className="border border-primary/25 bg-primary/10 px-4 py-1.5 text-primary hover:bg-primary/10">
+        <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col items-center justify-center gap-6 px-4 py-8 text-center sm:px-8 lg:min-h-[92vh] lg:gap-10 lg:py-14 lg:text-center lg:px-10">
+          <Badge className="hidden border border-primary/25 bg-primary/10 px-4 py-1.5 text-primary hover:bg-primary/10 md:inline-flex">
             The Run Futsal Club · Beta to Real Club App
           </Badge>
 
@@ -150,7 +150,7 @@ export function HomePageContent() {
                 <LogIn className="h-4 w-4" />
               </Button>
             </Link>
-            <Link href="/club-guide">
+            <Link href="/club-guide" className="hidden md:inline-flex">
               <Button size="lg" variant="outline" className="rounded-full border-white/20 bg-white/10 px-8 text-white hover:bg-white/20 hover:text-white">
                 운영 가이드 보기
               </Button>

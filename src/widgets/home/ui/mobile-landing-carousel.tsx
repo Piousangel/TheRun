@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/shared/ui/button';
 import { cn } from '@/shared/lib/utils';
 
 export interface MobileLandingSlide {
@@ -51,7 +49,7 @@ export function MobileLandingCarousel({ slides }: MobileLandingCarouselProps) {
   return (
     <section className="space-y-4 md:hidden">
       <div
-        className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-black/20 p-4 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl"
+        className="relative overflow-hidden rounded-[2rem] bg-black/15 p-2 shadow-[0_24px_70px_rgba(0,0,0,0.18)] backdrop-blur-xl"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={() => setIsPaused(true)}
@@ -72,22 +70,22 @@ export function MobileLandingCarousel({ slides }: MobileLandingCarouselProps) {
               if (info.offset.x <= -80) paginate(1);
               if (info.offset.x >= 80) paginate(-1);
             }}
-            className="rounded-[1.5rem] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-5 text-white"
+            className="min-h-[340px] rounded-[1.75rem] bg-[radial-gradient(circle_at_top_right,rgba(200,168,88,0.25),transparent_35%),linear-gradient(160deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-5 text-white"
           >
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-xs uppercase tracking-[0.22em] text-primary">{activeSlide.eyebrow}</p>
                   <p className="text-xs font-medium text-white/55">{index + 1} / {slides.length}</p>
                 </div>
-                <h3 className="text-2xl font-semibold tracking-tight leading-tight">{activeSlide.title}</h3>
+                <h3 className="text-[1.9rem] font-semibold tracking-tight leading-[1.1]">{activeSlide.title}</h3>
                 <p className="text-sm leading-7 text-white/72">{activeSlide.body}</p>
               </div>
 
               {activeSlide.chips?.length ? (
-                <div className="grid gap-2">
+                <div className="grid gap-2.5">
                   {activeSlide.chips.map((chip) => (
-                    <div key={chip} className="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-medium text-white/90">
+                    <div key={chip} className="rounded-2xl bg-white/10 px-4 py-3 text-sm font-medium text-white/90 backdrop-blur-sm">
                       {chip}
                     </div>
                   ))}
@@ -96,8 +94,7 @@ export function MobileLandingCarousel({ slides }: MobileLandingCarouselProps) {
             </div>
           </motion.div>
         </AnimatePresence>
-        <div className="mt-5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+        <div className="mt-4 flex items-center justify-center gap-2">
           {slides.map((slide, slideIndex) => (
             <button
               key={slide.title}
@@ -108,21 +105,11 @@ export function MobileLandingCarousel({ slides }: MobileLandingCarouselProps) {
                 setIndex(slideIndex);
               }}
               className={cn(
-                'h-2.5 rounded-full transition-all',
+                'h-1.5 rounded-full transition-all',
                 slideIndex === index ? 'w-8 bg-primary' : 'w-2.5 bg-white/20'
               )}
             />
           ))}
-          </div>
-
-          <div className="flex gap-2">
-            <Button variant="outline" size="icon" className="border-white/15 bg-white/10 text-white hover:bg-white/20 hover:text-white" onClick={() => paginate(-1)}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button size="icon" className="bg-primary text-primary-foreground" onClick={() => paginate(1)}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
         </div>
       </div>
     </section>
