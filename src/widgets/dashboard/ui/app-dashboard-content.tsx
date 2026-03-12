@@ -309,6 +309,68 @@ export function AppDashboardContent() {
           </Card>
         </div>
 
+        <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-2xl">{isAdmin ? '바로 해야 할 운영 액션' : '지금 바로 할 일'}</CardTitle>
+              <CardDescription>
+                {isAdmin
+                  ? '주간 운영 흐름에서 가장 자주 반복하는 액션만 앞쪽에 모았습니다.'
+                  : '이번 주에 가장 많이 눌러야 할 개인 액션만 추렸습니다.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-2">
+              {(isAdmin
+                ? [
+                    { href: '/votes', title: '투표 열기', body: activeVoteSession ? '현재 열린 투표 확인' : '이번 주 투표 생성', icon: Vote },
+                    { href: '/attendance', title: '출석 현황', body: attendanceSession ? '응답 상태 점검' : '출석 세션 필요', icon: CalendarDays },
+                    { href: '/team-division', title: '팀 구성', body: pendingMatch || liveMatch ? '기존 팀 확인' : '새 팀 나누기', icon: Users },
+                    { href: '/announcements', title: '공지 작성', body: latestAnnouncements.length > 0 ? '최근 공지 검토' : '첫 공지 작성', icon: BellRing },
+                  ]
+                : [
+                    { href: isLinked ? '/votes' : '/me', title: isLinked ? '내 투표 확인' : '내 계정 연결', body: isLinked ? '응답 상태 확인' : '개인 흐름 활성화', icon: Vote },
+                    { href: '/attendance', title: '내 출석 확인', body: attendanceSession ? '응답/시간 확인' : '열린 출석 없음', icon: CalendarDays },
+                    { href: '/announcements', title: '공지 확인', body: unreadAnnouncementCount > 0 ? `${unreadAnnouncementCount}개 미확인` : '새 공지 없음', icon: BellRing },
+                    { href: '/matches', title: '경기 기록 보기', body: latestMatch ? '최근 결과 확인' : '아직 기록 없음', icon: Trophy },
+                  ]).map(({ href, title, body, icon: Icon }) => (
+                <Link key={href} href={href}>
+                  <div className="h-full rounded-2xl border bg-background/80 p-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                    <Icon className="h-5 w-5 text-primary" />
+                    <p className="mt-3 font-semibold">{title}</p>
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground">{body}</p>
+                  </div>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card className="section-surface border-primary/15">
+            <CardHeader>
+              <CardTitle className="text-2xl">{isAdmin ? '이번 주 운영 메모' : '이번 주 개인 흐름'}</CardTitle>
+              <CardDescription>
+                {isAdmin
+                  ? '운영 관점에서 놓치지 말아야 할 맥락을 짧게 요약합니다.'
+                  : '멤버 입장에서 이번 주 앱 사용 흐름을 짧게 안내합니다.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-7 text-muted-foreground">
+              {isAdmin ? (
+                <>
+                  <p>- 투표와 출석이 열려 있어야 팀 구성과 경기 운영이 자연스럽게 이어집니다.</p>
+                  <p>- 공지 보드에 시간 변경과 긴급 안내를 먼저 올리면 멤버 혼선을 줄일 수 있습니다.</p>
+                  <p>- 경기 상세 화면에서는 타이머, 스코어, 기록 입력이 한 흐름으로 이어지도록 계속 정리 중입니다.</p>
+                </>
+              ) : (
+                <>
+                  <p>- 멤버 연결을 마치면 투표/출석이 내 기준으로 간단해집니다.</p>
+                  <p>- 읽지 않은 공지와 경기 일정은 홈에서 먼저 확인하는 흐름이 가장 효율적입니다.</p>
+                  <p>- 경기 기록과 공지는 매주 반복해서 확인하게 되는 핵심 진입점입니다.</p>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="grid gap-4 lg:grid-cols-4">
           {[
             {
