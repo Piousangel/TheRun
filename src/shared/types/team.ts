@@ -1,5 +1,3 @@
-import { MemberStats } from './member';
-
 export interface TeamStats {
   avgSpeed: number;
   avgShooting: number;

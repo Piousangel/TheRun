@@ -78,7 +78,7 @@ export function autoBalanceTeams(members: Member[]): {
   const teamB: Member[] = [];
 
   // Distribute players to balance teams
-  sortedMembers.forEach((member, index) => {
+  sortedMembers.forEach((member) => {
     const teamATotal = calculateTeamStats(teamA).totalScore;
     const teamBTotal = calculateTeamStats(teamB).totalScore;
 

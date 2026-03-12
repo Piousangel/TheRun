@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMembers } from '@/entities/member/model/queries';
 import { useActiveVoteSessions, useVoteResponses } from '@/entities/vote/model/queries';
@@ -39,12 +39,12 @@ export function TeamSplitManual() {
   });
 
   // Get member vote status
-  const getMemberVoteStatus = (memberId: string): 'attending' | 'absent' | 'no-response' => {
+  const getMemberVoteStatus = useCallback((memberId: string): 'attending' | 'absent' | 'no-response' => {
     if (!voteResponses || !selectedVoteId) return 'no-response';
     const response = voteResponses.find(r => r.member_id === memberId);
     if (!response) return 'no-response';
     return response.status === 'attending' ? 'attending' : 'absent';
-  };
+  }, [selectedVoteId, voteResponses]);
 
   // Filter members based on vote status
   const filteredMembers = useMemo(() => {
@@ -53,7 +53,7 @@ export function TeamSplitManual() {
 
     // Only show attending members
     return members.filter(m => getMemberVoteStatus(m.id) === 'attending');
-  }, [members, filterMode, voteResponses, selectedVoteId]);
+  }, [members, filterMode, getMemberVoteStatus]);
 
   // Sort available members: attending first, then others
   const sortedAvailableMembers = useMemo(() => {
@@ -69,7 +69,7 @@ export function TeamSplitManual() {
 
       return 0;
     });
-  }, [availableMembers, selectedVoteId, voteResponses]);
+  }, [availableMembers, selectedVoteId, getMemberVoteStatus]);
 
   useEffect(() => {
     if (filteredMembers.length > 0 && availableMembers.length === 0 && Object.values(teams).every(t => t.length === 0)) {
