@@ -57,6 +57,11 @@ export function AppChrome({ children }: AppChromeProps) {
               <p className="mt-1 text-sm text-muted-foreground">{member ? `${member.name}님으로 사용 중` : '계정 연결 상태를 확인하세요.'}</p>
             </div>
 
+            <div className="rounded-[1.5rem] border border-border/70 bg-muted/30 p-4 text-sm text-muted-foreground">
+              <p className="text-xs uppercase tracking-[0.18em] text-primary">Workspace Rule</p>
+              <p className="mt-2 leading-6">매주 가장 중요한 운영 판단이 먼저 보이도록, 앱 화면은 계속 간결하게 다듬고 있습니다.</p>
+            </div>
+
             <nav className="space-y-2">
               {navItems.map(({ href, label, icon: Icon }) => {
                 const isActive = pathname === href || pathname.startsWith(`${href}/`);
@@ -86,7 +91,7 @@ export function AppChrome({ children }: AppChromeProps) {
             <div className="flex items-center justify-between px-8 py-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-primary">Launch Readiness</p>
-                <h1 className="mt-1 text-lg font-semibold tracking-tight">실사용 기준으로 다듬는 중인 앱 셸</h1>
+                <h1 className="mt-1 text-lg font-semibold tracking-tight">실사용 기준으로 다듬는 중인 클럽 워크스페이스</h1>
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{isAdmin ? 'Admin' : 'Member'}</Badge>

@@ -30,3 +30,9 @@ Reason:
 
 - dashboard hierarchy is improving but not yet final
 - some operational screens still need deeper visual refinement
+
+### 4. App shell polish is ongoing
+
+- desktop workspace shell is now in place
+- dashboard hierarchy is being aligned to the new shell
+- some screens still reflect the older page-first structure instead of the new workspace-first structure

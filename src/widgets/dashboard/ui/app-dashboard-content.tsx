@@ -248,6 +248,32 @@ export function AppDashboardContent() {
           </Card>
         </div>
 
+        <div className="grid gap-4 lg:grid-cols-4">
+          {[
+            {
+              label: isAdmin ? '운영 액션' : '내 상태',
+              value: isAdmin ? (activeVoteSession ? '투표 진행 중' : '투표 열기 필요') : (isLinked ? '연결 완료' : '연결 필요'),
+            },
+            {
+              label: '출석 상태',
+              value: attendanceSession ? `${attendanceConfirmedCount}명 확정` : '세션 없음',
+            },
+            {
+              label: '공지 상태',
+              value: latestAnnouncements.length > 0 ? `${unreadAnnouncementCount}개 미확인` : '공지 없음',
+            },
+            {
+              label: '경기 상태',
+              value: liveMatch ? '진행 중' : pendingMatch ? '대기 중' : '예정 없음',
+            },
+          ].map((item) => (
+            <div key={item.label} className="rounded-2xl border bg-background/80 p-4 shadow-sm">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+              <p className="mt-3 text-lg font-semibold tracking-tight">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
         <div className="grid gap-4 lg:grid-cols-2">
           <Card>
             <CardHeader>
