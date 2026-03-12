@@ -10,6 +10,9 @@ import { MemberDeleteButton } from '@/features/member-delete/ui/member-delete-bu
 import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Badge } from '@/shared/ui/badge';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
 import {
   Dialog,
   DialogContent,
@@ -60,27 +63,40 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <Link href="/members">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              목록으로
-            </Button>
-          </Link>
-          {isAdmin ? (
-            <div className="flex gap-2">
-              <Button size="sm" onClick={() => setIsEditOpen(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                수정
+        <PageHero
+          eyebrow="Member Detail"
+          title={member.name}
+          description={isAdmin ? '멤버 프로필과 스탯을 확인하고, 필요 시 수정과 삭제까지 바로 이어갈 수 있습니다.' : '멤버 프로필과 스탯을 확인할 수 있으며, 수정과 삭제는 관리자만 가능합니다.'}
+          meta={<>
+            <Badge variant="secondary">전화번호 {member.phone_number}</Badge>
+            <Badge variant="secondary">권한 {isAdmin ? '관리자 보기' : '읽기 전용'}</Badge>
+          </>}
+          actions={<>
+            <Link href="/members">
+              <Button variant="outline" size="sm">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                목록으로
               </Button>
-              <MemberDeleteButton memberId={member.id} memberName={member.name} />
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">멤버 정보 수정은 관리자만 가능합니다.</p>
-          )}
+            </Link>
+            {isAdmin ? (
+              <>
+                <Button size="sm" onClick={() => setIsEditOpen(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  수정
+                </Button>
+                <MemberDeleteButton memberId={member.id} memberName={member.name} />
+              </>
+            ) : null}
+          </>}
+        />
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatTile label="스피드" value={member.stats.speed} />
+          <StatTile label="슈팅" value={member.stats.shooting} />
+          <StatTile label="패스" value={member.stats.passing} />
         </div>
 
-        <Card>
+        <Card className="overflow-hidden border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.08),rgba(255,255,255,0.98))]">
           <CardHeader>
             <CardTitle>멤버 정보</CardTitle>
           </CardHeader>

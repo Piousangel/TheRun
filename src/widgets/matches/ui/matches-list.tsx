@@ -10,7 +10,10 @@ import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent } from '@/shared/ui/card';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { Users } from 'lucide-react';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
+import { Badge } from '@/shared/ui/badge';
+import { Trophy, Users } from 'lucide-react';
 
 export function MatchesList() {
   const router = useRouter();
@@ -44,13 +47,21 @@ export function MatchesList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold">경기</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            팀을 나눈 후 경기를 시작하세요
-          </p>
-        </div>
+      <PageHero
+        eyebrow="Matches"
+        title="경기 운영 허브"
+        description="팀 구성부터 경기 생성, 기록 확인까지 한 주기 안에서 이어서 관리합니다."
+        meta={<>
+          <Badge variant="secondary">저장된 경기 {matches?.length ?? 0}개</Badge>
+          <Badge variant="secondary">활성 경기 투표 {matchVotes.length}개</Badge>
+          <Badge variant="secondary">운영 모드 {isAdmin ? '관리자' : '멤버 보기'}</Badge>
+        </>}
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatTile label="저장 경기" value={matches?.length ?? 0} icon={<Trophy className="h-5 w-5" />} />
+        <StatTile label="활성 팀 수" value={activeTeams.length} icon={<Users className="h-5 w-5" />} tone={activeTeams.length >= 2 ? 'success' : 'muted'} />
+        <StatTile label="팀 선택 완료" value={isTeamSelectionComplete ? 'READY' : 'PENDING'} icon={<Users className="h-5 w-5" />} tone={isTeamSelectionComplete ? 'success' : 'danger'} />
       </div>
 
       {/* Team Selection Required Message */}

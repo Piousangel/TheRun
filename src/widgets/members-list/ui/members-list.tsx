@@ -14,7 +14,10 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { Plus } from 'lucide-react';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
+import { Badge } from '@/shared/ui/badge';
+import { Plus, Users, ShieldCheck } from 'lucide-react';
 
 export function MembersList() {
   const { data: members, isLoading, error } = useMembers();
@@ -44,19 +47,26 @@ export function MembersList() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center gap-3">
-          <div>
-            <h2 className="text-2xl font-bold">멤버 목록</h2>
-            {!isAdmin && (
-              <p className="text-sm text-muted-foreground mt-1">멤버 조회는 가능하지만 생성/수정/삭제는 관리자만 할 수 있습니다.</p>
-            )}
-          </div>
-          {isAdmin && (
+        <PageHero
+          eyebrow="Members"
+          title="클럽 멤버 디렉토리"
+          description={isAdmin ? '프로필, 전화번호, 스탯 정보를 관리하고 신규 멤버를 바로 등록할 수 있습니다.' : '멤버 조회는 가능하지만 생성/수정/삭제는 관리자만 가능합니다.'}
+          meta={<>
+            <Badge variant="secondary">총 멤버 {members?.length ?? 0}명</Badge>
+            <Badge variant="secondary">권한 {isAdmin ? '관리자' : '일반 멤버'}</Badge>
+          </>}
+          actions={isAdmin ? (
             <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               멤버 추가
             </Button>
-          )}
+          ) : undefined}
+        />
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatTile label="등록 멤버" value={members?.length ?? 0} icon={<Users className="h-5 w-5" />} />
+          <StatTile label="관리 가능 여부" value={isAdmin ? 'YES' : 'READ'} icon={<ShieldCheck className="h-5 w-5" />} tone={isAdmin ? 'success' : 'muted'} />
+          <StatTile label="프로필 운영" value={isAdmin ? '편집 가능' : '조회 전용'} icon={<Users className="h-5 w-5" />} tone="muted" />
         </div>
 
         {members && members.length === 0 ? (
