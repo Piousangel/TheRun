@@ -125,19 +125,19 @@ export function HomePageContent() {
         <div className="editorial-grid absolute inset-0 opacity-20" />
         <div className="editorial-glow-gold absolute left-0 top-0 h-72 w-72 rounded-full" />
         <div className="editorial-glow-white absolute right-0 top-12 h-56 w-56 rounded-full" />
-        <div className="relative mx-auto flex min-h-[92vh] max-w-6xl flex-col items-center justify-center gap-10 px-4 py-14 text-center sm:px-8 lg:px-10">
+        <div className="relative mx-auto flex min-h-[100svh] max-w-6xl flex-col items-center justify-center gap-8 px-4 py-10 text-center sm:px-8 lg:min-h-[92vh] lg:gap-10 lg:py-14 lg:text-center lg:px-10">
           <Badge className="border border-primary/25 bg-primary/10 px-4 py-1.5 text-primary hover:bg-primary/10">
             The Run Futsal Club · Beta to Real Club App
           </Badge>
 
-          <div className="space-y-5">
+          <div className="space-y-4 md:space-y-5">
             <p className="text-sm font-medium tracking-[0.28em] text-white/55 uppercase">Saturday Operating Board</p>
-            <h1 className="text-5xl font-semibold tracking-tight text-white sm:text-6xl lg:text-8xl">
+            <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-6xl lg:text-8xl">
               우리 동호회의
               <br />
               <span className="editorial-highlight">주간 운영을 한 화면으로.</span>
             </h1>
-            <p className="mx-auto max-w-3xl text-base leading-8 text-white/75 sm:text-lg">
+            <p className="mx-auto hidden max-w-3xl text-base leading-8 text-white/75 sm:text-lg md:block">
               출석 체크, 투표, 팀 나누기, 경기 기록이 따로 놀지 않게 만들었습니다. 운동 가기 전에 응답하고,
               운영자는 바로 인원과 경기 흐름을 잡고, 경기 후에는 기록까지 이어집니다.
             </p>
@@ -157,7 +157,7 @@ export function HomePageContent() {
             </Link>
           </div>
 
-          <div className="grid w-full max-w-4xl gap-3 sm:grid-cols-3">
+          <div className="grid hidden w-full max-w-4xl gap-3 sm:grid-cols-3 md:grid">
             {[
               { label: 'Weekly Flow', value: 'Vote → Attendance → Match' },
               { label: 'Member Experience', value: '내 응답 중심' },
@@ -170,7 +170,7 @@ export function HomePageContent() {
             ))}
           </div>
 
-          <div className="w-full max-w-xl rounded-[2rem] border border-white/15 bg-black/40 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+          <div className="hidden w-full max-w-xl rounded-[2rem] border border-white/15 bg-black/40 p-4 shadow-[0_30px_90px_rgba(0,0,0,0.35)] backdrop-blur-xl md:block">
             <div className="editorial-preview rounded-[1.5rem] p-5 text-left">
               <div className="flex items-center justify-between">
                 <div>
@@ -203,11 +203,10 @@ export function HomePageContent() {
               </div>
             </div>
           </div>
+          <div className="w-full md:hidden">
+            <MobileLandingCarousel slides={mobileLandingSlides} />
+          </div>
         </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-8 sm:px-8 lg:px-10 md:hidden">
-        <MobileLandingCarousel slides={mobileLandingSlides} />
       </section>
 
       <section className="mx-auto hidden max-w-6xl space-y-20 px-4 py-20 sm:px-8 lg:px-10 md:block">
