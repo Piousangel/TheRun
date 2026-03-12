@@ -11,6 +11,8 @@ import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
 import { Separator } from '@/shared/ui/separator';
 import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Calendar, Clock, Users, UserX } from 'lucide-react';
@@ -80,35 +82,28 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-start gap-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-2xl">{voteTypeIcons[session.type]}</span>
-              <Badge variant="outline">{voteTypeLabels[session.type]}</Badge>
-              {isExpired ? (
-                <Badge variant="destructive">마감</Badge>
-              ) : (
-                <Badge variant="default">진행 중</Badge>
-              )}
-            </div>
-            <CardTitle className="text-2xl">{session.title}</CardTitle>
-            {session.description && (
-              <CardDescription className="mt-2">{session.description}</CardDescription>
-            )}
-          </div>
-          {isAdmin && (
-            <VoteDeleteButton
-              sessionId={session.id}
-              sessionTitle={session.title}
-              redirectAfterDelete={true}
-            />
-          )}
-        </div>
-      </CardHeader>
+    <div className="space-y-6">
+      <PageHero
+        eyebrow="Vote Detail"
+        title={session.title}
+        description={session.description ?? '참석/불참 여부를 확인하고, 관리자라면 응답 현황을 기반으로 운영 결정을 빠르게 내릴 수 있습니다.'}
+        meta={<>
+          <Badge variant="outline">{voteTypeIcons[session.type]} {voteTypeLabels[session.type]}</Badge>
+          {isExpired ? <Badge variant="destructive">마감</Badge> : <Badge variant="default">진행 중</Badge>}
+        </>}
+        actions={isAdmin ? (
+          <VoteDeleteButton sessionId={session.id} sessionTitle={session.title} redirectAfterDelete={true} />
+        ) : undefined}
+      />
 
-      <CardContent className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatTile label="참석" value={attending.length} icon={<Users className="h-5 w-5" />} tone="success" />
+        <StatTile label="불참" value={absent.length} icon={<UserX className="h-5 w-5" />} tone="danger" />
+        <StatTile label="미응답" value={noResponse.length} icon={<Users className="h-5 w-5" />} tone="muted" />
+      </div>
+
+      <Card>
+      <CardContent className="space-y-6 pt-6">
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-muted-foreground">
             <Calendar className="h-4 w-4" />
@@ -257,5 +252,6 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }

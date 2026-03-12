@@ -16,7 +16,10 @@ import {
 } from "@/shared/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { LoadingState } from "@/shared/ui/loading-spinner";
-import { Plus } from "lucide-react";
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
+import { Badge } from '@/shared/ui/badge';
+import { CalendarClock, Plus, Vote as VoteIcon } from "lucide-react";
 
 export function VotesList() {
   const router = useRouter();
@@ -54,19 +57,27 @@ export function VotesList() {
   return (
     <>
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold">투표 관리</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              다양한 투표를 만들고 관리하세요
-            </p>
-          </div>
-          {isAdmin && (
+        <PageHero
+          eyebrow="Votes"
+          title="투표 운영 보드"
+          description="경기와 기타 이벤트 응답을 한 곳에서 관리하고, 마감 전 필요한 액션을 빠르게 확인합니다."
+          meta={<>
+            <Badge variant="secondary">경기 투표 {matchVotes.length}개</Badge>
+            <Badge variant="secondary">기타 투표 {otherVotes.length}개</Badge>
+            <Badge variant="secondary">관리자 생성 권한 {isAdmin ? '활성' : '비활성'}</Badge>
+          </>}
+          actions={isAdmin ? (
             <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               투표 생성
             </Button>
-          )}
+          ) : undefined}
+        />
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <StatTile label="활성 경기 투표" value={matchVotes.length} icon={<VoteIcon className="h-5 w-5" />} />
+          <StatTile label="기타 이벤트" value={otherVotes.length} icon={<CalendarClock className="h-5 w-5" />} />
+          <StatTile label="총 진행 수" value={sessions?.length ?? 0} icon={<VoteIcon className="h-5 w-5" />} tone="muted" />
         </div>
 
         <Tabs defaultValue="match" className="w-full">

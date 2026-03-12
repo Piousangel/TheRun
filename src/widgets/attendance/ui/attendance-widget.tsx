@@ -13,9 +13,11 @@ import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
 import { Separator } from '@/shared/ui/separator';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { Calendar, Clock, Users, UserX } from 'lucide-react';
+import { Clock, Users, UserX } from 'lucide-react';
 
 export function AttendanceWidget() {
   const { isAdmin, member: currentMember, user } = useAuth();
@@ -64,27 +66,25 @@ export function AttendanceWidget() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
-              출석 투표
-            </CardTitle>
-            <CardDescription className="mt-2">
-              경기일: {format(new Date(session.match_date), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}
-            </CardDescription>
-          </div>
-          {isExpired ? (
-            <Badge variant="destructive">마감</Badge>
-          ) : (
-            <Badge variant="default">진행 중</Badge>
-          )}
-        </div>
-      </CardHeader>
+    <div className="space-y-6">
+      <PageHero
+        eyebrow="Attendance"
+        title="출석 응답 보드"
+        description={`경기일: ${format(new Date(session.match_date), 'yyyy년 MM월 dd일 (EEE)', { locale: ko })}`}
+        meta={<>
+          {isExpired ? <Badge variant="destructive">마감</Badge> : <Badge variant="default">진행 중</Badge>}
+          <Badge variant="secondary">마감 {format(new Date(session.deadline), 'MM월 dd일 (EEE) HH:mm', { locale: ko })}</Badge>
+        </>}
+      />
 
-      <CardContent className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatTile label="참석" value={attending.length} icon={<Users className="h-5 w-5" />} tone="success" />
+        <StatTile label="불참" value={absent.length} icon={<UserX className="h-5 w-5" />} tone="danger" />
+        <StatTile label="미응답" value={noResponse.length} icon={<Users className="h-5 w-5" />} tone="muted" />
+      </div>
+
+      <Card>
+      <CardContent className="space-y-6 pt-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
           마감: {format(new Date(session.deadline), 'MM월 dd일 (EEE) HH:mm', { locale: ko })}
@@ -227,5 +227,6 @@ export function AttendanceWidget() {
         )}
       </CardContent>
     </Card>
+    </div>
   );
 }
