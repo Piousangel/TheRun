@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardFooter } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
+import { getMemberPhoneDisplay } from "@/shared/lib/utils";
 import { MemberAvatar } from "./member-avatar";
 import type { Member } from "@/shared/types/member";
 
@@ -33,7 +34,7 @@ export function MemberCard({ member }: MemberCardProps) {
           <div className="text-center">
             <h3 className="font-semibold text-lg">{member.name}</h3>
             <p className="text-sm text-muted-foreground">
-              {member.phone_number}
+              {getMemberPhoneDisplay(member.phone_number)}
             </p>
           </div>
           <Badge variant="secondary">평균 능력치: {avgStats.toFixed(0)}</Badge>

@@ -11,6 +11,7 @@ import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
+import { getMemberPhoneDisplay } from "@/shared/lib/utils";
 import { PageHero } from "@/shared/ui/page-hero";
 import { StatePanel } from "@/shared/ui/state-panel";
 import { StatTile } from "@/shared/ui/stat-tile";
@@ -85,7 +86,9 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
           }
           meta={
             <>
-              <Badge variant="secondary">전화번호 {member.phone_number}</Badge>
+              <Badge variant="secondary">
+                전화번호 {getMemberPhoneDisplay(member.phone_number)}
+              </Badge>
               <Badge variant="secondary">
                 권한 {isAdmin ? "관리자 보기" : "읽기 전용"}
               </Badge>
@@ -134,7 +137,9 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
               />
               <div>
                 <h2 className="text-2xl font-bold">{member.name}</h2>
-                <p className="text-muted-foreground">{member.phone_number}</p>
+                <p className="text-muted-foreground">
+                  {getMemberPhoneDisplay(member.phone_number)}
+                </p>
               </div>
             </div>
           </CardContent>
