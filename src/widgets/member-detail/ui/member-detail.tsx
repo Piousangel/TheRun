@@ -7,6 +7,7 @@ import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { MemberStatsRadar } from '@/entities/member/ui/member-stats-radar';
 import { MemberEditForm } from '@/features/member-edit/ui/member-edit-form';
 import { MemberDeleteButton } from '@/features/member-delete/ui/member-delete-button';
+import { useAuth } from '@/providers/auth-provider';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import {
@@ -25,6 +26,7 @@ interface MemberDetailProps {
 
 export function MemberDetail({ memberId }: MemberDetailProps) {
   const { data: member, isLoading, error } = useMember(memberId);
+  const { isAdmin } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   const handleEditSuccess = () => {
@@ -65,16 +67,17 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
               목록으로
             </Button>
           </Link>
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              onClick={() => setIsEditOpen(true)}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              수정
-            </Button>
-            <MemberDeleteButton memberId={member.id} memberName={member.name} />
-          </div>
+          {isAdmin ? (
+            <div className="flex gap-2">
+              <Button size="sm" onClick={() => setIsEditOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                수정
+              </Button>
+              <MemberDeleteButton memberId={member.id} memberName={member.name} />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">멤버 정보 수정은 관리자만 가능합니다.</p>
+          )}
         </div>
 
         <Card>
@@ -128,17 +131,19 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
         </Card>
       </div>
 
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>멤버 정보 수정</DialogTitle>
-            <DialogDescription>
-              {member.name} 멤버의 정보를 수정합니다.
-            </DialogDescription>
-          </DialogHeader>
-          <MemberEditForm member={member} onSuccess={handleEditSuccess} />
-        </DialogContent>
-      </Dialog>
+      {isAdmin && (
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>멤버 정보 수정</DialogTitle>
+              <DialogDescription>
+                {member.name} 멤버의 정보를 수정합니다.
+              </DialogDescription>
+            </DialogHeader>
+            <MemberEditForm member={member} onSuccess={handleEditSuccess} />
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
