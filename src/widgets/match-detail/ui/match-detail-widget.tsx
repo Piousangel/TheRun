@@ -17,6 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import { Separator } from '@/shared/ui/separator';
 import { LoadingState } from '@/shared/ui/loading-spinner';
@@ -376,11 +377,12 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
 
   if (!match) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>경기를 찾을 수 없습니다</CardTitle>
-        </CardHeader>
-      </Card>
+      <StatePanel
+        icon={<Trophy className="h-6 w-6" />}
+        title="이 경기 정보를 불러올 수 없습니다"
+        description="이미 정리되었거나 잘못된 링크일 수 있습니다. 경기 목록으로 돌아가 현재 기록된 경기를 다시 선택해주세요."
+        action={<Link href="/matches"><Button variant="outline">경기 목록으로</Button></Link>}
+      />
     );
   }
 

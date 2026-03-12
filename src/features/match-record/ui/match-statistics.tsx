@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { MemberAvatar } from "@/entities/member/ui/member-avatar";
 import { Badge } from "@/shared/ui/badge";
+import { StatePanel } from "@/shared/ui/state-panel";
 import { Trophy, Target, Users as UsersIcon, Hand } from "lucide-react";
 import type { Member } from "@/shared/types/member";
 import type { PlayerMatchRecord } from "@/shared/types/match";
@@ -190,9 +191,11 @@ export function MatchStatistics({
             sortedByAssists.length === 0 &&
             sortedBySaves.length === 0 &&
             !mvpPlayer && (
-              <p className="text-center text-muted-foreground py-4">
-                기록이 없습니다
-              </p>
+              <StatePanel
+                title="아직 저장된 개인 기록이 없습니다"
+                description="득점, 어시스트, 선방, MVP가 저장되면 이곳에서 팀별 개인 기록을 바로 확인할 수 있습니다."
+                tone="muted"
+              />
             )}
         </CardContent>
       </Card>

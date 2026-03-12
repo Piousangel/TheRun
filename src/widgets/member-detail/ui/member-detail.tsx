@@ -12,6 +12,7 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import {
   Dialog,
@@ -21,7 +22,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { ArrowLeft, Edit } from 'lucide-react';
+import { ArrowLeft, Edit, Users } from 'lucide-react';
 
 interface MemberDetailProps {
   memberId: string;
@@ -46,17 +47,20 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
 
   if (error || !member) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[400px] space-y-4">
-        <p className="text-destructive">
-          {error ? `오류가 발생했습니다: ${error.message}` : '멤버를 찾을 수 없습니다.'}
-        </p>
-        <Link href="/members">
-          <Button variant="outline">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            목록으로
-          </Button>
-        </Link>
-      </div>
+      <StatePanel
+        icon={<Users className="h-6 w-6" />}
+        title={error ? '멤버 정보를 불러오는 중 문제가 생겼습니다' : '이 멤버를 찾을 수 없습니다'}
+        description={error ? error.message : '삭제되었거나 잘못된 링크로 접근했을 수 있습니다. 멤버 목록에서 다시 선택해주세요.'}
+        action={
+          <Link href="/members">
+            <Button variant="outline">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              목록으로
+            </Button>
+          </Link>
+        }
+        tone={error ? 'warning' : 'default'}
+      />
     );
   }
 

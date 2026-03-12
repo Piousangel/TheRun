@@ -9,13 +9,14 @@ import { VoteResponseButton } from '@/features/vote-response/ui/vote-response-bu
 import { VoteDeleteButton } from '@/features/vote-delete/ui/vote-delete-button';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { useAuth } from '@/providers/auth-provider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Card, CardContent } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import { Separator } from '@/shared/ui/separator';
 import { LoadingState } from '@/shared/ui/loading-spinner';
-import { Calendar, Clock, Users, UserX } from 'lucide-react';
+import { Calendar, Clock, Users, UserX, Vote } from 'lucide-react';
 
 interface VoteDetailProps {
   sessionId: string;
@@ -72,12 +73,11 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
 
   if (!session) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>투표를 찾을 수 없습니다</CardTitle>
-          <CardDescription>존재하지 않거나 삭제된 투표입니다.</CardDescription>
-        </CardHeader>
-      </Card>
+      <StatePanel
+        icon={<Vote className="h-6 w-6" />}
+        title="이 투표를 불러올 수 없습니다"
+        description="이미 종료 후 정리되었거나 삭제된 투표일 수 있습니다. 목록 화면으로 돌아가 현재 진행 중인 투표를 다시 확인해보세요."
+      />
     );
   }
 
