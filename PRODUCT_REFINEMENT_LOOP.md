@@ -58,3 +58,9 @@ A strong screen should:
 - normalize empty states and setup states
 - elevate form screens with better grouping and visual rhythm
 - finish social-auth rollout with real provider configuration
+
+## Applied reference translation
+
+- dashboard structure is being pushed toward Mobbin/Pageflows-style task-first weekly overview
+- empty/setup states are being normalized into reusable state panels instead of raw status copy
+- dialogs and forms are being reworked to feel closer to mature design-system products rather than default component-library shells

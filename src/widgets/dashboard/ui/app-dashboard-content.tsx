@@ -344,7 +344,9 @@ export function AppDashboardContent() {
                 );
               }) : (
                 <div className="rounded-2xl border bg-muted/30 p-4 text-sm text-muted-foreground md:col-span-3">
-                  아직 등록된 공지가 없습니다. 운영 공지나 시간 변경 사항이 생기면 이곳에 요약됩니다.
+                  {isAdmin
+                    ? '이번 주 공지를 아직 올리지 않았습니다. 시간 변경, 경기 안내, 긴급 메시지를 등록해두면 멤버가 홈에서 바로 확인할 수 있습니다.'
+                    : '운영진 공지가 올라오면 이곳에서 새 안내를 바로 확인할 수 있습니다.'}
                 </div>
               )}
             </div>

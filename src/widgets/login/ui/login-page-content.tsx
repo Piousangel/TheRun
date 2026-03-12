@@ -13,7 +13,7 @@ import { Badge } from '@/shared/ui/badge';
 const ERROR_MESSAGES: Record<string, string> = {
   'invalid-link': '로그인 링크가 올바르지 않습니다. 다시 시도해주세요.',
   'auth-failed': '로그인 확인에 실패했습니다. 새 링크를 발급받아주세요.',
-  'naver-setup-required': '네이버 로그인은 추가 서버 키 설정이 필요해 아직 활성화되지 않았습니다.',
+  'naver-setup-required': '네이버 로그인은 보안 설정을 마친 뒤 순차적으로 열릴 예정입니다.',
 };
 
 interface LoginPageContentProps {
@@ -60,8 +60,8 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
 
   const handleNaverClick = () => {
     setIsSubmitting('naver');
-    setMessage('네이버 로그인은 다음 단계에서 서버 키 설정 후 연결합니다. 지금은 Google 로그인을 먼저 사용해주세요.');
-    toast.message('Naver 로그인은 추가 서버 설정 후 활성화됩니다.');
+    setMessage('네이버 로그인은 보안 설정을 마친 뒤 순차적으로 열릴 예정입니다. 지금은 Google 로그인을 먼저 사용해주세요.');
+    toast.message('Naver 로그인은 곧 열릴 예정입니다. 지금은 Google 로그인을 사용해주세요.');
     setIsSubmitting(null);
   };
 
@@ -75,7 +75,7 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
         </p>
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <Badge variant="secondary">Google 즉시 연결</Badge>
-          <Badge variant="secondary">Naver 준비 중</Badge>
+          <Badge variant="secondary">Naver 순차 오픈</Badge>
           <Badge variant="secondary">개인 응답 흐름</Badge>
         </div>
       </div>
@@ -86,7 +86,7 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
             <Globe className="h-5 w-5 text-primary" />
             소셜 로그인
           </CardTitle>
-          <CardDescription>개인 사용 흐름에 맞게 Google 중심으로 로그인하고, Naver는 다음 단계에서 이어서 연결합니다.</CardDescription>
+          <CardDescription>지금은 Google로 바로 로그인할 수 있고, Naver는 보안 설정을 마친 뒤 같은 흐름으로 이어질 예정입니다.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
             {(errorMessage || message) && (
@@ -100,11 +100,11 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
             </Button>
 
             <Button className="w-full" type="button" variant="outline" onClick={handleNaverClick} disabled={isSubmitting !== null}>
-              {isSubmitting === 'naver' ? '준비 중...' : 'Naver 로그인 준비'}
+              {isSubmitting === 'naver' ? '오픈 준비 중...' : 'Naver 오픈 예정'}
             </Button>
 
             <p className="text-xs leading-6 text-muted-foreground">
-              Google은 바로 연결됩니다. Naver는 Supabase 기본 provider가 아니라 추가 서버 키와 OAuth 설정이 있어야 완전히 동작합니다.
+              Google은 바로 연결됩니다. Naver는 보안 설정과 외부 OAuth 연결을 마친 뒤 안정적으로 열 예정입니다.
             </p>
         </CardContent>
       </Card>
@@ -119,7 +119,7 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
         <CardContent className="space-y-2 text-sm text-muted-foreground">
           <p>- 멤버는 자기 계정으로 로그인하고 본인 기준으로 투표/출석합니다.</p>
           <p>- 관리자만 멤버 생성, 수정, 삭제 같은 운영 작업을 보게 됩니다.</p>
-          <p>- 다음 단계에서 Naver 소셜 로그인과 공지/알림 고도화를 이어서 진행합니다.</p>
+          <p>- 로그인 흐름은 실제 동호회 사용 기준으로 계속 다듬고 있습니다.</p>
         </CardContent>
       </Card>
 

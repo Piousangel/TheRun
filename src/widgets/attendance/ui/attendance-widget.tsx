@@ -11,9 +11,10 @@ import { useMembers } from '@/entities/member/model/queries';
 import { AttendanceVoteButton } from '@/features/attendance-vote/ui/attendance-vote-button';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { useAuth } from '@/providers/auth-provider';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
+import { Card, CardContent } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { PageHero } from '@/shared/ui/page-hero';
+import { StatePanel } from '@/shared/ui/state-panel';
 import { StatTile } from '@/shared/ui/stat-tile';
 import { Separator } from '@/shared/ui/separator';
 import { LoadingState } from '@/shared/ui/loading-spinner';
@@ -56,12 +57,11 @@ export function AttendanceWidget() {
 
   if (!session) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>출석 투표</CardTitle>
-          <CardDescription>현재 진행 중인 출석 투표가 없습니다.</CardDescription>
-        </CardHeader>
-      </Card>
+      <StatePanel
+        icon={<Clock className="h-6 w-6" />}
+        title="열려 있는 출석 보드가 없습니다"
+        description={isAdmin ? '경기일이 정해졌다면 출석 세션을 먼저 열어 멤버가 참석 여부를 남길 수 있게 해주세요.' : '운영진이 출석 세션을 열면 이곳에서 바로 응답하고 현재 인원도 함께 확인할 수 있습니다.'}
+      />
     );
   }
 
