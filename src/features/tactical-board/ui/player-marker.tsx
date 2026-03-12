@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, MouseEvent as ReactMouseEvent } from 'react';
+import { useRef, MouseEvent as ReactMouseEvent } from 'react';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import type { Member } from '@/shared/types/member';
 import type { PositionRole } from '@/shared/types/formation';
@@ -26,13 +26,10 @@ const ROLE_COLORS = {
 };
 
 export function PlayerMarker({
-  id,
   member,
   x,
   y,
   role,
-  onPositionChange,
-  containerRef,
   onClick,
   isSelected = false,
 }: PlayerMarkerProps) {

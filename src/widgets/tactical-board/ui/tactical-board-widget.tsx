@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
 import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
 import { useTacticalBoardStore } from '@/features/tactical-board/model/store';
 import { generateDefaultFormation } from '@/features/tactical-board/model/formations';
@@ -26,7 +26,7 @@ type TeamName = 'A' | 'B' | 'C' | 'D';
 export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { teams } = useTeamSplitStore();
-  const { positions, playerCount, setPositions, updatePositionRole, setPlayerCount, swapPlayers } = useTacticalBoardStore();
+  const { positions, playerCount, setPositions, setPlayerCount, swapPlayers } = useTacticalBoardStore();
   const [showOpponents, setShowOpponents] = useState(true);
   const [substituteToSwap, setSubstituteToSwap] = useState<PlayerPosition | null>(null);
   const [positionMenu, setPositionMenu] = useState<{
@@ -39,7 +39,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     playerPosition: null,
   });
 
-  const teamMembers = teams[teamName as TeamName] || [];
+  const teamMembers = useMemo(() => teams[teamName as TeamName] || [], [teamName, teams]);
 
   // Initialize formation when component mounts or team changes
   useEffect(() => {

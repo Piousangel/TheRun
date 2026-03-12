@@ -10,14 +10,6 @@ interface PositionSlotProps {
   onClick?: () => void;
 }
 
-const ROLE_COLORS = {
-  GK: 'bg-yellow-500',
-  DF: 'bg-blue-500',
-  MF: 'bg-green-500',
-  FW: 'bg-red-500',
-  SUB: 'bg-gray-400',
-};
-
 const ROLE_BORDER_COLORS = {
   GK: 'border-yellow-500',
   DF: 'border-blue-500',
