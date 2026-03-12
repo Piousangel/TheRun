@@ -10,6 +10,7 @@ import { MemberContextMenu } from './member-context-menu';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
+import { StatTile } from '@/shared/ui/stat-tile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Badge } from '@/shared/ui/badge';
 import { LoadingState } from '@/shared/ui/loading-spinner';
@@ -292,6 +293,13 @@ export function TeamSplitManual() {
               초기화
             </Button>
           </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          <StatTile label="대기 멤버" value={sortedAvailableMembers.length} tone="muted" />
+          <StatTile label="활성 팀" value={activeTeams.length} />
+          <StatTile label="투표 필터" value={selectedVoteId ? 'ON' : 'OFF'} tone={selectedVoteId ? 'success' : 'muted'} />
+          <StatTile label="팀 선택 상태" value={canCompleteTeamSelection ? 'READY' : 'PENDING'} tone={canCompleteTeamSelection ? 'success' : 'danger'} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
