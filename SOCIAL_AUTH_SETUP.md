@@ -14,6 +14,14 @@
 3. Set Google Client ID / Client Secret
 4. Ensure the callback URL registered in Google matches the Supabase callback URL
 
+### Common failure
+
+If the app shows:
+
+- `Unsupported provider: provider is not enabled`
+
+that means the app code is calling Google correctly, but the Google provider is still disabled in the Supabase project dashboard.
+
 ### Google Cloud
 
 - Authorized JavaScript origin: your app origin (for local dev, `http://localhost:3000`)

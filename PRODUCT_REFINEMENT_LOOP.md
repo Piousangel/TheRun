@@ -30,10 +30,11 @@ This file exists to keep product improvement continuous, explicit, and reusable.
 
 ## Current active gaps
 
-1. Naver login is not finished because it needs custom server-side OAuth secrets.
-2. Some complex operational screens still need deeper visual polish beyond top-level summaries.
-3. Announcement delivery is in-app only; external notification delivery is not added yet.
-4. Some empty states and setup-dependent states still read like engineering notes rather than polished product copy.
+1. Google login can fail if the deployed Supabase project has not enabled the Google provider yet.
+2. Naver login is not finished because it needs custom server-side OAuth secrets.
+3. Some complex operational screens still need deeper visual polish beyond top-level summaries.
+4. Announcement delivery is in-app only; external notification delivery is not added yet.
+5. Some empty states and setup-dependent states still read like engineering notes rather than polished product copy.
 
 ## Current iteration strategy
 

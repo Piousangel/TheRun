@@ -2,20 +2,30 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Globe, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import type { Provider } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase } from '@/shared/api/supabase/config';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
+import { GoogleLogo, NaverLogo } from '@/shared/ui/provider-logo';
 
 const ERROR_MESSAGES: Record<string, string> = {
   'invalid-link': '로그인 링크가 올바르지 않습니다. 다시 시도해주세요.',
   'auth-failed': '로그인 확인에 실패했습니다. 새 링크를 발급받아주세요.',
   'naver-setup-required': '네이버 로그인은 보안 설정을 마친 뒤 순차적으로 열릴 예정입니다.',
   'google-not-configured': 'Google 로그인이 아직 올바르게 연결되지 않았습니다. 잠시 후 다시 시도해주세요.',
+  'google-provider-disabled': '현재 Supabase 프로젝트에서 Google 로그인이 비활성화되어 있습니다. Authentication > Providers > Google에서 먼저 활성화해주세요.',
 };
+
+function normalizeAuthErrorMessage(message: string) {
+  if (message.includes('Unsupported provider') || message.includes('provider is not enabled')) {
+    return ERROR_MESSAGES['google-provider-disabled'];
+  }
+
+  return message;
+}
 
 interface LoginPageContentProps {
   errorKey: string | null;
@@ -50,8 +60,9 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
     });
 
     if (error) {
-      setMessage(error.message);
-      toast.error(error.message);
+      const normalizedMessage = normalizeAuthErrorMessage(error.message);
+      setMessage(normalizedMessage);
+      toast.error(normalizedMessage);
       setIsSubmitting(null);
       return;
     }
@@ -93,7 +104,7 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Globe className="h-5 w-5 text-primary" />
+            <GoogleLogo className="h-5 w-5" />
             소셜 로그인
           </CardTitle>
           <CardDescription>지금은 Google로 바로 로그인할 수 있고, Naver는 보안 설정을 마친 뒤 같은 흐름으로 이어질 예정입니다.</CardDescription>
@@ -106,10 +117,12 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
             )}
 
             <Button className="w-full" type="button" onClick={handleGoogleLogin} disabled={isSubmitting !== null}>
+              <GoogleLogo className="h-4 w-4" />
               {isSubmitting === 'google' ? 'Google로 이동 중...' : 'Google로 로그인'}
             </Button>
 
             <Button className="w-full" type="button" variant="outline" onClick={handleNaverClick} disabled={isSubmitting !== null}>
+              <NaverLogo className="h-4 w-4" />
               {isSubmitting === 'naver' ? '오픈 준비 중...' : 'Naver 오픈 예정'}
             </Button>
 
@@ -130,6 +143,18 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
           <p>- 멤버는 자기 계정으로 로그인하고 본인 기준으로 투표/출석합니다.</p>
           <p>- 관리자만 멤버 생성, 수정, 삭제 같은 운영 작업을 보게 됩니다.</p>
           <p>- 로그인 흐름은 실제 동호회 사용 기준으로 계속 다듬고 있습니다.</p>
+        </CardContent>
+      </Card>
+
+      <Card className="border-amber-200 bg-amber-50/80">
+        <CardHeader>
+          <CardTitle className="text-base">관리자 설정 체크</CardTitle>
+          <CardDescription>Google 로그인이 동작하려면 코드 외에도 Supabase와 Google Cloud 설정이 모두 맞아야 합니다.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <p>- Supabase `Authentication &gt; Providers &gt; Google` 활성화</p>
+          <p>- Google Client ID / Secret 입력</p>
+          <p>- 서비스 도메인과 redirect URI 일치 확인</p>
         </CardContent>
       </Card>
 
