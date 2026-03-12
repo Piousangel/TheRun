@@ -8,9 +8,12 @@ import { useLinkMemberProfile, useUnlinkMemberProfile } from '@/entities/auth/mo
 import { useAuth } from '@/providers/auth-provider';
 import { supabase } from '@/shared/api/supabase/config';
 import { Button } from '@/shared/ui/button';
+import { Badge } from '@/shared/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 
 export function MyPageContent() {
@@ -85,15 +88,26 @@ export function MyPageContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">내 계정</h1>
-          <p className="text-sm text-muted-foreground mt-1">내 멤버 연결 상태와 권한을 확인하고 관리합니다.</p>
-        </div>
-        <Button variant="outline" onClick={handleLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          로그아웃
-        </Button>
+      <PageHero
+        eyebrow="My Account"
+        title="내 계정"
+        description="로그인 상태, 역할, 멤버 연결 여부를 확인하고 내 응답 흐름을 사용할 준비를 마칩니다."
+        meta={<>
+          <Badge variant="secondary">역할 {isAdmin ? '관리자' : '일반 멤버'}</Badge>
+          <Badge variant="secondary">연결 {isLinked ? '완료' : '필요'}</Badge>
+        </>}
+        actions={
+          <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            로그아웃
+          </Button>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatTile label="계정 상태" value={user.email ? 'ACTIVE' : 'NONE'} icon={<UserRound className="h-5 w-5" />} />
+        <StatTile label="권한" value={isAdmin ? 'ADMIN' : 'MEMBER'} icon={<Shield className="h-5 w-5" />} tone={isAdmin ? 'success' : 'muted'} />
+        <StatTile label="멤버 연결" value={isLinked ? 'READY' : 'PENDING'} icon={<Link2 className="h-5 w-5" />} tone={isLinked ? 'success' : 'danger'} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">

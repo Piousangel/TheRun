@@ -10,6 +10,9 @@ import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/shared/ui/dialog';
 import { LoadingState } from '@/shared/ui/loading-spinner';
+import { PageHero } from '@/shared/ui/page-hero';
+import { StatTile } from '@/shared/ui/stat-tile';
+import { Badge } from '@/shared/ui/badge';
 
 export function AnnouncementsList() {
   const { user, isAdmin } = useAuth();
@@ -18,6 +21,7 @@ export function AnnouncementsList() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const readIds = useMemo(() => new Set((reads ?? []).map((read) => read.announcement_id)), [reads]);
+  const unreadCount = (announcements ?? []).filter((announcement) => !readIds.has(announcement.id)).length;
 
   if (isLoading) {
     return <div className="min-h-[320px]"><LoadingState /></div>;
@@ -29,17 +33,27 @@ export function AnnouncementsList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">공지 보드</h2>
-          <p className="mt-1 text-sm text-muted-foreground">운영진 공지와 일정 변경, 긴급 알림을 한 곳에서 확인합니다.</p>
-        </div>
-        {isAdmin && (
+      <PageHero
+        eyebrow="Announcements"
+        title="공지 보드"
+        description="운영진 공지, 일정 변경, 긴급 안내를 한곳에 모아 멤버가 바로 확인할 수 있게 정리했습니다."
+        meta={<>
+          <Badge variant="secondary">전체 공지 {announcements?.length ?? 0}개</Badge>
+          <Badge variant="secondary">읽지 않음 {unreadCount}개</Badge>
+          <Badge variant="secondary">권한 {isAdmin ? '작성 가능' : '읽기 중심'}</Badge>
+        </>}
+        actions={isAdmin ? (
           <Button onClick={() => setIsCreateOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             공지 작성
           </Button>
-        )}
+        ) : undefined}
+      />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatTile label="전체 공지" value={announcements?.length ?? 0} icon={<Megaphone className="h-5 w-5" />} />
+        <StatTile label="읽지 않음" value={unreadCount} icon={<Megaphone className="h-5 w-5" />} tone={unreadCount > 0 ? 'danger' : 'success'} />
+        <StatTile label="고정 공지" value={(announcements ?? []).filter((announcement) => announcement.is_pinned).length} icon={<Megaphone className="h-5 w-5" />} tone="muted" />
       </div>
 
       {!announcements?.length ? (
