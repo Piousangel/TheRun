@@ -128,6 +128,28 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
+### 3-1. 인증/권한 전환 적용
+
+실사용 모드로 전환하려면 아래 마이그레이션도 함께 적용하세요.
+
+- `supabase/migrations/20260311_add_app_profiles.sql`
+- `supabase/migrations/20260311_harden_rls.sql`
+
+적용 후 첫 관리자 계정은 Supabase SQL Editor에서 직접 지정합니다.
+
+```sql
+update public.app_profiles
+set role = 'admin'
+where email = 'your-admin-email@example.com';
+```
+
+권장 순서:
+
+1. 앱에서 관리자 이메일로 한 번 로그인
+2. `app_profiles` row 생성 확인
+3. 위 SQL로 `admin` 승격
+4. 이후부터 멤버/투표/경기 운영 기능 사용
+
 ### 4. 개발 서버 실행
 ```bash
 npm run dev

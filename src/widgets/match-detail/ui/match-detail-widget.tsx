@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useMatch, useUpdateMatch } from '@/entities/match/model/queries';
@@ -13,6 +12,7 @@ import { SaveRecordDialog } from '@/features/match-record/ui/save-record-dialog'
 import { SubstitutionDialog } from '@/features/match-record/ui/substitution-dialog';
 import { MatchStatistics } from '@/features/match-record/ui/match-statistics';
 import { MVPSelectionDialog } from '@/features/match-record/ui/mvp-selection-dialog';
+import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
 import { Badge } from '@/shared/ui/badge';
@@ -33,7 +33,7 @@ import {
   Hand,
   ArrowLeftRight,
 } from 'lucide-react';
-import type { Match, GoalRecord, SubstitutionRecord, PlayerMatchRecord, TeamMatchData } from '@/shared/types/match';
+import type { GoalRecord, SubstitutionRecord, PlayerMatchRecord } from '@/shared/types/match';
 import type { Member } from '@/shared/types/member';
 
 interface MatchDetailWidgetProps {
@@ -41,7 +41,7 @@ interface MatchDetailWidgetProps {
 }
 
 export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
-  const router = useRouter();
+  const { isAdmin } = useAuth();
   const { data: match, isLoading } = useMatch(matchId);
   const { data: members } = useMembers();
   const { mutate: updateMatch } = useUpdateMatch();
@@ -515,14 +515,14 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                   variant="outline"
                   size="icon"
                   onClick={handleSubtractMinute}
-                  disabled={initialTime <= 60}
+                  disabled={!isAdmin || initialTime <= 60}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
                 <span className="text-sm text-muted-foreground min-w-[80px] text-center">
                   {Math.floor(initialTime / 60)}분 설정
                 </span>
-                <Button variant="outline" size="icon" onClick={handleAddMinute}>
+                <Button variant="outline" size="icon" onClick={handleAddMinute} disabled={!isAdmin}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
@@ -530,14 +530,14 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
 
             <div className="flex gap-2 justify-center">
               {match.status === 'pending' && (
-                <Button onClick={handleMatchStart} size="lg" className="flex-1 max-w-[200px]">
+                <Button onClick={handleMatchStart} size="lg" className="flex-1 max-w-[200px]" disabled={!isAdmin}>
                   <Play className="mr-2 h-5 w-5" />
                   경기 시작
                 </Button>
               )}
               {match.status === 'in_progress' && (
                 <>
-                  <Button onClick={handleMatchPause} size="lg" className="flex-1 max-w-[200px]">
+                  <Button onClick={handleMatchPause} size="lg" className="flex-1 max-w-[200px]" disabled={!isAdmin}>
                     <Pause className="mr-2 h-5 w-5" />
                     일시정지
                   </Button>
@@ -546,17 +546,22 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                     size="lg"
                     variant="destructive"
                     className="flex-1 max-w-[200px]"
+                    disabled={!isAdmin}
                   >
                     경기 종료
                   </Button>
                 </>
               )}
               {match.status !== 'finished' && (
-                <Button onClick={handleReset} variant="outline" size="lg">
+                <Button onClick={handleReset} variant="outline" size="lg" disabled={!isAdmin}>
                   <RotateCcw className="h-5 w-5" />
                 </Button>
               )}
             </div>
+
+            {!isAdmin && (
+              <p className="text-center text-sm text-muted-foreground">실시간 경기 운영과 기록 수정은 관리자만 할 수 있습니다.</p>
+            )}
 
             <div className="text-center text-sm text-muted-foreground">
               {timeInSeconds === 0 && '⏰ 경기 종료!'}
@@ -577,7 +582,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleScoreChange('A', -1)}
-                  disabled={match.status === 'finished' || scoreA === 0}
+                  disabled={!isAdmin || match.status === 'finished' || scoreA === 0}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
@@ -586,7 +591,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleScoreChange('A', 1)}
-                  disabled={match.status === 'finished'}
+                  disabled={!isAdmin || match.status === 'finished'}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -602,7 +607,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleScoreChange('B', -1)}
-                  disabled={match.status === 'finished' || scoreB === 0}
+                  disabled={!isAdmin || match.status === 'finished' || scoreB === 0}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
@@ -611,7 +616,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                   variant="outline"
                   size="icon"
                   onClick={() => handleScoreChange('B', 1)}
-                  disabled={match.status === 'finished'}
+                  disabled={!isAdmin || match.status === 'finished'}
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
@@ -620,7 +625,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
           </div>
 
           {/* Match Recording Buttons */}
-          {match.status === 'in_progress' && (
+          {match.status === 'in_progress' && isAdmin && (
             <>
               <Separator />
               <div className="space-y-3">
@@ -725,7 +730,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                           : null;
                         return (
                           <div key={index} className="flex items-center gap-2 p-2 bg-blue-50 rounded">
-                            <Badge variant="outline">{goal.minute}'</Badge>
+                            <Badge variant="outline">{`${goal.minute}'`}</Badge>
                             <Target className="h-4 w-4 text-blue-600" />
                             <span className="font-medium">{scorer?.name || '알 수 없음'}</span>
                             {assister && (
@@ -755,7 +760,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                           : null;
                         return (
                           <div key={index} className="flex items-center gap-2 p-2 bg-red-50 rounded">
-                            <Badge variant="outline">{goal.minute}'</Badge>
+                            <Badge variant="outline">{`${goal.minute}'`}</Badge>
                             <Target className="h-4 w-4 text-red-600" />
                             <span className="font-medium">{scorer?.name || '알 수 없음'}</span>
                             {assister && (
@@ -789,7 +794,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                         const playerIn = members?.find((m) => m.id === sub.player_in_id);
                         return (
                           <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
-                            <Badge variant="outline">{sub.minute}'</Badge>
+                            <Badge variant="outline">{`${sub.minute}'`}</Badge>
                             <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
                               <span className="text-red-600">{playerOut?.name || '알 수 없음'}</span>
@@ -813,7 +818,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                         const playerIn = members?.find((m) => m.id === sub.player_in_id);
                         return (
                           <div key={index} className="flex items-center gap-2 p-2 bg-muted/50 rounded">
-                            <Badge variant="outline">{sub.minute}'</Badge>
+                            <Badge variant="outline">{`${sub.minute}'`}</Badge>
                             <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
                               <span className="text-red-600">{playerOut?.name || '알 수 없음'}</span>
@@ -837,7 +842,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
       )}
 
       {/* MVP Selection Button */}
-      {match.status === 'finished' && (
+      {match.status === 'finished' && isAdmin && (
         <Card>
           <CardContent className="pt-6">
             <Button
@@ -870,7 +875,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
       )}
 
       {/* Dialogs */}
-      {goalDialogOpen && (
+      {goalDialogOpen && isAdmin && (
         <GoalRecordDialog
           isOpen={true}
           onClose={() => setGoalDialogOpen(null)}
@@ -881,7 +886,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         />
       )}
 
-      {saveDialogOpen && (
+      {saveDialogOpen && isAdmin && (
         <SaveRecordDialog
           isOpen={true}
           onClose={() => setSaveDialogOpen(null)}
@@ -892,7 +897,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         />
       )}
 
-      {substitutionDialogOpen && (
+      {substitutionDialogOpen && isAdmin && (
         <SubstitutionDialog
           isOpen={true}
           onClose={() => setSubstitutionDialogOpen(null)}
@@ -903,7 +908,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         />
       )}
 
-      {mvpDialogOpen && (
+      {mvpDialogOpen && isAdmin && (
         <MVPSelectionDialog
           isOpen={true}
           onClose={() => setMvpDialogOpen(false)}

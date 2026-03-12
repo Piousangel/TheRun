@@ -13,7 +13,6 @@ import { DroppableTeam } from '@/features/team-split-manual/ui/droppable-team';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Badge } from '@/shared/ui/badge';
 import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Shuffle, Check, Vote } from 'lucide-react';
 import type { Member } from '@/shared/types/member';
@@ -187,7 +186,7 @@ export function TeamSplitAuto() {
           <Card>
             <CardContent className="pt-6">
               <p className="text-center text-muted-foreground">
-                "자동 밸런싱" 버튼을 클릭하여 팀을 나눠보세요
+                &quot;자동 밸런싱&quot; 버튼을 클릭하여 팀을 나눠보세요
               </p>
             </CardContent>
           </Card>
