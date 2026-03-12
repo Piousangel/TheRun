@@ -32,6 +32,7 @@ The Run is moving from a prototype into a real mobile-first futsal club app.
 - Google social login flow added with OAuth callback route
 - Naver login requires custom server-side OAuth integration because it is not a standard Supabase social provider path in this project
 - login UI is being shifted from utility flow to product-quality access screen
+- setup notes are tracked in `SOCIAL_AUTH_SETUP.md`
 
 ## Library / SDK notes
 
