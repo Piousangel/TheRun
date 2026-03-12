@@ -1,11 +1,10 @@
 import { AnnouncementsList } from '@/widgets/announcements/ui/announcements-list';
+import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 export default function AnnouncementsPage() {
   return (
-    <main className="min-h-screen p-4 sm:p-8">
-      <div className="mx-auto max-w-5xl">
+    <AppPageLayout maxWidth="5xl">
         <AnnouncementsList />
-      </div>
-    </main>
+    </AppPageLayout>
   );
 }

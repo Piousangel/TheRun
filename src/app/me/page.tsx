@@ -1,11 +1,10 @@
 import { MyPageContent } from '@/widgets/me/ui/my-page-content';
+import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 export default function MePage() {
   return (
-    <main className="min-h-screen p-4 sm:p-8">
-      <div className="mx-auto max-w-4xl">
+    <AppPageLayout maxWidth="4xl">
         <MyPageContent />
-      </div>
-    </main>
+    </AppPageLayout>
   );
 }

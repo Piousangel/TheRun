@@ -1,11 +1,10 @@
 import { TeamDivisionWidget } from '@/widgets/team-division/ui/team-division-widget';
+import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 export default function TeamDivisionPage() {
   return (
-    <main className="min-h-screen p-4 sm:p-8">
-      <div className="max-w-7xl mx-auto">
+    <AppPageLayout maxWidth="7xl">
         <TeamDivisionWidget />
-      </div>
-    </main>
+    </AppPageLayout>
   );
 }

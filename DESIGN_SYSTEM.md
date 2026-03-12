@@ -68,6 +68,22 @@ Goal:
 - keep auth screens visually distinct from in-app screens
 - make future social login pages reusable across projects
 
+### `AppPageLayout`
+
+Location: `src/shared/ui/app-page-layout.tsx`
+
+Use for:
+
+- authenticated route pages
+- list screens
+- dashboard-adjacent app surfaces
+
+Goal:
+
+- remove repeated `main + max-width + padding` wrappers
+- keep app routes visually consistent
+- centralize spacing rules for future projects
+
 ### `StatePanel`
 
 Location: `src/shared/ui/state-panel.tsx`
