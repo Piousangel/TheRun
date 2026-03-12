@@ -89,30 +89,35 @@ const mobileLandingSlides = [
     title: '이번 주 참석 여부를 빠르게 정리',
     body: '경기, 회식, 번개 응답을 같은 흐름으로 모아 운영자가 인원 파악을 즉시 할 수 있게 구성합니다.',
     chips: ['참석 희망 14명', '미응답 5명', '마감 D-1'],
+    accent: 'gold' as const,
   },
   {
     eyebrow: 'Match Flow',
     title: '팀 나누기에서 경기 기록까지 한 번에 연결',
     body: '응답 인원 기반 팀 편성, 실시간 경기 운영, 경기 후 기록 저장까지 같은 루틴 안에서 이어집니다.',
     chips: ['자동 밸런싱', '실시간 스코어', '기록 히스토리'],
+    accent: 'emerald' as const,
   },
   {
     eyebrow: 'Mobile First',
     title: '운동장 가는 길에도 바로 쓰는 모바일 UX',
     body: '휴대폰 환경을 우선해, 멤버도 운영자도 이동 중에 바로 확인할 수 있게 구성했습니다.',
     chips: ['내 응답 중심', '관리자 권한 분리', '한 화면 요약'],
+    accent: 'blue' as const,
   },
   {
     eyebrow: 'Welcome Flow',
     title: '처음 써도 헷갈리지 않는 주간 루틴',
     body: '로그인 → 멤버 연결 → 투표/출석 응답 → 경기 확인 흐름을 단계별로 짧게 보여줍니다.',
     chips: ['로그인 후 연결', '이번 주 응답 확인', '운영자 경기 관리'],
+    accent: 'white' as const,
   },
   {
     eyebrow: 'AI Visual Campaign',
     title: '제품 세계관이 더 또렷해지는 축구 비주얼',
     body: '실제 사용 장면이 떠오르도록 축구 경기와 운영 흐름을 AI 캠페인 컷처럼 풀어냅니다.',
     chips: ['Floodlit Match', 'Tactical Split', 'Mobile Club Pulse'],
+    accent: 'gold' as const,
   },
 ];
 
@@ -143,7 +148,7 @@ export function HomePageContent() {
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="mt-1 flex flex-wrap justify-center gap-3 md:mt-0">
             <Link href={user ? '/dashboard' : '/login'}>
               <Button size="lg" className="rounded-full px-8 shadow-[0_16px_40px_rgba(200,168,88,0.35)]">
                 {user ? '앱 열기' : '로그인하고 시작하기'}
