@@ -149,6 +149,67 @@ export function AppDashboardContent() {
       </section>
 
       <section className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-8 lg:px-10">
+        <div className="grid gap-4 xl:grid-cols-3">
+          <Card className="xl:col-span-2 border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.12),rgba(255,255,255,0.98))]">
+            <CardHeader>
+              <CardTitle className="text-2xl">오늘의 포커스</CardTitle>
+              <CardDescription>
+                {isAdmin
+                  ? '운영자가 가장 먼저 확인해야 할 흐름만 추려서 보여줍니다.'
+                  : '이번 주에 멤버가 놓치면 안 되는 액션만 먼저 보여줍니다.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-3 sm:grid-cols-3">
+              {(isAdmin
+                ? [
+                    {
+                      label: '투표 마감',
+                      value: activeVoteSession ? formatDeadline(activeVoteSession.deadline) : '열린 투표 없음',
+                    },
+                    {
+                      label: '출석 확정',
+                      value: attendanceSession ? `${attendanceConfirmedCount}명 응답` : '출석 세션 없음',
+                    },
+                    {
+                      label: '경기 준비',
+                      value: pendingMatch || liveMatch ? '경기 흐름 연결됨' : '팀 구성/경기 생성 필요',
+                    },
+                  ]
+                : [
+                    {
+                      label: '내 투표',
+                      value: activeVoteSession ? (myVote ? '응답 완료' : '응답 필요') : '열린 투표 없음',
+                    },
+                    {
+                      label: '내 출석',
+                      value: attendanceSession ? (myAttendance ? '응답 완료' : '응답 필요') : '출석 세션 없음',
+                    },
+                    {
+                      label: '새 공지',
+                      value: unreadAnnouncementCount > 0 ? `${unreadAnnouncementCount}개 미확인` : '새 공지 없음',
+                    },
+                  ]).map((item) => (
+                <div key={item.label} className="rounded-2xl border bg-background/80 p-4">
+                  <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">{item.label}</p>
+                  <p className="mt-3 text-base font-semibold leading-7">{item.value}</p>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">역할 요약</CardTitle>
+              <CardDescription>{isAdmin ? '운영자 워크스페이스' : '멤버 워크스페이스'}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>- {isAdmin ? '공지, 투표, 경기 흐름을 조정하는 역할' : '응답과 공지를 확인하는 개인 흐름 중심'}</p>
+              <p>- {isLinked ? '멤버 연결이 완료되어 개인 흐름이 활성화됨' : '멤버 연결이 필요해 일부 개인 흐름이 제한됨'}</p>
+              <p>- {isAdmin ? '운영 루틴을 빠르게 반복할 수 있도록 구성' : '이번 주 필요한 액션만 빠르게 확인 가능'}</p>
+            </CardContent>
+          </Card>
+        </div>
+
         <div className="grid gap-4 xl:grid-cols-2">
           <Card className="section-surface overflow-hidden border-primary/15">
             <CardHeader>
