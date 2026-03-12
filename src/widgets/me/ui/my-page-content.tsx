@@ -2,8 +2,9 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { UserRound, Shield, Link2, LogOut } from "lucide-react";
+import { UserRound, Shield, Link2, LogOut, PencilLine } from "lucide-react";
 import { toast } from "sonner";
+import { AccountMemberEditForm } from "@/features/account-member-edit/ui/account-member-edit-form";
 import { useMembers } from "@/entities/member/model/queries";
 import {
   useLinkMemberProfile,
@@ -20,11 +21,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
-import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { PageHero } from "@/shared/ui/page-hero";
 import { StatePanel } from "@/shared/ui/state-panel";
 import { StatTile } from "@/shared/ui/stat-tile";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/shared/ui/dialog";
+import { getMemberPhoneDisplay } from "@/shared/lib/utils";
 import {
   Select,
   SelectContent,
@@ -37,8 +45,8 @@ export function MyPageContent() {
   const { user, profile, member, isAdmin, isLinked, isLoading } = useAuth();
   const { data: members } = useMembers();
   const [selectedMemberId, setSelectedMemberId] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const linkMutation = useLinkMemberProfile(user?.id ?? null);
   const unlinkMutation = useUnlinkMemberProfile(user?.id ?? null);
 
@@ -55,11 +63,9 @@ export function MyPageContent() {
     try {
       await linkMutation.mutateAsync({
         memberId: selectedMemberId,
-        phoneNumber,
       });
       setMessage("내 멤버 연결이 완료되었습니다.");
       toast.success("내 멤버 연결이 완료되었습니다.");
-      setPhoneNumber("");
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "멤버 연결에 실패했습니다.";
@@ -124,10 +130,17 @@ export function MyPageContent() {
           </>
         }
         actions={
-          <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            로그아웃
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            {member ? (
+              <Button variant="outline" onClick={() => setIsEditOpen(true)}>
+                <PencilLine className="mr-2 h-4 w-4" />내 멤버 정보 수정
+              </Button>
+            ) : null}
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" />
+              로그아웃
+            </Button>
+          </div>
         }
       />
 
@@ -202,7 +215,8 @@ export function MyPageContent() {
             <Link2 className="h-5 w-5 text-primary" />내 멤버 연결
           </CardTitle>
           <CardDescription>
-            처음 한 번만 연결하면 투표/출석에서 내 이름으로 바로 동작합니다.
+            로그인 후에는 전화번호 대조 없이 본인 멤버를 연결하고, 이후 내
+            정보는 계정 화면에서 직접 갱신할 수 있습니다.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -211,7 +225,7 @@ export function MyPageContent() {
               <div>
                 <p className="font-semibold">현재 연결된 멤버</p>
                 <p className="text-sm text-muted-foreground">
-                  {member.name} · {member.phone_number}
+                  {member.name} · {getMemberPhoneDisplay(member.phone_number)}
                 </p>
               </div>
               <Button
@@ -239,22 +253,12 @@ export function MyPageContent() {
                         key={availableMember.id}
                         value={availableMember.id}
                       >
-                        {availableMember.name}
+                        {availableMember.name} · #
+                        {availableMember.id.slice(0, 6)}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone_number">전화번호 확인</Label>
-                <Input
-                  id="phone_number"
-                  placeholder="010-1234-5678"
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
-                  disabled={linkMutation.isPending}
-                />
               </div>
 
               {message && (
@@ -267,11 +271,7 @@ export function MyPageContent() {
 
               <Button
                 type="submit"
-                disabled={
-                  !selectedMemberId ||
-                  !phoneNumber.trim() ||
-                  linkMutation.isPending
-                }
+                disabled={!selectedMemberId || linkMutation.isPending}
               >
                 {linkMutation.isPending ? "연결 중..." : "내 멤버 연결하기"}
               </Button>
@@ -279,6 +279,28 @@ export function MyPageContent() {
           )}
         </CardContent>
       </Card>
+
+      {member && user ? (
+        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>내 멤버 정보 수정</DialogTitle>
+              <DialogDescription>
+                로그인한 계정에 연결된 내 멤버의 이름과 전화번호를 직접
+                수정합니다.
+              </DialogDescription>
+            </DialogHeader>
+            <AccountMemberEditForm
+              member={member}
+              userId={user.id}
+              onSuccess={() => {
+                setIsEditOpen(false);
+                toast.success("내 멤버 정보를 저장했습니다.");
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </div>
   );
 }
