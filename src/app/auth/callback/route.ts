@@ -4,10 +4,10 @@ import { createSupabaseServerClient } from '@/shared/api/supabase/server';
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  let next = searchParams.get('next') ?? '/me';
+  let next = searchParams.get('next') ?? '/dashboard';
 
   if (!next.startsWith('/')) {
-    next = '/me';
+    next = '/dashboard';
   }
 
   if (!code) {
