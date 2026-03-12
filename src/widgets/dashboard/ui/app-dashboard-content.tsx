@@ -17,6 +17,20 @@ import { cn } from '@/shared/lib/utils';
 
 const guideHighlights = ['신규 멤버 온보딩 체크리스트', '주간 운영 루틴 정리', '경기 당일 담당 역할 가이드'];
 
+const adminChecklist = [
+  '이번 주 투표가 열려 있는지 확인',
+  '출석 세션과 확정 인원 점검',
+  '팀 구성 또는 경기 수 조정',
+  '공지와 시간 변경 사항 공지',
+];
+
+const memberChecklist = [
+  '내 멤버 연결 상태 확인',
+  '이번 주 투표 응답 완료',
+  '출석 응답과 시간 확인',
+  '공지와 경기 기록 확인',
+];
+
 function formatDeadline(deadline: string) {
   const date = new Date(deadline);
   const relative = formatDistanceToNowStrict(date, { addSuffix: true, locale: ko });
@@ -56,6 +70,24 @@ export function AppDashboardContent() {
   const unreadAnnouncementCount = latestAnnouncements.filter(
     (announcement) => !(announcementReads ?? []).some((read) => read.announcement_id === announcement.id)
   ).length;
+  const dashboardPrimaryCta = isAdmin
+    ? { href: '/votes', label: '이번 주 운영 열기' }
+    : { href: isLinked ? '/votes' : '/me', label: isLinked ? '이번 주 응답 확인' : '내 멤버 연결하기' };
+  const roleChecklist = isAdmin ? adminChecklist : memberChecklist;
+  const roleQuickLinks = isAdmin
+    ? [
+        { href: '/members', title: '멤버 관리', body: '신규 멤버 등록, 수정, 정리', icon: Users },
+        { href: '/votes', title: '투표 열기', body: '이번 주 경기/회식 응답 운영', icon: Vote },
+        { href: '/attendance', title: '출석 현황', body: '실제 출석 여부와 응답 확인', icon: CalendarDays },
+        { href: '/matches', title: '경기 진행', body: '실시간 운영과 기록 저장', icon: Trophy },
+      ]
+    : [
+        { href: '/votes', title: '내 투표 확인', body: '이번 주 응답 상태와 마감 확인', icon: Vote },
+        { href: '/announcements', title: '공지 보기', body: '운영 공지와 일정 변경 확인', icon: BellRing },
+        { href: '/attendance', title: '내 출석 확인', body: '출석 세션 상태와 내 응답 확인', icon: CalendarDays },
+        { href: '/matches', title: '경기 기록 보기', body: '최근 경기 결과와 스코어 확인', icon: Trophy },
+        { href: '/me', title: '내 계정', body: '멤버 연결과 권한 상태 확인', icon: UserRound },
+      ];
 
   return (
     <main className="min-h-screen pb-24">
@@ -70,16 +102,22 @@ export function AppDashboardContent() {
               <div>
                 <p className="text-sm uppercase tracking-[0.2em] text-primary/85">Saturday Operating Board</p>
                 <h1 className="mt-3 text-4xl font-semibold leading-tight sm:text-5xl">
-                  {member ? `${member.name}님, 이번 주 준비 상태를 확인하세요.` : '실제 동호회 운영용 대시보드'}
+                  {isAdmin
+                    ? '이번 주 운영 상태를 조정하세요.'
+                    : member
+                      ? `${member.name}님, 이번 주 준비 상태를 확인하세요.`
+                      : '실제 동호회 운영용 대시보드'}
                 </h1>
               </div>
               <p className="max-w-2xl text-sm leading-7 text-white/80 sm:text-base">
-                투표, 출석, 경기, 멤버 운영을 주간 단위로 정리했습니다. 필요한 액션과 지금 상태를 한 번에 볼 수 있게 바꿨습니다.
+                {isAdmin
+                  ? '운영자가 바로 판단해야 하는 투표, 출석, 공지, 경기 흐름을 한 번에 정리했습니다.'
+                  : '멤버가 이번 주에 꼭 확인해야 하는 응답, 시간, 공지, 경기 기록을 한 화면에 모았습니다.'}
               </p>
               <div className="flex flex-wrap gap-3">
-                <Link href={isLinked ? '/votes' : '/me'}>
+                <Link href={dashboardPrimaryCta.href}>
                   <Button size="lg" className="rounded-full px-6">
-                    {isLinked ? '이번 주 응답 확인' : '내 멤버 연결하기'}
+                    {dashboardPrimaryCta.label}
                     <ArrowRight className="h-4 w-4" />
                   </Button>
                 </Link>
@@ -181,16 +219,23 @@ export function AppDashboardContent() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">맞춤 체크리스트</CardTitle>
-              <CardDescription>오늘 이 앱에서 해야 할 일을 바로 확인할 수 있습니다.</CardDescription>
+              <CardTitle className="text-2xl">{isAdmin ? '운영 체크리스트' : '내 체크리스트'}</CardTitle>
+              <CardDescription>{isAdmin ? '오늘 운영자가 먼저 점검해야 하는 루틴입니다.' : '오늘 이 앱에서 해야 할 일을 바로 확인할 수 있습니다.'}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {[
-                { done: !!user, label: '로그인 상태 확인', helper: user?.email ?? '로그인 후 개인 흐름이 활성화됩니다.' },
-                { done: isLinked, label: '내 멤버 연결', helper: isLinked ? `${member?.name ?? '연결 완료'}로 응답 가능` : '내 계정에서 전화번호 확인 후 연결하세요.' },
-                { done: !!myVote || !activeVoteSession, label: '이번 주 투표 응답', helper: activeVoteSession ? (myVote ? '응답 완료' : '아직 응답이 필요합니다.') : '진행 중인 투표 없음' },
-                { done: !!myAttendance || !attendanceSession, label: '출석 응답 확인', helper: attendanceSession ? (myAttendance ? '응답 완료' : '필요 시 출석 응답하세요.') : '진행 중인 출석 없음' },
-              ].map((item) => (
+              {(isAdmin
+                ? [
+                    { done: !!activeVoteSession, label: roleChecklist[0], helper: activeVoteSession ? '활성 투표가 열려 있습니다.' : '운영 투표를 열어야 합니다.' },
+                    { done: !!attendanceSession, label: roleChecklist[1], helper: attendanceSession ? '출석 세션이 열려 있습니다.' : '출석 세션이 아직 없습니다.' },
+                    { done: !!pendingMatch || !!liveMatch, label: roleChecklist[2], helper: pendingMatch || liveMatch ? '경기 흐름이 연결되어 있습니다.' : '팀 구성 또는 경기 생성이 필요합니다.' },
+                    { done: latestAnnouncements.length > 0, label: roleChecklist[3], helper: latestAnnouncements.length > 0 ? '최근 공지가 등록되어 있습니다.' : '이번 주 공지를 올리면 좋습니다.' },
+                  ]
+                : [
+                    { done: isLinked, label: roleChecklist[0], helper: isLinked ? `${member?.name ?? '연결 완료'}로 응답 가능` : '내 계정에서 전화번호 확인 후 연결하세요.' },
+                    { done: !!myVote || !activeVoteSession, label: roleChecklist[1], helper: activeVoteSession ? (myVote ? '응답 완료' : '아직 응답이 필요합니다.') : '진행 중인 투표 없음' },
+                    { done: !!myAttendance || !attendanceSession, label: roleChecklist[2], helper: attendanceSession ? (myAttendance ? '응답 완료' : '필요 시 출석 응답하세요.') : '진행 중인 출석 없음' },
+                    { done: latestAnnouncements.length > 0, label: roleChecklist[3], helper: latestAnnouncements.length > 0 ? `${unreadAnnouncementCount}개의 읽지 않은 공지가 있습니다.` : '확인할 공지가 없습니다.' },
+                  ]).map((item) => (
                 <div key={item.label} className="flex items-start gap-3 rounded-2xl border bg-muted/30 p-4">
                   <CheckCircle2 className={cn('mt-0.5 h-5 w-5', item.done ? 'text-primary' : 'text-muted-foreground')} />
                   <div>
@@ -232,23 +277,10 @@ export function AppDashboardContent() {
           <Card className="section-surface border-primary/15">
             <CardHeader>
               <CardTitle className="text-2xl">{isAdmin ? '운영자 콕핏' : '멤버 빠른 동선'}</CardTitle>
-              <CardDescription>{isAdmin ? '실제 운영에서 자주 반복하는 작업을 짧은 액션으로 배치했습니다.' : '운동 전에 자주 들어오는 화면을 빠르게 이어갈 수 있게 묶었습니다.'}</CardDescription>
+              <CardDescription>{isAdmin ? '운영자가 자주 반복하는 작업을 운영 흐름 순서대로 배치했습니다.' : '멤버가 이번 주에 자주 오가는 화면만 빠르게 이어갈 수 있게 묶었습니다.'}</CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
-              {(isAdmin
-                ? [
-                    { href: '/members', title: '멤버 관리', body: '신규 멤버 등록, 수정, 정리', icon: Users },
-                    { href: '/votes', title: '투표 열기', body: '이번 주 경기/회식 응답 운영', icon: Vote },
-                    { href: '/attendance', title: '출석 현황', body: '실제 출석 여부와 응답 확인', icon: CalendarDays },
-                    { href: '/matches', title: '경기 진행', body: '실시간 운영과 기록 저장', icon: Trophy },
-                  ]
-                : [
-                    { href: '/votes', title: '내 투표 확인', body: '이번 주 응답 상태와 마감 확인', icon: Vote },
-                    { href: '/announcements', title: '공지 보기', body: '운영 공지와 일정 변경 확인', icon: BellRing },
-                    { href: '/attendance', title: '내 출석 확인', body: '출석 세션 상태와 내 응답 확인', icon: CalendarDays },
-                    { href: '/matches', title: '경기 기록 보기', body: '최근 경기 결과와 스코어 확인', icon: Trophy },
-                    { href: '/me', title: '내 계정', body: '멤버 연결과 권한 상태 확인', icon: UserRound },
-                  ]).map(({ href, title, body, icon: Icon }) => (
+              {roleQuickLinks.map(({ href, title, body, icon: Icon }) => (
                 <Link key={href} href={href}>
                   <div className="h-full rounded-2xl border bg-background/80 p-4 transition-transform duration-200 hover:-translate-y-0.5 hover:shadow-md">
                     <Icon className="h-5 w-5 text-primary" />
