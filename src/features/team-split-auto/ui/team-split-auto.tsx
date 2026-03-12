@@ -194,11 +194,28 @@ export function TeamSplitAuto() {
           <StatTile label="팀 선택 상태" value={canCompleteTeamSelection ? 'READY' : 'PENDING'} icon={<Check className="h-5 w-5" />} tone={canCompleteTeamSelection ? 'success' : 'danger'} />
         </div>
 
+        <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.1),rgba(255,255,255,0.96))]">
+          <CardContent className="grid gap-3 pt-6 md:grid-cols-3">
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">현재 포커스</p>
+              <p className="mt-3 text-base font-semibold">{hasTeams ? '자동 밸런싱 결과를 확인하세요' : '자동 밸런싱을 먼저 실행하세요'}</p>
+            </div>
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">입력 기준</p>
+              <p className="mt-3 text-base font-semibold">{selectedVoteId ? '선택된 투표 기반 멤버 확인' : '전체 멤버 기준 자동 분배'}</p>
+            </div>
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">다음 액션</p>
+              <p className="mt-3 text-base font-semibold">{canCompleteTeamSelection ? '팀 선택을 완료하고 경기로 이동' : '최소 2개 팀 구성을 먼저 확인'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
         {!hasTeams ? (
           <Card>
             <CardContent className="pt-6">
               <p className="text-center text-muted-foreground">
-                &quot;자동 밸런싱&quot; 버튼을 클릭하여 팀을 나눠보세요
+                먼저 &quot;자동 밸런싱&quot;을 실행해 팀 초안을 만들고, 필요하면 이후 수동으로 조정하세요.
               </p>
             </CardContent>
           </Card>

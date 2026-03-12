@@ -302,6 +302,23 @@ export function TeamSplitManual() {
           <StatTile label="팀 선택 상태" value={canCompleteTeamSelection ? 'READY' : 'PENDING'} tone={canCompleteTeamSelection ? 'success' : 'danger'} />
         </div>
 
+        <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.1),rgba(255,255,255,0.96))]">
+          <CardContent className="grid gap-3 pt-6 md:grid-cols-3">
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">현재 포커스</p>
+              <p className="mt-3 text-base font-semibold">{sortedAvailableMembers.length > 0 ? '대기 멤버를 팀에 배치하세요' : '팀 배치가 거의 완료되었습니다'}</p>
+            </div>
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">필터 상태</p>
+              <p className="mt-3 text-base font-semibold">{selectedVoteId ? `${filterMode === 'attending' ? '참석자만' : '전체'} 보기` : '전체 멤버 기준'}</p>
+            </div>
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">다음 액션</p>
+              <p className="mt-3 text-base font-semibold">{canCompleteTeamSelection ? '팀 선택을 완료하고 경기로 이동' : '최소 2개 팀에 멤버를 배치'}</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {/* Available Members */}
           <Card>

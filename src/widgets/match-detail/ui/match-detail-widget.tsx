@@ -417,6 +417,27 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         <StatTile label="참가 인원" value={teamAMembers.length + teamBMembers.length} icon={<Users className="h-5 w-5" />} />
       </div>
 
+      <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.1),rgba(255,255,255,0.96))]">
+        <CardContent className="grid gap-3 pt-6 md:grid-cols-4">
+          <div className="rounded-2xl border bg-background/80 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">경기 상태</p>
+            <p className="mt-3 text-base font-semibold">{match.status === 'pending' ? '시작 전 준비' : match.status === 'in_progress' ? '실시간 운영 중' : '기록 검토 단계'}</p>
+          </div>
+          <div className="rounded-2xl border bg-background/80 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">우선 액션</p>
+            <p className="mt-3 text-base font-semibold">{match.status === 'pending' ? '시간 설정 후 경기 시작' : match.status === 'in_progress' ? '스코어와 기록 입력' : '저장된 기록 검토'}</p>
+          </div>
+          <div className="rounded-2xl border bg-background/80 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">전술 연동</p>
+            <p className="mt-3 text-base font-semibold">팀별 전술 보드로 즉시 이동 가능</p>
+          </div>
+          <div className="rounded-2xl border bg-background/80 p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">권한</p>
+            <p className="mt-3 text-base font-semibold">{isAdmin ? '기록 수정 가능' : '기록 조회 전용'}</p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Team Rosters - Moved above Timer for better accessibility */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Team A */}
