@@ -209,8 +209,8 @@ export function HomePageContent() {
         </div>
       </section>
 
-      <section className="mx-auto hidden max-w-6xl space-y-20 px-4 py-20 sm:px-8 lg:px-10 md:block">
-        {landingShowcase.map((item, index) => (
+      <section className="mx-auto hidden max-w-6xl space-y-16 px-4 py-16 sm:px-8 lg:px-10 md:block">
+        {landingShowcase.slice(0, 2).map((item, index) => (
           <RevealSection key={item.title} className={cn('grid gap-8 lg:grid-cols-2 lg:items-center', index % 2 === 1 && 'lg:[&>*:first-child]:order-2')}>
             <div className="space-y-4">
               <p className="text-sm font-medium text-primary uppercase tracking-[0.22em]">{item.eyebrow}</p>
@@ -238,16 +238,16 @@ export function HomePageContent() {
         ))}
       </section>
 
-      <section className="mx-auto hidden max-w-6xl space-y-10 px-4 py-10 sm:px-8 lg:px-10 md:block">
+      <section className="mx-auto hidden max-w-6xl space-y-8 px-4 py-8 sm:px-8 lg:px-10 md:block">
         <RevealSection className="text-center">
           <p className="text-sm font-medium text-primary uppercase tracking-[0.24em]">AI Visual Campaign</p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">스크롤할수록 제품 세계관이 더 또렷해지도록.</h2>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-5xl">길게 읽기보다, 빠르게 감이 오게.</h2>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-            단순한 기능 설명보다, 실제로 이 앱을 쓰는 장면이 떠오르게 만드는 비주얼이 필요합니다. 그래서 축구 경기와 운영 흐름을 AI 캠페인 컷처럼 풀어낸 섹션을 추가합니다.
+            실제 사용 장면이 떠오르게 만드는 비주얼만 남기고, 긴 설명은 줄였습니다. 제품 감각은 유지하고 피로는 낮추는 방향입니다.
           </p>
         </RevealSection>
-        <div className="space-y-8">
-          {aiScenes.map((scene) => (
+        <div className="grid gap-6 lg:grid-cols-2">
+          {aiScenes.slice(0, 2).map((scene) => (
             <RevealSection key={scene.title}>
               <AiSceneCard {...scene} />
             </RevealSection>
@@ -255,45 +255,35 @@ export function HomePageContent() {
         </div>
       </section>
 
-      <section className="mx-auto hidden max-w-7xl px-4 py-6 sm:px-8 lg:px-10 md:block">
-        <div className="grid gap-4 md:grid-cols-3">
-          {landingFeatures.map(({ title, description, icon: Icon }) => (
-            <Card key={title} className="border-primary/15 bg-gradient-to-br from-card via-card to-primary/5 shadow-[0_14px_50px_rgba(0,0,0,0.05)]">
-              <CardHeader>
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12 text-primary">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <CardTitle className="pt-4 text-xl">{title}</CardTitle>
-                <CardDescription className="text-sm leading-6">{description}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      <section className="hidden bg-muted/40 py-14 md:block">
+      <section className="hidden bg-muted/40 py-12 md:block">
         <div className="mx-auto max-w-7xl px-4 sm:px-8 lg:px-10">
           <div className="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-primary">Welcome Flow</p>
-              <h2 className="mt-2 text-3xl font-semibold tracking-tight">처음 써도 헷갈리지 않는 주간 루틴</h2>
+              <p className="text-sm font-medium text-primary">Why It Works</p>
+              <h2 className="mt-2 text-3xl font-semibold tracking-tight">핵심만 남긴 운영 원칙</h2>
             </div>
             <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-              최신 팀 운영 앱들이 공통으로 잘하는 건 화려함보다 흐름 정리입니다. 그래서 첫 사용자가 해야 할 일을 단계별로 짧게 보여줍니다.
+              실제 사용 관점에서 중요한 건 화려함보다 빠른 판단입니다. 그래서 기능보다 흐름과 우선순위를 먼저 보이게 설계합니다.
             </p>
           </div>
           <div className="grid gap-4 lg:grid-cols-3">
-            {landingWorkflow.map((item) => (
-              <RevealSection key={item.step}>
+            {landingFeatures.map(({ title, description, icon: Icon }, index) => {
+              const workflow = landingWorkflow[index];
+              return (
+              <RevealSection key={title}>
                 <Card className="overflow-hidden border-border/70 bg-background/90">
                   <CardHeader>
-                    <div className="text-xs font-semibold tracking-[0.22em] text-primary">STEP {item.step}</div>
-                    <CardTitle className="text-xl">{item.title}</CardTitle>
-                    <CardDescription className="leading-6">{item.body}</CardDescription>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/12 text-primary">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <div className="pt-4 text-xs font-semibold tracking-[0.22em] text-primary">STEP {workflow?.step}</div>
+                    <CardTitle className="text-xl">{title}</CardTitle>
+                    <CardDescription className="leading-6">{description}</CardDescription>
+                    <p className="text-sm leading-6 text-muted-foreground">{workflow?.body}</p>
                   </CardHeader>
                 </Card>
               </RevealSection>
-            ))}
+            )})}
           </div>
         </div>
       </section>
