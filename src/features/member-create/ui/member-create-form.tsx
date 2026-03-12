@@ -7,6 +7,7 @@ import { useCreateMember } from '@/entities/member/model/queries';
 import { uploadProfilePhoto } from '@/shared/api/supabase/storage';
 import { memberCreateSchema, type MemberCreateFormData } from '../model/schema';
 import { Button } from '@/shared/ui/button';
+import { FormSection } from '@/shared/ui/form-section';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Slider } from '@/shared/ui/slider';
@@ -69,51 +70,37 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="name">이름</Label>
-        <Input
-          id="name"
-          {...register('name')}
-          placeholder="홍길동"
-          disabled={isPending || isUploading}
-        />
-        {errors.name && (
-          <p className="text-sm text-destructive">{errors.name.message}</p>
-        )}
-      </div>
+      <FormSection title="기본 프로필" description="멤버명과 연락처, 사진을 먼저 등록합니다.">
+        <div className="space-y-2">
+          <Label htmlFor="name">이름</Label>
+          <Input id="name" {...register('name')} placeholder="홍길동" disabled={isPending || isUploading} />
+          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="phone_number">전화번호</Label>
-        <Input
-          id="phone_number"
-          {...register('phone_number')}
-          placeholder="010-1234-5678"
-          disabled={isPending || isUploading}
-        />
-        {errors.phone_number && (
-          <p className="text-sm text-destructive">{errors.phone_number.message}</p>
-        )}
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="phone_number">전화번호</Label>
+          <Input id="phone_number" {...register('phone_number')} placeholder="010-1234-5678" disabled={isPending || isUploading} />
+          {errors.phone_number && <p className="text-sm text-destructive">{errors.phone_number.message}</p>}
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="profile_photo">프로필 사진 (선택)</Label>
-        <Input
-          id="profile_photo"
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              setValue('profile_photo', file);
-            }
-          }}
-          disabled={isPending || isUploading}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="profile_photo">프로필 사진 (선택)</Label>
+          <Input
+            id="profile_photo"
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setValue('profile_photo', file);
+              }
+            }}
+            disabled={isPending || isUploading}
+          />
+        </div>
+      </FormSection>
 
-      <div className="space-y-4">
-        <h3 className="font-semibold">능력치</h3>
-
+      <FormSection title="능력치" description="자동 밸런싱과 라인업 판단에 쓰일 기준값입니다.">
         {(Object.keys(DEFAULT_STATS) as Array<keyof typeof DEFAULT_STATS>).map((statKey) => (
           <div key={statKey} className="space-y-2">
             <div className="flex justify-between">
@@ -130,7 +117,7 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
             />
           </div>
         ))}
-      </div>
+      </FormSection>
 
       <Button
         type="submit"

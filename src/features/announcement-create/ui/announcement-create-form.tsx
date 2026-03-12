@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { useCreateAnnouncement } from '@/entities/announcement/model/queries';
 import { announcementCreateSchema, type AnnouncementCreateFormData } from '../model/schema';
 import { Button } from '@/shared/ui/button';
+import { FormSection } from '@/shared/ui/form-section';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
@@ -58,43 +59,47 @@ export function AnnouncementCreateForm({ onSuccess }: AnnouncementCreateFormProp
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      <div className="space-y-2">
-        <Label htmlFor="title">제목</Label>
-        <Input id="title" {...register('title')} placeholder="예: 이번 주 토요일 운동 시간 변경" disabled={isPending} />
-        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-      </div>
+      <FormSection title="공지 정보" description="공지의 성격과 제목을 먼저 정리합니다.">
+        <div className="space-y-2">
+          <Label htmlFor="title">제목</Label>
+          <Input id="title" {...register('title')} placeholder="예: 이번 주 토요일 운동 시간 변경" disabled={isPending} />
+          {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="category">카테고리</Label>
-        <Select value={category} onValueChange={(value) => setValue('category', value as AnnouncementCreateFormData['category'])}>
-          <SelectTrigger id="category">
-            <SelectValue placeholder="카테고리를 선택하세요" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(categoryLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="category">카테고리</Label>
+          <Select value={category} onValueChange={(value) => setValue('category', value as AnnouncementCreateFormData['category'])}>
+            <SelectTrigger id="category">
+              <SelectValue placeholder="카테고리를 선택하세요" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(categoryLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </FormSection>
 
-      <div className="space-y-2">
-        <Label htmlFor="body">내용</Label>
-        <Textarea id="body" {...register('body')} placeholder="공지 내용을 입력하세요" disabled={isPending} />
-        {errors.body && <p className="text-sm text-destructive">{errors.body.message}</p>}
-      </div>
+      <FormSection title="공지 본문" description="멤버가 바로 이해할 수 있도록 핵심만 간결하게 적습니다.">
+        <div className="space-y-2">
+          <Label htmlFor="body">내용</Label>
+          <Textarea id="body" {...register('body')} placeholder="공지 내용을 입력하세요" disabled={isPending} />
+          {errors.body && <p className="text-sm text-destructive">{errors.body.message}</p>}
+        </div>
 
-      <label className="flex items-center gap-3 rounded-xl border p-3 text-sm">
-        <input
-          type="checkbox"
-          checked={isPinned}
-          onChange={(event) => setValue('is_pinned', event.target.checked)}
-          disabled={isPending}
-        />
-        중요 공지로 상단 고정
-      </label>
+        <label className="flex items-center gap-3 rounded-2xl border bg-muted/30 p-4 text-sm">
+          <input
+            type="checkbox"
+            checked={isPinned}
+            onChange={(event) => setValue('is_pinned', event.target.checked)}
+            disabled={isPending}
+          />
+          중요 공지로 상단 고정
+        </label>
+      </FormSection>
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? '공지 저장 중...' : '공지 등록'}

@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useCreateVoteSession } from '@/entities/vote/model/queries';
 import { voteCreateSchema, type VoteCreateFormData } from '../model/schema';
 import { Button } from '@/shared/ui/button';
+import { FormSection } from '@/shared/ui/form-section';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
 import {
@@ -16,6 +17,7 @@ import {
 } from '@/shared/ui/select';
 import { format, addDays, nextSaturday, setHours, setMinutes, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { Textarea } from '@/shared/ui/textarea';
 
 interface VoteCreateFormProps {
   onSuccess: () => void;
@@ -72,89 +74,61 @@ export function VoteCreateForm({ onSuccess }: VoteCreateFormProps) {
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <div className="space-y-2">
-        <Label htmlFor="type">투표 유형</Label>
-        <Select
-          value={selectedType}
-          onValueChange={(value) => setValue('type', value as VoteCreateFormData['type'])}
-          disabled={isPending}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="투표 유형 선택" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(voteTypeLabels).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
-      </div>
+      <FormSection title="투표 기본 정보" description="무슨 투표인지와 멤버가 이해할 제목/설명을 먼저 만듭니다.">
+        <div className="space-y-2">
+          <Label htmlFor="type">투표 유형</Label>
+          <Select
+            value={selectedType}
+            onValueChange={(value) => setValue('type', value as VoteCreateFormData['type'])}
+            disabled={isPending}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="투표 유형 선택" />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(voteTypeLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.type && <p className="text-sm text-destructive">{errors.type.message}</p>}
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="title">제목</Label>
-        <Input
-          id="title"
-          {...register('title')}
-          placeholder="예: 이번 주 토요일 경기"
-          disabled={isPending}
-        />
-        {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="title">제목</Label>
+          <Input id="title" {...register('title')} placeholder="예: 이번 주 토요일 경기" disabled={isPending} />
+          {errors.title && <p className="text-sm text-destructive">{errors.title.message}</p>}
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="description">설명 (선택)</Label>
-        <Input
-          id="description"
-          {...register('description')}
-          placeholder="추가 설명이 필요하면 입력해주세요"
-          disabled={isPending}
-        />
-        {errors.description && (
-          <p className="text-sm text-destructive">{errors.description.message}</p>
-        )}
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="description">설명 (선택)</Label>
+          <Textarea id="description" {...register('description')} placeholder="집합 시간, 준비물, 참고사항이 있으면 적어주세요" disabled={isPending} className="min-h-[110px]" />
+          {errors.description && <p className="text-sm text-destructive">{errors.description.message}</p>}
+        </div>
+      </FormSection>
 
-      <div className="space-y-2">
-        <Label htmlFor="event_date">이벤트 날짜 및 시간</Label>
-        <Input
-          id="event_date"
-          type="datetime-local"
-          {...register('event_date')}
-          disabled={isPending}
-        />
-        {selectedEventDate && (
-          <p className="text-xs text-muted-foreground">
-            📅 {format(parseISO(selectedEventDate), 'yyyy년 MM월 dd일 (EEEE) HH:mm', { locale: ko })}
-          </p>
-        )}
-        {errors.event_date && (
-          <p className="text-sm text-destructive">{errors.event_date.message}</p>
-        )}
-      </div>
+      <FormSection title="일정 설정" description="이벤트 시간과 응답 마감 시간을 분리해서 정합니다.">
+        <div className="space-y-2">
+          <Label htmlFor="event_date">이벤트 날짜 및 시간</Label>
+          <Input id="event_date" type="datetime-local" {...register('event_date')} disabled={isPending} />
+          {selectedEventDate && (
+            <p className="text-xs text-muted-foreground">📅 {format(parseISO(selectedEventDate), 'yyyy년 MM월 dd일 (EEEE) HH:mm', { locale: ko })}</p>
+          )}
+          {errors.event_date && <p className="text-sm text-destructive">{errors.event_date.message}</p>}
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="deadline">투표 마감 시간</Label>
-        <Input
-          id="deadline"
-          type="datetime-local"
-          {...register('deadline')}
-          disabled={isPending}
-        />
-        {selectedDeadline && (
-          <p className="text-xs text-muted-foreground">
-            📅 {format(parseISO(selectedDeadline), 'MM월 dd일 (EEEE) HH:mm', { locale: ko })}
-          </p>
-        )}
-        {errors.deadline && (
-          <p className="text-sm text-destructive">{errors.deadline.message}</p>
-        )}
-        <p className="text-xs text-muted-foreground">
-          💡 팁: 경기는 보통 금요일 자정에 마감됩니다
-        </p>
-      </div>
+        <div className="space-y-2">
+          <Label htmlFor="deadline">투표 마감 시간</Label>
+          <Input id="deadline" type="datetime-local" {...register('deadline')} disabled={isPending} />
+          {selectedDeadline && (
+            <p className="text-xs text-muted-foreground">📅 {format(parseISO(selectedDeadline), 'MM월 dd일 (EEEE) HH:mm', { locale: ko })}</p>
+          )}
+          {errors.deadline && <p className="text-sm text-destructive">{errors.deadline.message}</p>}
+          <p className="text-xs text-muted-foreground">💡 팁: 경기는 보통 금요일 자정에 마감됩니다</p>
+        </div>
+      </FormSection>
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? '생성 중...' : '투표 생성'}
