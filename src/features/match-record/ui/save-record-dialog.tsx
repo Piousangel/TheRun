@@ -10,7 +10,6 @@ import {
   DialogFooter,
 } from '@/shared/ui/dialog';
 import { Button } from '@/shared/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
 import { Label } from '@/shared/ui/label';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import type { Member } from '@/shared/types/member';

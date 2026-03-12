@@ -55,10 +55,6 @@ export function MVPSelectionDialog({
     onClose();
   };
 
-  const getMemberById = (members: Member[], memberId: string) => {
-    return members.find((m) => m.id === memberId);
-  };
-
   const getRecordById = (records: PlayerMatchRecord[], memberId: string) => {
     return records.find((r) => r.member_id === memberId);
   };

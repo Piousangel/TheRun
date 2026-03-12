@@ -17,8 +17,6 @@ import { Play, Trash2 } from "lucide-react";
 
 interface MatchGameCardProps {
   matchNumber: number;
-  voteSessionId: string;
-  voteTitle: string;
   eventDate: string;
   onDelete?: () => void;
 }
@@ -27,8 +25,6 @@ type TeamName = "A" | "B" | "C" | "D";
 
 export function MatchGameCard({
   matchNumber,
-  voteSessionId,
-  voteTitle,
   eventDate,
   onDelete,
 }: MatchGameCardProps) {

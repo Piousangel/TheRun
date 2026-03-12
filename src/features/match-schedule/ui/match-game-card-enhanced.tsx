@@ -30,7 +30,6 @@ import type { Match } from "@/shared/types/match";
 interface MatchGameCardEnhancedProps {
   matchNumber: number;
   voteSessionId: string;
-  voteTitle: string;
   eventDate: string;
   onDelete?: () => void;
 }
@@ -40,7 +39,6 @@ type TeamName = "A" | "B" | "C" | "D";
 export function MatchGameCardEnhanced({
   matchNumber,
   voteSessionId,
-  voteTitle,
   eventDate,
   onDelete,
 }: MatchGameCardEnhancedProps) {
@@ -62,7 +60,6 @@ export function MatchGameCardEnhanced({
     finishMatch,
     updateScore: updateStoredScore,
     getRemainingSeconds,
-    getElapsedSeconds,
   } = matchProgressStore;
 
   const [selectedTeamA, setSelectedTeamA] = useState<TeamName | null>(null);

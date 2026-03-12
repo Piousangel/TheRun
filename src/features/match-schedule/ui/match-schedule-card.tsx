@@ -19,7 +19,7 @@ export function MatchScheduleCard({ voteSession }: MatchScheduleCardProps) {
     setMatchCount(prev => prev + 1);
   };
 
-  const handleDeleteMatch = (matchNumber: number) => {
+  const handleDeleteMatch = () => {
     setMatchCount(prev => Math.max(1, prev - 1));
   };
 
@@ -59,9 +59,8 @@ export function MatchScheduleCard({ voteSession }: MatchScheduleCardProps) {
               key={i}
               matchNumber={i + 1}
               voteSessionId={voteSessionId || ''}
-              voteTitle={title}
               eventDate={eventDate}
-              onDelete={matchCount > 1 ? () => handleDeleteMatch(i + 1) : undefined}
+              onDelete={matchCount > 1 ? handleDeleteMatch : undefined}
             />
           ))}
         </div>
