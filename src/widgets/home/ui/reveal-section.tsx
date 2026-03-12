@@ -1,27 +1,27 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import { motion } from 'motion/react';
 import { cn } from '@/shared/lib/utils';
-import { useScrollReveal } from '../model/use-scroll-reveal';
 
 interface RevealSectionProps {
   children: ReactNode;
   className?: string;
+  delay?: number;
 }
 
-export function RevealSection({ children, className }: RevealSectionProps) {
-  const { ref, isVisible } = useScrollReveal<HTMLDivElement>();
-
+export function RevealSection({ children, className, delay = 0 }: RevealSectionProps) {
   return (
-    <div
-      ref={ref}
+    <motion.div
+      initial={{ opacity: 0, y: 40, filter: 'blur(6px)' }}
+      whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+      viewport={{ once: true, amount: 0.2, margin: '0px 0px -10% 0px' }}
+      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay }}
       className={cn(
-        'transition-all duration-700 ease-out',
-        isVisible ? 'translate-y-0 opacity-100 blur-0' : 'translate-y-10 opacity-0 blur-[2px]',
         className
       )}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }

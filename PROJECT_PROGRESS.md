@@ -41,6 +41,7 @@ The Run is moving from a prototype into a real mobile-first futsal club app.
 ### Adopted now
 
 - `sonner`: lightweight toast feedback for login, account linking, and announcement creation
+- `motion`: reusable scroll/reveal animation layer for landing and future app transitions
 
 ### Good next candidates
 

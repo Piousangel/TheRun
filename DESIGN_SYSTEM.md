@@ -87,6 +87,13 @@ Important classes:
 
 These utilities are the current visual vocabulary for premium landing and dashboard surfaces.
 
+## Motion layer
+
+- `motion` is now the preferred animation library.
+- `RevealSection` should be the default section-entry pattern for landing and content reveal moments.
+- Prefer subtle vertical lift + fade + slight blur removal over flashy transforms.
+- Keep motion meaningful: page sections, hero reveals, key dashboard modules.
+
 ## UI direction rules
 
 - Prefer bold typography over decorative clutter.
