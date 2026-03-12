@@ -95,6 +95,14 @@ These utilities are the current visual vocabulary for premium landing and dashbo
 - Every operational screen should open with context first, actions second.
 - Mobile layouts must survive crowded navigation and dense operator workflows.
 
+## Form system rules
+
+- Inputs, selects, and textareas should feel like part of the same product family.
+- Prefer rounded-xl or rounded-2xl controls over legacy rounded-md controls.
+- Default field height should support touch-first usage.
+- Placeholder copy should guide real task completion, not just describe field type.
+- Form screens should group fields into clear chunks instead of long flat stacks when complexity grows.
+
 ## Reuse guidance for future projects
 
 - Start by reusing `AuthShell`, `PageHero`, and `StatTile`.
