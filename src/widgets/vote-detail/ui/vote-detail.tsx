@@ -8,6 +8,7 @@ import { useMembers } from '@/entities/member/model/queries';
 import { VoteResponseButton } from '@/features/vote-response/ui/vote-response-button';
 import { VoteDeleteButton } from '@/features/vote-delete/ui/vote-delete-button';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
+import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { Separator } from '@/shared/ui/separator';
@@ -33,11 +34,15 @@ const voteTypeLabels = {
 };
 
 export function VoteDetail({ sessionId }: VoteDetailProps) {
+  const { isAdmin, member: currentMember, user } = useAuth();
   const { data: session, isLoading: sessionLoading } = useVoteSession(sessionId);
   const { data: responses, isLoading: responsesLoading } = useVoteResponses(sessionId);
   const { data: members } = useMembers();
 
   const isExpired = session ? isPast(new Date(session.deadline)) : false;
+  const currentMemberVote = currentMember
+    ? responses?.find((response) => response.member_id === currentMember.id)?.status ?? null
+    : null;
 
   const { attending, absent, noResponse } = useMemo(() => {
     if (!responses || !members) {
@@ -93,11 +98,13 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
               <CardDescription className="mt-2">{session.description}</CardDescription>
             )}
           </div>
-          <VoteDeleteButton
-            sessionId={session.id}
-            sessionTitle={session.title}
-            redirectAfterDelete={true}
-          />
+          {isAdmin && (
+            <VoteDeleteButton
+              sessionId={session.id}
+              sessionTitle={session.title}
+              redirectAfterDelete={true}
+            />
+          )}
         </div>
       </CardHeader>
 
@@ -139,6 +146,28 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
 
         <Separator />
 
+        <div className="rounded-lg border bg-muted/30 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h4 className="font-semibold">내 응답</h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                {user
+                  ? currentMember
+                    ? '내 계정에 연결된 멤버 기준으로 바로 응답할 수 있습니다.'
+                    : '내 계정에서 멤버 연결을 먼저 완료하면 본인 응답 흐름을 사용할 수 있습니다.'
+                  : '로그인 후 내 계정에서 멤버를 연결하면 본인 응답 흐름을 사용할 수 있습니다.'}
+              </p>
+            </div>
+            {currentMember ? (
+              <VoteResponseButton
+                sessionId={session.id}
+                member={currentMember}
+                currentVote={currentMemberVote}
+              />
+            ) : null}
+          </div>
+        </div>
+
         {/* 참석자 목록 */}
         <div>
           <h4 className="font-semibold mb-3 flex items-center gap-2">
@@ -155,7 +184,7 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
                   <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
                   <span className="text-sm font-medium">{member.name}</span>
                 </div>
-                {!isExpired && (
+                {!isExpired && isAdmin && (
                   <VoteResponseButton
                     sessionId={session.id}
                     member={member}
@@ -184,7 +213,7 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
                     <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
                     <span className="text-sm font-medium">{member.name}</span>
                   </div>
-                  {!isExpired && (
+                  {!isExpired && isAdmin && (
                     <VoteResponseButton
                       sessionId={session.id}
                       member={member}
@@ -214,11 +243,13 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
                     <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
                     <span className="text-sm font-medium">{member.name}</span>
                   </div>
-                  <VoteResponseButton
-                    sessionId={session.id}
-                    member={member}
-                    currentVote={null}
-                  />
+                  {isAdmin && (
+                    <VoteResponseButton
+                      sessionId={session.id}
+                      member={member}
+                      currentVote={null}
+                    />
+                  )}
                 </div>
               ))}
             </div>
