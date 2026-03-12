@@ -2,7 +2,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
-const protectedRoutes = ['/attendance', '/votes', '/matches', '/members', '/team-division', '/me', '/announcements'];
+const protectedRoutes = ['/dashboard', '/attendance', '/votes', '/matches', '/members', '/team-division', '/me', '/announcements'];
 const authRoutes = ['/login'];
 
 export async function middleware(request: NextRequest) {
@@ -45,7 +45,7 @@ export async function middleware(request: NextRequest) {
 
   if (user && isAuthRoute) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = '/me';
+    redirectUrl.pathname = '/dashboard';
     redirectUrl.search = '';
     return NextResponse.redirect(redirectUrl);
   }

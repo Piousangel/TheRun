@@ -11,7 +11,7 @@ export function MobileNav() {
   const { user, isAdmin } = useAuth();
 
   const navItems = [
-    { href: "/", label: "홈", icon: Home },
+    { href: "/dashboard", label: "홈", icon: Home },
     { href: "/announcements", label: "공지", icon: Bell },
     { href: "/votes", label: "투표", icon: Vote },
     { href: "/attendance", label: "출석", icon: CalendarCheck },

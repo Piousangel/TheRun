@@ -1,5 +1,5 @@
 import { HomePageContent } from '@/widgets/home/ui/home-page-content';
 
 export default function HomePage() {
-  return <HomePageContent />;
+  return <HomePageContent mode="landing" />;
 }

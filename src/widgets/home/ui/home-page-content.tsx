@@ -130,7 +130,11 @@ function formatDeadline(deadline: string) {
   return `${format(date, 'M월 d일 HH:mm', { locale: ko })} · ${relative}`;
 }
 
-export function HomePageContent() {
+interface HomePageContentProps {
+  mode?: 'landing' | 'dashboard';
+}
+
+export function HomePageContent({ mode = 'landing' }: HomePageContentProps) {
   const { user, member, isAdmin, isLinked } = useAuth();
   const { data: members } = useMembers();
   const { data: activeVoteSessions } = useActiveVoteSessions();
@@ -164,7 +168,7 @@ export function HomePageContent() {
     (announcement) => !(announcementReads ?? []).some((read) => read.announcement_id === announcement.id)
   ).length;
 
-  if (!user) {
+  if (mode === 'landing') {
     return (
       <main className="relative overflow-hidden pb-24">
         <section className="editorial-hero relative overflow-hidden border-b border-border/60 text-white">
@@ -192,9 +196,9 @@ export function HomePageContent() {
             </div>
 
             <div className="flex flex-wrap justify-center gap-3">
-              <Link href="/login">
+              <Link href={user ? '/dashboard' : '/login'}>
                 <Button size="lg" className="rounded-full px-8 shadow-[0_16px_40px_rgba(200,168,88,0.35)]">
-                  로그인하고 시작하기
+                  {user ? '앱 열기' : '로그인하고 시작하기'}
                   <LogIn className="h-4 w-4" />
                 </Button>
               </Link>
