@@ -3,9 +3,8 @@ import { supabase } from '@/shared/api/supabase/config';
 import type {
   AttendanceVote,
   AttendanceSession,
-  CreateAttendanceVoteData,
-  UpdateAttendanceVoteData,
 } from '@/shared/types/attendance';
+import type { Member } from '@/shared/types/member';
 
 export const attendanceKeys = {
   all: ['attendance'] as const,
@@ -48,7 +47,7 @@ export function useAttendanceVotes(sessionId: string) {
         .eq('session_id', sessionId);
 
       if (error) throw error;
-      return data as (AttendanceVote & { members: any })[];
+      return data as (AttendanceVote & { members: Member | null })[];
     },
     enabled: !!sessionId,
   });

@@ -10,6 +10,7 @@ import {
 import { useMembers } from '@/entities/member/model/queries';
 import { AttendanceVoteButton } from '@/features/attendance-vote/ui/attendance-vote-button';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
+import { useAuth } from '@/providers/auth-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Badge } from '@/shared/ui/badge';
 import { Separator } from '@/shared/ui/separator';
@@ -17,11 +18,15 @@ import { LoadingState } from '@/shared/ui/loading-spinner';
 import { Calendar, Clock, Users, UserX } from 'lucide-react';
 
 export function AttendanceWidget() {
+  const { isAdmin, member: currentMember, user } = useAuth();
   const { data: session, isLoading: sessionLoading } = useCurrentAttendanceSession();
   const { data: votes, isLoading: votesLoading } = useAttendanceVotes(session?.id || '');
   const { data: members } = useMembers();
 
   const isExpired = session ? isPast(new Date(session.deadline)) : false;
+  const currentMemberVote = currentMember
+    ? votes?.find((vote) => vote.member_id === currentMember.id)?.status ?? null
+    : null;
 
   const { attending, absent, noResponse } = useMemo(() => {
     if (!votes || !members) {
@@ -111,6 +116,28 @@ export function AttendanceWidget() {
 
         <Separator />
 
+        <div className="rounded-lg border bg-muted/30 p-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h4 className="font-semibold">내 응답</h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                {user
+                  ? currentMember
+                    ? '내 계정에 연결된 멤버 기준으로 이번 주 출석을 바로 표시할 수 있습니다.'
+                    : '내 계정에서 멤버 연결을 완료하면 본인 출석 응답이 활성화됩니다.'
+                  : '로그인 후 내 계정에서 멤버를 연결하면 본인 출석 응답이 활성화됩니다.'}
+              </p>
+            </div>
+            {currentMember ? (
+              <AttendanceVoteButton
+                sessionId={session.id}
+                member={currentMember}
+                currentVote={currentMemberVote}
+              />
+            ) : null}
+          </div>
+        </div>
+
         {/* 참석자 목록 */}
         <div>
           <h4 className="font-semibold mb-3 flex items-center gap-2">
@@ -127,7 +154,7 @@ export function AttendanceWidget() {
                   <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
                   <span className="text-sm font-medium">{member.name}</span>
                 </div>
-                {!isExpired && (
+                {!isExpired && isAdmin && (
                   <AttendanceVoteButton
                     sessionId={session.id}
                     member={member}
@@ -156,7 +183,7 @@ export function AttendanceWidget() {
                     <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
                     <span className="text-sm font-medium">{member.name}</span>
                   </div>
-                  {!isExpired && (
+                  {!isExpired && isAdmin && (
                     <AttendanceVoteButton
                       sessionId={session.id}
                       member={member}
@@ -186,11 +213,13 @@ export function AttendanceWidget() {
                     <MemberAvatar src={member.profile_photo} alt={member.name} size="sm" />
                     <span className="text-sm font-medium">{member.name}</span>
                   </div>
-                  <AttendanceVoteButton
-                    sessionId={session.id}
-                    member={member}
-                    currentVote={null}
-                  />
+                  {isAdmin && (
+                    <AttendanceVoteButton
+                      sessionId={session.id}
+                      member={member}
+                      currentVote={null}
+                    />
+                  )}
                 </div>
               ))}
             </div>
