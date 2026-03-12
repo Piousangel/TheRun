@@ -14,6 +14,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   'invalid-link': '로그인 링크가 올바르지 않습니다. 다시 시도해주세요.',
   'auth-failed': '로그인 확인에 실패했습니다. 새 링크를 발급받아주세요.',
   'naver-setup-required': '네이버 로그인은 보안 설정을 마친 뒤 순차적으로 열릴 예정입니다.',
+  'google-not-configured': 'Google 로그인이 아직 올바르게 연결되지 않았습니다. 잠시 후 다시 시도해주세요.',
 };
 
 interface LoginPageContentProps {
@@ -40,10 +41,11 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
     const redirectTo = new URL('/auth/callback', window.location.origin);
     redirectTo.searchParams.set('next', nextPath);
 
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectTo.toString(),
+        skipBrowserRedirect: true,
       },
     });
 
@@ -54,8 +56,16 @@ export function LoginPageContent({ errorKey, nextPath }: LoginPageContentProps) 
       return;
     }
 
+    if (!data?.url) {
+      const fallbackMessage = ERROR_MESSAGES['google-not-configured'];
+      setMessage(fallbackMessage);
+      toast.error(fallbackMessage);
+      setIsSubmitting(null);
+      return;
+    }
+
     toast.success('Google 로그인 화면으로 이동합니다.');
-    setIsSubmitting(null);
+    window.location.assign(data.url);
   };
 
   const handleNaverClick = () => {

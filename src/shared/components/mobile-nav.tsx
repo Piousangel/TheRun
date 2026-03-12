@@ -10,6 +10,13 @@ export function MobileNav() {
   const pathname = usePathname();
   const { user, isAdmin } = useAuth();
 
+  const hiddenRoutes = ['/', '/login', '/club-guide'];
+  const shouldHide = hiddenRoutes.some((route) => pathname === route || pathname.startsWith('/auth/'));
+
+  if (shouldHide) {
+    return null;
+  }
+
   const navItems = [
     { href: "/dashboard", label: "홈", icon: Home },
     { href: "/announcements", label: "공지", icon: Bell },
