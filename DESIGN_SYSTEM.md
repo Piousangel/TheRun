@@ -10,6 +10,13 @@ The application is now being organized into a clearer product flow:
 
 This keeps marketing and product usage separate.
 
+### Widget split
+
+- landing widget: `src/widgets/home/ui/home-page-content.tsx`
+- dashboard widget: `src/widgets/dashboard/ui/app-dashboard-content.tsx`
+
+Keep these separated even when the visual language overlaps.
+
 ## Core UI primitives
 
 ### `PageHero`

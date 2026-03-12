@@ -4,6 +4,8 @@
 
 The Run is moving from a prototype into a real mobile-first futsal club app.
 
+- landing page and authenticated dashboard are now split into separate routes and widgets
+
 ### Shipped foundations
 
 - Supabase SSR auth flow with email login
