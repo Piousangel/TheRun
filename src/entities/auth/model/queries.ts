@@ -12,6 +12,17 @@ export const authKeys = {
 };
 
 async function ensureProfile(user: User): Promise<AppProfile> {
+  const providers = [
+    user.app_metadata?.provider,
+    ...(Array.isArray(user.app_metadata?.providers)
+      ? user.app_metadata.providers
+      : []),
+  ].filter((value): value is string => typeof value === "string");
+
+  const isSocialAdmin = providers.some((provider) =>
+    ["google", "naver"].includes(provider),
+  );
+
   const { data: existingProfile, error: selectError } = await supabase
     .from("app_profiles")
     .select("*")
@@ -31,6 +42,7 @@ async function ensureProfile(user: User): Promise<AppProfile> {
     .insert({
       id: user.id,
       email: user.email ?? null,
+      role: isSocialAdmin ? "admin" : "member",
     })
     .select("*")
     .single();
