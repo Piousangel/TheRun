@@ -100,7 +100,7 @@ export function PlayerMarker({
   return (
     <div
       ref={markerRef}
-      className={`absolute cursor-pointer transition-all opacity-100 z-10 ${
+      className={`group absolute cursor-pointer transition-all duration-500 ease-out opacity-100 z-10 ${
         isSelected ? "ring-4 ring-primary ring-offset-2 rounded-full" : ""
       }`}
       style={{
@@ -122,7 +122,7 @@ export function PlayerMarker({
               <div
                 className={`absolute inset-0 rounded-full bg-gradient-to-br ${ROLE_COLORS[role]} blur-md opacity-80`}
               />
-              <div className="relative flex h-[4rem] w-[3.2rem] flex-col items-center rounded-[1.6rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] px-1 pt-1 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md">
+              <div className="relative flex h-[4rem] w-[3.2rem] flex-col items-center rounded-[1.6rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] px-1 pt-1 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition-transform duration-300 group-hover:-translate-y-1">
                 <div className="relative flex h-7 w-7 items-center justify-center rounded-full border border-black/5 bg-[#ffd8b5] shadow-inner">
                   <span className="text-[11px] font-bold text-slate-700">
                     {initials}
