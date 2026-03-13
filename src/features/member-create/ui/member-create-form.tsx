@@ -1,17 +1,18 @@
-'use client';
+"use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useState } from 'react';
-import { useCreateMember } from '@/entities/member/model/queries';
-import { uploadProfilePhoto } from '@/shared/api/supabase/storage';
-import { memberCreateSchema, type MemberCreateFormData } from '../model/schema';
-import { Button } from '@/shared/ui/button';
-import { FormSection } from '@/shared/ui/form-section';
-import { Input } from '@/shared/ui/input';
-import { Label } from '@/shared/ui/label';
-import { Slider } from '@/shared/ui/slider';
-import { STAT_LABELS, DEFAULT_STATS } from '@/shared/lib/constants';
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useCreateMember } from "@/entities/member/model/queries";
+import { uploadProfilePhoto } from "@/shared/api/supabase/storage";
+import { memberCreateSchema, type MemberCreateFormData } from "../model/schema";
+import { Button } from "@/shared/ui/button";
+import { FormSection } from "@/shared/ui/form-section";
+import { Input } from "@/shared/ui/input";
+import { Label } from "@/shared/ui/label";
+import { Slider } from "@/shared/ui/slider";
+import { STAT_LABELS, DEFAULT_STATS } from "@/shared/lib/constants";
 
 interface MemberCreateFormProps {
   onSuccess: () => void;
@@ -30,17 +31,17 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
   } = useForm<MemberCreateFormData>({
     resolver: zodResolver(memberCreateSchema),
     defaultValues: {
-      name: '',
-      phone_number: '',
+      name: "",
+      phone_number: "",
       stats: DEFAULT_STATS,
     },
   });
 
-  const stats = watch('stats');
+  const stats = watch("stats");
 
   const handleFormSubmit = async (data: MemberCreateFormData) => {
     setIsUploading(true);
-    let photoUrl = '';
+    let photoUrl = "";
 
     try {
       if (data.profile_photo) {
@@ -59,10 +60,12 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
           onSuccess: () => {
             onSuccess();
           },
-        }
+        },
       );
     } catch (error) {
-      console.error('Failed to upload photo:', error);
+      toast.error(
+        error instanceof Error ? error.message : "멤버 생성에 실패했습니다.",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -70,17 +73,40 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <FormSection title="기본 프로필" description="멤버명과 연락처, 사진을 먼저 등록합니다.">
+      <FormSection
+        title="기본 프로필"
+        description="멤버명과 연락처, 사진을 먼저 등록합니다."
+      >
+        <div className="rounded-2xl border bg-background/80 p-4 text-sm text-muted-foreground">
+          등록 직후 자동 밸런싱과 전술 보드에서 바로 활용될 수 있도록 기본
+          정보와 연락처를 먼저 정리합니다.
+        </div>
         <div className="space-y-2">
           <Label htmlFor="name">이름</Label>
-          <Input id="name" {...register('name')} placeholder="홍길동" disabled={isPending || isUploading} />
-          {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+          <Input
+            id="name"
+            {...register("name")}
+            placeholder="홍길동"
+            disabled={isPending || isUploading}
+          />
+          {errors.name && (
+            <p className="text-sm text-destructive">{errors.name.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="phone_number">전화번호</Label>
-          <Input id="phone_number" {...register('phone_number')} placeholder="010-1234-5678" disabled={isPending || isUploading} />
-          {errors.phone_number && <p className="text-sm text-destructive">{errors.phone_number.message}</p>}
+          <Input
+            id="phone_number"
+            {...register("phone_number")}
+            placeholder="010-1234-5678"
+            disabled={isPending || isUploading}
+          />
+          {errors.phone_number && (
+            <p className="text-sm text-destructive">
+              {errors.phone_number.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -92,7 +118,7 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
-                setValue('profile_photo', file);
+                setValue("profile_photo", file);
               }
             }}
             disabled={isPending || isUploading}
@@ -100,31 +126,40 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
         </div>
       </FormSection>
 
-      <FormSection title="능력치" description="자동 밸런싱과 라인업 판단에 쓰일 기준값입니다.">
-        {(Object.keys(DEFAULT_STATS) as Array<keyof typeof DEFAULT_STATS>).map((statKey) => (
-          <div key={statKey} className="space-y-2">
-            <div className="flex justify-between">
-              <Label>{STAT_LABELS[statKey]}</Label>
-              <span className="text-sm text-muted-foreground">{stats[statKey]}</span>
+      <FormSection
+        title="능력치"
+        description="자동 밸런싱과 라인업 판단에 쓰일 기준값입니다."
+      >
+        {(Object.keys(DEFAULT_STATS) as Array<keyof typeof DEFAULT_STATS>).map(
+          (statKey) => (
+            <div key={statKey} className="space-y-2">
+              <div className="flex justify-between">
+                <Label>{STAT_LABELS[statKey]}</Label>
+                <span className="text-sm text-muted-foreground">
+                  {stats[statKey]}
+                </span>
+              </div>
+              <Slider
+                value={[stats[statKey]]}
+                onValueChange={(value) =>
+                  setValue(`stats.${statKey}`, value[0])
+                }
+                min={0}
+                max={100}
+                step={1}
+                disabled={isPending || isUploading}
+              />
             </div>
-            <Slider
-              value={[stats[statKey]]}
-              onValueChange={(value) => setValue(`stats.${statKey}`, value[0])}
-              min={0}
-              max={100}
-              step={1}
-              disabled={isPending || isUploading}
-            />
-          </div>
-        ))}
+          ),
+        )}
       </FormSection>
 
       <Button
         type="submit"
-        className="w-full"
+        className="w-full rounded-full"
         disabled={isPending || isUploading}
       >
-        {isPending || isUploading ? '저장 중...' : '멤버 추가'}
+        {isPending || isUploading ? "저장 중..." : "멤버 추가"}
       </Button>
     </form>
   );
