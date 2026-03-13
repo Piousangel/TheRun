@@ -882,13 +882,13 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         match.team_b.goals_detail?.length > 0 ||
         match.team_a.substitutions?.length > 0 ||
         match.team_b.substitutions?.length > 0) && (
-        <Card>
+        <Card className="border-primary/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,244,239,0.94))]">
           <CardHeader>
             <CardTitle>경기 상세 기록</CardTitle>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="goals">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-muted/40 p-1">
                 <TabsTrigger value="goals">골 기록</TabsTrigger>
                 <TabsTrigger value="substitutions">교체 기록</TabsTrigger>
               </TabsList>
@@ -910,23 +910,25 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                           return (
                             <div
                               key={index}
-                              className="flex items-center gap-2 p-2 bg-blue-50 rounded"
+                              className="rounded-[1.1rem] border border-blue-200/70 bg-blue-50/90 p-3 shadow-sm"
                             >
-                              <Badge variant="outline">{`${goal.minute}'`}</Badge>
-                              <Target className="h-4 w-4 text-blue-600" />
-                              <span className="font-medium">
-                                {scorer?.name || "알 수 없음"}
-                              </span>
-                              {assister && (
-                                <>
-                                  <span className="text-xs text-muted-foreground">
-                                    →
-                                  </span>
-                                  <span className="text-sm text-muted-foreground">
-                                    어시스트: {assister.name}
-                                  </span>
-                                </>
-                              )}
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">{`${goal.minute}'`}</Badge>
+                                  <Badge variant="secondary">Team A</Badge>
+                                </div>
+                                <Target className="h-4 w-4 text-blue-600" />
+                              </div>
+                              <div className="mt-3 space-y-1">
+                                <p className="font-medium text-foreground">
+                                  {scorer?.name || "알 수 없음"}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {assister
+                                    ? `어시스트 · ${assister.name}`
+                                    : "단독 득점"}
+                                </p>
+                              </div>
                             </div>
                           );
                         })}
@@ -950,23 +952,25 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                           return (
                             <div
                               key={index}
-                              className="flex items-center gap-2 p-2 bg-red-50 rounded"
+                              className="rounded-[1.1rem] border border-rose-200/70 bg-rose-50/90 p-3 shadow-sm"
                             >
-                              <Badge variant="outline">{`${goal.minute}'`}</Badge>
-                              <Target className="h-4 w-4 text-red-600" />
-                              <span className="font-medium">
-                                {scorer?.name || "알 수 없음"}
-                              </span>
-                              {assister && (
-                                <>
-                                  <span className="text-xs text-muted-foreground">
-                                    →
-                                  </span>
-                                  <span className="text-sm text-muted-foreground">
-                                    어시스트: {assister.name}
-                                  </span>
-                                </>
-                              )}
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">{`${goal.minute}'`}</Badge>
+                                  <Badge variant="secondary">Team B</Badge>
+                                </div>
+                                <Target className="h-4 w-4 text-rose-600" />
+                              </div>
+                              <div className="mt-3 space-y-1">
+                                <p className="font-medium text-foreground">
+                                  {scorer?.name || "알 수 없음"}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {assister
+                                    ? `어시스트 · ${assister.name}`
+                                    : "단독 득점"}
+                                </p>
+                              </div>
                             </div>
                           );
                         })}
@@ -999,19 +1003,24 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                           return (
                             <div
                               key={index}
-                              className="flex items-center gap-2 p-2 bg-muted/50 rounded"
+                              className="rounded-[1.1rem] border bg-muted/40 p-3 shadow-sm"
                             >
-                              <Badge variant="outline">{`${sub.minute}'`}</Badge>
-                              <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">
-                                <span className="text-red-600">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">{`${sub.minute}'`}</Badge>
+                                  <Badge variant="secondary">Team A</Badge>
+                                </div>
+                                <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="mt-3 text-sm font-medium text-foreground">
+                                <span className="text-rose-600">
                                   {playerOut?.name || "알 수 없음"}
                                 </span>
                                 {" → "}
-                                <span className="text-green-600">
+                                <span className="text-emerald-600">
                                   {playerIn?.name || "알 수 없음"}
                                 </span>
-                              </span>
+                              </div>
                             </div>
                           );
                         })}
@@ -1035,19 +1044,24 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
                           return (
                             <div
                               key={index}
-                              className="flex items-center gap-2 p-2 bg-muted/50 rounded"
+                              className="rounded-[1.1rem] border bg-muted/40 p-3 shadow-sm"
                             >
-                              <Badge variant="outline">{`${sub.minute}'`}</Badge>
-                              <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-sm">
-                                <span className="text-red-600">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline">{`${sub.minute}'`}</Badge>
+                                  <Badge variant="secondary">Team B</Badge>
+                                </div>
+                                <ArrowLeftRight className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="mt-3 text-sm font-medium text-foreground">
+                                <span className="text-rose-600">
                                   {playerOut?.name || "알 수 없음"}
                                 </span>
                                 {" → "}
-                                <span className="text-green-600">
+                                <span className="text-emerald-600">
                                   {playerIn?.name || "알 수 없음"}
                                 </span>
-                              </span>
+                              </div>
                             </div>
                           );
                         })}
