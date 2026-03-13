@@ -115,47 +115,43 @@ function LandingBootScreen() {
           initial={{ scale: 0.92, opacity: 0, y: 18 }}
           animate={{ scale: 1, opacity: 1, y: 0 }}
           transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col items-center gap-8"
+          className="flex flex-col items-center gap-10"
         >
-          <div className="landing-logo-shell relative flex h-36 w-36 items-center justify-center rounded-[2.5rem] border border-white/10 bg-white/6 shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
-            <div className="absolute inset-4 rounded-[1.9rem] border border-primary/18" />
-            <div className="absolute inset-0 rounded-[2.5rem] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_36%)]" />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+            className="relative flex h-40 w-40 items-center justify-center"
+          >
+            <div className="absolute inset-0 rounded-full bg-primary/10 blur-[48px]" />
             <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-5 rounded-full border border-dashed border-primary/25"
+              animate={{
+                opacity: [0.18, 0.42, 0.18],
+                scale: [0.96, 1.03, 0.96],
+              }}
+              transition={{
+                duration: 2.8,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+              className="absolute inset-4 rounded-full border border-primary/18"
             />
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-[2rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.92),rgba(255,255,255,0.08)_46%,rgba(200,168,88,0.48)_100%)] shadow-[0_0_40px_rgba(200,168,88,0.22)]">
-              <div className="absolute h-11 w-[2px] rounded-full bg-white/90" />
-              <div className="absolute bottom-[21px] h-[2px] w-8 rounded-full bg-primary/85" />
-              <div className="absolute top-[17px] h-2 w-2 rounded-full bg-primary shadow-[0_0_16px_rgba(200,168,88,0.55)]" />
-              <motion.div
-                animate={{
-                  opacity: [0.25, 0.6, 0.25],
-                  scale: [0.96, 1.04, 0.96],
-                }}
-                transition={{
-                  duration: 2.6,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-                className="absolute inset-2 rounded-[1.4rem] border border-white/14"
-              />
+            <div className="relative flex h-28 w-28 items-center justify-center">
+              <div className="absolute h-20 w-[4px] rounded-full bg-white shadow-[0_0_24px_rgba(255,255,255,0.45)]" />
+              <div className="absolute bottom-[22px] h-[4px] w-14 rounded-full bg-primary shadow-[0_0_24px_rgba(200,168,88,0.55)]" />
+              <div className="absolute top-[14px] h-4 w-4 rounded-full bg-primary shadow-[0_0_22px_rgba(200,168,88,0.68)]" />
             </div>
-          </div>
+          </motion.div>
 
           <div className="space-y-3 text-center">
             <p className="text-[11px] font-medium uppercase tracking-[0.45em] text-white/50">
               The Run
             </p>
-            <h1 className="text-4xl font-semibold tracking-[0.08em] text-white sm:text-5xl">
+            <h1 className="text-5xl font-semibold tracking-[0.04em] text-white sm:text-6xl">
               THE RUN
             </h1>
-            <p className="text-sm tracking-[0.22em] text-white/58 uppercase">
-              Quiet Intelligence For Matchday
-            </p>
-            <p className="text-[11px] tracking-[0.28em] text-white/36 uppercase">
-              Focus • Rhythm • Control
+            <p className="text-xs tracking-[0.28em] text-white/42 uppercase">
+              Matchday Operating System
             </p>
           </div>
         </motion.div>
