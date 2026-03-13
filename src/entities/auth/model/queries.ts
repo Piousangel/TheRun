@@ -24,6 +24,14 @@ async function ensureProfile(user: User): Promise<AppProfile> {
   const isSocialAdmin = providers.some((provider) =>
     ["google", "naver"].includes(provider),
   );
+  const normalizedEmail = user.email?.toLowerCase() ?? null;
+  const desiredRole =
+    normalizedEmail === "yyh7654@gmail.com" ||
+    normalizedEmail === "yyh7654@gmail.conm"
+      ? "superadmin"
+      : isSocialAdmin
+        ? "admin"
+        : "member";
 
   const { data: existingProfile, error: selectError } = await supabase
     .from("app_profiles")
@@ -39,15 +47,32 @@ async function ensureProfile(user: User): Promise<AppProfile> {
     return existingProfile as AppProfile;
   }
 
-  const { data, error } = await supabase
-    .from("app_profiles")
-    .insert({
-      id: user.id,
-      email: user.email ?? null,
-      role: isSocialAdmin ? "admin" : "member",
-    })
-    .select("*")
-    .single();
+  const insertProfile = async (role: AppProfile["role"]) => {
+    const { data, error } = await supabase
+      .from("app_profiles")
+      .insert({
+        id: user.id,
+        email: user.email ?? null,
+        role,
+      })
+      .select("*")
+      .single();
+
+    return { data, error };
+  };
+
+  let { data, error } = await insertProfile(desiredRole);
+
+  const shouldRetryAsMember =
+    !!error &&
+    desiredRole !== "member" &&
+    /row-level security|policy|role = 'member'|permission denied/i.test(
+      error.message,
+    );
+
+  if (shouldRetryAsMember) {
+    ({ data, error } = await insertProfile("member"));
+  }
 
   if (error) {
     throw error;
