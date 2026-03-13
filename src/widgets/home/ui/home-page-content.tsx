@@ -118,26 +118,28 @@ function LandingBootScreen() {
           className="flex flex-col items-center gap-8"
         >
           <div className="landing-logo-shell relative flex h-36 w-36 items-center justify-center rounded-[2.5rem] border border-white/10 bg-white/6 shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
-            <div className="absolute inset-4 rounded-[1.9rem] border border-primary/20" />
+            <div className="absolute inset-4 rounded-[1.9rem] border border-primary/18" />
             <div className="absolute inset-0 rounded-[2.5rem] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_36%)]" />
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-              className="absolute inset-5 rounded-full border border-dashed border-primary/35"
+              transition={{ duration: 14, repeat: Infinity, ease: "linear" }}
+              className="absolute inset-5 rounded-full border border-dashed border-primary/25"
             />
-            <div className="relative h-20 w-20">
-              <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(255,255,255,0.12)_42%,rgba(200,168,88,0.85)_70%,rgba(200,168,88,0.05)_100%)] shadow-[0_0_40px_rgba(200,168,88,0.35)]" />
-              <div className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/40 bg-black/30 backdrop-blur-md" />
-              <div className="absolute left-1/2 top-1/2 h-3 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/50" />
-              <div className="absolute left-1/2 top-1/2 h-10 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/50" />
+            <div className="relative flex h-20 w-20 items-center justify-center rounded-[2rem] bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.92),rgba(255,255,255,0.08)_46%,rgba(200,168,88,0.48)_100%)] shadow-[0_0_40px_rgba(200,168,88,0.22)]">
+              <div className="absolute h-11 w-[2px] rounded-full bg-white/90" />
+              <div className="absolute bottom-[21px] h-[2px] w-8 rounded-full bg-primary/85" />
+              <div className="absolute top-[17px] h-2 w-2 rounded-full bg-primary shadow-[0_0_16px_rgba(200,168,88,0.55)]" />
               <motion.div
-                animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.65, 0.35] }}
+                animate={{
+                  opacity: [0.25, 0.6, 0.25],
+                  scale: [0.96, 1.04, 0.96],
+                }}
                 transition={{
-                  duration: 2.2,
+                  duration: 2.6,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="absolute inset-1 rounded-full border border-white/18"
+                className="absolute inset-2 rounded-[1.4rem] border border-white/14"
               />
             </div>
           </div>
@@ -146,14 +148,14 @@ function LandingBootScreen() {
             <p className="text-[11px] font-medium uppercase tracking-[0.45em] text-white/50">
               The Run
             </p>
-            <h1 className="text-4xl font-semibold tracking-[0.12em] text-white sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-[0.08em] text-white sm:text-5xl">
               THE RUN
             </h1>
             <p className="text-sm tracking-[0.22em] text-white/58 uppercase">
-              Precision Match Intelligence
+              Quiet Intelligence For Matchday
             </p>
             <p className="text-[11px] tracking-[0.28em] text-white/36 uppercase">
-              Signal • Flow • Ritual
+              Focus • Rhythm • Control
             </p>
           </div>
         </motion.div>
@@ -213,7 +215,11 @@ export function HomePageContent() {
           >
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/12 bg-white/7 shadow-[0_10px_30px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-                <div className="relative h-5 w-5 rotate-45 rounded-[0.55rem] border border-primary/40 bg-primary/20" />
+                <div className="relative flex h-5 w-5 items-center justify-center">
+                  <div className="absolute h-5 w-[2px] rounded-full bg-white/90" />
+                  <div className="absolute bottom-[5px] h-[2px] w-4 rounded-full bg-primary/90" />
+                  <div className="absolute top-[1px] h-[5px] w-[5px] rounded-full bg-primary shadow-[0_0_8px_rgba(200,168,88,0.45)]" />
+                </div>
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.36em] text-white/46">
