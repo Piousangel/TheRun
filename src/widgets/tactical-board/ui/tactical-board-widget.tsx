@@ -45,6 +45,9 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     useState<PlayerPosition | null>(null);
   const [movingFieldPlayer, setMovingFieldPlayer] =
     useState<PlayerPosition | null>(null);
+  const [recentlyMovedSlotId, setRecentlyMovedSlotId] = useState<string | null>(
+    null,
+  );
   const [positionMenu, setPositionMenu] = useState<{
     isOpen: boolean;
     position: { x: number; y: number };
@@ -97,6 +100,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       }
 
       swapPlayers(movingFieldPlayer.id, position.id);
+      setRecentlyMovedSlotId(position.id);
       setMovingFieldPlayer(null);
       setPositionMenu({
         isOpen: false,
@@ -109,6 +113,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     if (substituteToSwap) {
       // Swap substitute with this field player
       swapPlayers(substituteToSwap.id, position.id);
+      setRecentlyMovedSlotId(position.id);
       setSubstituteToSwap(null);
       setPositionMenu({
         isOpen: false,
@@ -184,6 +189,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
         return p;
       });
       setPositions(updatedPositions);
+      setRecentlyMovedSlotId(emptySlot.id);
     } else {
       const occupiedSlot = targetSlots[0];
       if (occupiedSlot) {
@@ -203,6 +209,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
           return p;
         });
         setPositions(updatedPositions);
+        setRecentlyMovedSlotId(occupiedSlot.id);
       }
     }
 
@@ -233,6 +240,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     if (movingFieldPlayer) {
       if (movingFieldPlayer.id !== position.id) {
         swapPlayers(movingFieldPlayer.id, position.id);
+        setRecentlyMovedSlotId(position.id);
       }
       setMovingFieldPlayer(null);
       setPositionMenu({
@@ -246,9 +254,24 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     if (substituteToSwap) {
       // Move substitute to this empty slot
       swapPlayers(substituteToSwap.id, position.id);
+      setRecentlyMovedSlotId(position.id);
       setSubstituteToSwap(null);
     }
   };
+
+  useEffect(() => {
+    if (!recentlyMovedSlotId) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setRecentlyMovedSlotId(null);
+    }, 850);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [recentlyMovedSlotId]);
 
   const fieldPlayers = positions.filter((p) => p.role !== "SUB");
   const substitutes = positions.filter((p) => p.role === "SUB");
@@ -376,7 +399,10 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
               isEmpty={!position.memberId}
               onClick={() => handleEmptySlotClick(position)}
               isVisible={movingFieldPlayer !== null || !position.memberId}
-              isActive={movingFieldPlayer?.id === position.id}
+              isActive={
+                movingFieldPlayer?.id === position.id ||
+                recentlyMovedSlotId === position.id
+              }
             />
           ))}
 
@@ -397,7 +423,10 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 containerRef={containerRef}
                 onClick={(e) => handlePlayerClick(position, e)}
                 onLongPress={() => handleFieldPlayerLongPress(position)}
-                isSelected={movingFieldPlayer?.id === position.id}
+                isSelected={
+                  movingFieldPlayer?.id === position.id ||
+                  recentlyMovedSlotId === position.id
+                }
                 isMoveMode={movingFieldPlayer?.id === position.id}
               />
             );
@@ -407,7 +436,7 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
 
       {/* Substitutes */}
       {substitutes.length > 0 && (
-        <Card className="border-primary/10">
+        <Card className="border-primary/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(244,247,241,0.96))]">
           <CardHeader>
             <CardTitle className="text-lg">
               후보 선수 ({substitutes.length}명)
@@ -420,7 +449,11 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                   : "후보 선수를 클릭 후 필드 선수를 클릭하여 교체하세요"}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/70 px-4 py-3 text-sm text-emerald-900/80">
+              벤치에서 선수를 탭한 뒤 필드 선수나 비어 있는 슬롯을 선택하면 바로
+              교체됩니다.
+            </div>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {substitutes.map((position) => {
                 const member = getMemberById(position.memberId);

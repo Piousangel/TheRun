@@ -44,7 +44,7 @@ export function PositionSlot({
       <div
         className={`flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed ${ROLE_BORDER_COLORS[role]} transition-all ${
           isActive
-            ? "scale-110 opacity-100 bg-white/16 ring-4 ring-primary/40 shadow-[0_0_0_6px_rgba(200,168,88,0.14)]"
+            ? "scale-110 opacity-100 bg-white/16 ring-4 ring-primary/40 shadow-[0_0_0_6px_rgba(200,168,88,0.14)] animate-pulse"
             : isEmpty
               ? "opacity-50 hover:opacity-80 bg-black/10 backdrop-blur-sm"
               : "opacity-80 bg-white/18 backdrop-blur-sm"
