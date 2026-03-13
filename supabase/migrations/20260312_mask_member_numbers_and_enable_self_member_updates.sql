@@ -98,3 +98,16 @@ begin
   return updated_member;
 end;
 $$;
+
+create or replace function public.get_claimable_members()
+returns setof public.members
+language sql
+security definer
+set search_path = public
+as $$
+  select m.*
+  from public.members m
+  left join public.app_profiles p on p.member_id = m.id
+  where p.id is null or p.id = auth.uid()
+  order by m.name asc;
+$$;

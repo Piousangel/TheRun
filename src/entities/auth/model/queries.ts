@@ -9,7 +9,8 @@ import type { Member } from "@/shared/types/member";
 export const authKeys = {
   all: ["auth"] as const,
   profile: (userId?: string) => [...authKeys.all, "profile", userId] as const,
-  linkedMemberIds: () => [...authKeys.all, "linked-member-ids"] as const,
+  claimableMembers: (userId?: string) =>
+    [...authKeys.all, "claimable-members", userId] as const,
 };
 
 async function ensureProfile(user: User): Promise<AppProfile> {
@@ -93,31 +94,28 @@ export function useLinkMemberProfile(userId: string | null) {
         queryKey: authKeys.profile(userId ?? undefined),
       });
       queryClient.invalidateQueries({ queryKey: ["members"] });
-      queryClient.invalidateQueries({ queryKey: authKeys.linkedMemberIds() });
+      queryClient.invalidateQueries({
+        queryKey: authKeys.claimableMembers(userId ?? undefined),
+      });
     },
   });
 }
 
-export function useLinkedMemberIds(userId: string | null) {
+export function useClaimableMembers(userId: string | null) {
   return useQuery({
-    queryKey: authKeys.linkedMemberIds(),
+    queryKey: authKeys.claimableMembers(userId ?? undefined),
     queryFn: async () => {
       if (!userId) {
-        return [] as string[];
+        return [] as Member[];
       }
 
-      const { data, error } = await supabase
-        .from("app_profiles")
-        .select("member_id")
-        .not("member_id", "is", null);
+      const { data, error } = await supabase.rpc("get_claimable_members");
 
       if (error) {
         throw error;
       }
 
-      return (data ?? [])
-        .map((profile) => profile.member_id)
-        .filter((memberId): memberId is string => typeof memberId === "string");
+      return (data ?? []) as Member[];
     },
     enabled: !!userId,
     retry: false,
@@ -183,7 +181,9 @@ export function useUnlinkMemberProfile(userId: string | null) {
       queryClient.invalidateQueries({
         queryKey: authKeys.profile(userId ?? undefined),
       });
-      queryClient.invalidateQueries({ queryKey: authKeys.linkedMemberIds() });
+      queryClient.invalidateQueries({
+        queryKey: authKeys.claimableMembers(userId ?? undefined),
+      });
     },
   });
 }
