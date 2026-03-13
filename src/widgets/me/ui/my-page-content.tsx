@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { AccountMemberEditForm } from "@/features/account-member-edit/ui/account-member-edit-form";
 import { useMembers } from "@/entities/member/model/queries";
 import {
-  useLinkedMemberIds,
+  useClaimableMembers,
   useLinkMemberProfile,
   useUnlinkMemberProfile,
 } from "@/entities/auth/model/queries";
@@ -45,17 +45,18 @@ import {
 export function MyPageContent() {
   const { user, profile, member, isAdmin, isLinked, isLoading } = useAuth();
   const { data: members } = useMembers();
-  const { data: linkedMemberIds } = useLinkedMemberIds(user?.id ?? null);
+  const { data: claimableMembers, isLoading: isClaimableMembersLoading } =
+    useClaimableMembers(user?.id ?? null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const linkMutation = useLinkMemberProfile(user?.id ?? null);
   const unlinkMutation = useUnlinkMemberProfile(user?.id ?? null);
 
-  const availableMembers = useMemo(() => {
-    const claimedIds = new Set(linkedMemberIds ?? []);
-    return (members ?? []).filter((candidate) => !claimedIds.has(candidate.id));
-  }, [linkedMemberIds, members]);
+  const availableMembers = useMemo(
+    () => claimableMembers ?? members ?? [],
+    [claimableMembers, members],
+  );
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -225,7 +226,26 @@ export function MyPageContent() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {member ? (
+          {profile?.member_id && !member ? (
+            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+              <div>
+                <p className="font-semibold">멤버 연결 정보 복구 필요</p>
+                <p className="text-sm text-muted-foreground">
+                  프로필에는 멤버가 연결되어 있지만 멤버 데이터를 불러오지
+                  못했습니다. 연결을 해제한 뒤 다시 연결해주세요.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                onClick={handleUnlink}
+                disabled={unlinkMutation.isPending}
+              >
+                {unlinkMutation.isPending
+                  ? "해제 중..."
+                  : "연결 해제 후 다시 시도"}
+              </Button>
+            </div>
+          ) : member ? (
             <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
               <div>
                 <p className="font-semibold">현재 연결된 멤버</p>
@@ -252,7 +272,7 @@ export function MyPageContent() {
                   <SelectTrigger id="member">
                     <SelectValue placeholder="멤버를 선택하세요" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-72">
+                  <SelectContent className="z-[120] max-h-72">
                     {availableMembers.map((availableMember) => (
                       <SelectItem
                         key={availableMember.id}
@@ -279,9 +299,17 @@ export function MyPageContent() {
 
               <Button
                 type="submit"
-                disabled={!selectedMemberId || linkMutation.isPending}
+                disabled={
+                  !selectedMemberId ||
+                  linkMutation.isPending ||
+                  isClaimableMembersLoading
+                }
               >
-                {linkMutation.isPending ? "연결 중..." : "내 멤버 연결하기"}
+                {isClaimableMembersLoading
+                  ? "목록 불러오는 중..."
+                  : linkMutation.isPending
+                    ? "연결 중..."
+                    : "내 멤버 연결하기"}
               </Button>
             </form>
           )}
