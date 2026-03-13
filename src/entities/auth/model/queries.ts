@@ -14,25 +14,6 @@ export const authKeys = {
 };
 
 async function ensureProfile(user: User): Promise<AppProfile> {
-  const providers = [
-    user.app_metadata?.provider,
-    ...(Array.isArray(user.app_metadata?.providers)
-      ? user.app_metadata.providers
-      : []),
-  ].filter((value): value is string => typeof value === "string");
-
-  const isSocialAdmin = providers.some((provider) =>
-    ["google", "naver"].includes(provider),
-  );
-  const normalizedEmail = user.email?.toLowerCase() ?? null;
-  const desiredRole =
-    normalizedEmail === "yyh7654@gmail.com" ||
-    normalizedEmail === "yyh7654@gmail.conm"
-      ? "superadmin"
-      : isSocialAdmin
-        ? "admin"
-        : "member";
-
   const { data: existingProfile, error: selectError } = await supabase
     .from("app_profiles")
     .select("*")
@@ -47,13 +28,12 @@ async function ensureProfile(user: User): Promise<AppProfile> {
     return existingProfile as AppProfile;
   }
 
-  const insertProfile = async (role: AppProfile["role"]) => {
+  const insertProfile = async () => {
     const { data, error } = await supabase
       .from("app_profiles")
       .insert({
         id: user.id,
         email: user.email ?? null,
-        role,
       })
       .select("*")
       .single();
@@ -61,17 +41,18 @@ async function ensureProfile(user: User): Promise<AppProfile> {
     return { data, error };
   };
 
-  let { data, error } = await insertProfile(desiredRole);
+  const { data, error } = await insertProfile();
 
-  const shouldRetryAsMember =
-    !!error &&
-    desiredRole !== "member" &&
-    /row-level security|policy|role = 'member'|permission denied/i.test(
-      error.message,
-    );
+  if (error) {
+    const { data: retriedProfile, error: retrySelectError } = await supabase
+      .from("app_profiles")
+      .select("*")
+      .eq("id", user.id)
+      .maybeSingle();
 
-  if (shouldRetryAsMember) {
-    ({ data, error } = await insertProfile("member"));
+    if (!retrySelectError && retriedProfile) {
+      return retriedProfile as AppProfile;
+    }
   }
 
   if (error) {
