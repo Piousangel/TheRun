@@ -74,14 +74,42 @@ export function useLinkMemberProfile(userId: string | null) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ memberId }: { memberId: string }) => {
+    mutationFn: async ({
+      memberId,
+      phoneNumber,
+    }: {
+      memberId: string;
+      phoneNumber?: string;
+    }) => {
       if (!userId) {
         throw new Error("로그인이 필요합니다.");
       }
 
-      const { data, error } = await supabase.rpc("link_my_member", {
-        target_member_id: memberId,
-      });
+      const attemptCurrentContract = async () =>
+        supabase.rpc("link_my_member", {
+          target_member_id: memberId,
+        });
+
+      let { data, error } = await attemptCurrentContract();
+
+      const shouldRetryWithLegacyPhone =
+        !!error &&
+        /function|signature|input_phone|No function matches/i.test(
+          error.message,
+        );
+
+      if (shouldRetryWithLegacyPhone) {
+        if (!phoneNumber?.trim()) {
+          throw new Error(
+            "현재 서버는 전화번호 확인 방식의 멤버 연결을 사용 중입니다. 전화번호를 입력한 뒤 다시 시도해주세요.",
+          );
+        }
+
+        ({ data, error } = await supabase.rpc("link_my_member", {
+          target_member_id: memberId,
+          input_phone: phoneNumber.trim(),
+        }));
+      }
 
       if (error) {
         throw error;
@@ -112,6 +140,9 @@ export function useClaimableMembers(userId: string | null) {
       const { data, error } = await supabase.rpc("get_claimable_members");
 
       if (error) {
+        if (/function|signature|get_claimable_members/i.test(error.message)) {
+          return null;
+        }
         throw error;
       }
 

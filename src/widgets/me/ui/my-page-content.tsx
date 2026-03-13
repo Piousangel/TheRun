@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
+import { Input } from "@/shared/ui/input";
 
 export function MyPageContent() {
   const { user, profile, member, isAdmin, isLinked, isLoading } = useAuth();
@@ -48,6 +49,7 @@ export function MyPageContent() {
   const { data: claimableMembers, isLoading: isClaimableMembersLoading } =
     useClaimableMembers(user?.id ?? null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const linkMutation = useLinkMemberProfile(user?.id ?? null);
@@ -69,6 +71,7 @@ export function MyPageContent() {
     try {
       await linkMutation.mutateAsync({
         memberId: selectedMemberId,
+        phoneNumber,
       });
       setMessage("내 멤버 연결이 완료되었습니다.");
       toast.success("내 멤버 연결이 완료되었습니다.");
@@ -285,7 +288,25 @@ export function MyPageContent() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  이미 다른 계정에 연결된 멤버는 목록에서 자동으로 숨깁니다.
+                  {claimableMembers
+                    ? "이미 다른 계정에 연결된 멤버는 목록에서 자동으로 숨깁니다."
+                    : "서버가 구버전 연결 방식일 수 있어 전체 멤버를 보여주고 있습니다."}
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="legacy_phone_number">
+                  전화번호 확인 (구버전 서버 대비)
+                </Label>
+                <Input
+                  id="legacy_phone_number"
+                  value={phoneNumber}
+                  onChange={(event) => setPhoneNumber(event.target.value)}
+                  placeholder="000-0000-0000 또는 010-1234-5678"
+                />
+                <p className="text-xs text-muted-foreground">
+                  최신 서버에서는 필요 없지만, 아직 이전 RPC를 쓰는 환경에서는
+                  이 값으로 다시 시도합니다.
                 </p>
               </div>
 
