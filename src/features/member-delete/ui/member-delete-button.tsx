@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useDeleteMember } from '@/entities/member/model/queries';
-import { Button } from '@/shared/ui/button';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { useDeleteMember } from "@/entities/member/model/queries";
+import { Button } from "@/shared/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,15 +12,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/shared/ui/dialog';
-import { Trash2 } from 'lucide-react';
+} from "@/shared/ui/dialog";
+import { Trash2 } from "lucide-react";
 
 interface MemberDeleteButtonProps {
   memberId: string;
   memberName: string;
 }
 
-export function MemberDeleteButton({ memberId, memberName }: MemberDeleteButtonProps) {
+export function MemberDeleteButton({
+  memberId,
+  memberName,
+}: MemberDeleteButtonProps) {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const { mutate: deleteMember, isPending } = useDeleteMember();
   const router = useRouter();
@@ -28,7 +32,11 @@ export function MemberDeleteButton({ memberId, memberName }: MemberDeleteButtonP
     deleteMember(memberId, {
       onSuccess: () => {
         setIsConfirmOpen(false);
-        router.push('/members');
+        toast.success("멤버를 삭제했습니다.");
+        router.push("/members");
+      },
+      onError: (error) => {
+        toast.error(error.message);
       },
     });
   };
@@ -49,8 +57,8 @@ export function MemberDeleteButton({ memberId, memberName }: MemberDeleteButtonP
           <DialogHeader>
             <DialogTitle>멤버 삭제 확인</DialogTitle>
             <DialogDescription>
-              정말로 <strong>{memberName}</strong> 멤버를 삭제하시겠습니까?
-              이 작업은 되돌릴 수 없습니다.
+              정말로 <strong>{memberName}</strong> 멤버를 삭제하시겠습니까? 이
+              작업은 되돌릴 수 없습니다.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -66,7 +74,7 @@ export function MemberDeleteButton({ memberId, memberName }: MemberDeleteButtonP
               onClick={handleDelete}
               disabled={isPending}
             >
-              {isPending ? '삭제 중...' : '삭제'}
+              {isPending ? "삭제 중..." : "삭제"}
             </Button>
           </DialogFooter>
         </DialogContent>

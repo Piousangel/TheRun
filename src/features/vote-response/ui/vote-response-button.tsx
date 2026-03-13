@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useVote } from "@/entities/vote/model/queries";
 import { Button } from "@/shared/ui/button";
 import {
@@ -38,6 +39,14 @@ export function VoteResponseButton({
       {
         onSuccess: () => {
           setIsDialogOpen(false);
+          toast.success(
+            status === "attending"
+              ? "참석으로 응답했습니다."
+              : "불참으로 응답했습니다.",
+          );
+        },
+        onError: (error) => {
+          toast.error(error.message);
         },
       },
     );

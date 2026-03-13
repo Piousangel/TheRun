@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { useVoteAttendance } from "@/entities/attendance/model/queries";
 import { Button } from "@/shared/ui/button";
 import {
@@ -38,6 +39,14 @@ export function AttendanceVoteButton({
       {
         onSuccess: () => {
           setIsDialogOpen(false);
+          toast.success(
+            status === "attending"
+              ? "출석으로 응답했습니다."
+              : "불참으로 응답했습니다.",
+          );
+        },
+        onError: (error) => {
+          toast.error(error.message);
         },
       },
     );

@@ -2,6 +2,7 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { toast } from "sonner";
 import { useCreateVoteSession } from "@/entities/vote/model/queries";
 import { voteCreateSchema, type VoteCreateFormData } from "../model/schema";
 import { Button } from "@/shared/ui/button";
@@ -74,7 +75,13 @@ export function VoteCreateForm({ onSuccess }: VoteCreateFormProps) {
         deadline: data.deadline,
       },
       {
-        onSuccess,
+        onSuccess: () => {
+          toast.success("투표 생성이 완료되었습니다.");
+          onSuccess();
+        },
+        onError: (error) => {
+          toast.error(error.message);
+        },
       },
     );
   };
