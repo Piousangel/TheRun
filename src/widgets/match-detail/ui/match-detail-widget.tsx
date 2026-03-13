@@ -430,6 +430,72 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
 
   const teamAMembers = getMembersByIds(match.team_a.member_ids);
   const teamBMembers = getMembersByIds(match.team_b.member_ids);
+  const teamCards = [
+    {
+      key: "A" as const,
+      label: "Team A",
+      score: scoreA,
+      members: teamAMembers,
+      accent: "blue",
+      openGoal: () => setGoalDialogOpen({ team: "A" }),
+      openSave: () => setSaveDialogOpen({ team: "A" }),
+      openSubstitution: () => setSubstitutionDialogOpen({ team: "A" }),
+      tacticsHref: "/team-division/A",
+    },
+    {
+      key: "B" as const,
+      label: "Team B",
+      score: scoreB,
+      members: teamBMembers,
+      accent: "red",
+      openGoal: () => setGoalDialogOpen({ team: "B" }),
+      openSave: () => setSaveDialogOpen({ team: "B" }),
+      openSubstitution: () => setSubstitutionDialogOpen({ team: "B" }),
+      tacticsHref: "/team-division/B",
+    },
+  ];
+
+  const combinedTimeline = [
+    ...(match.team_a.goals_detail || []).map((goal) => ({
+      type: "goal" as const,
+      team: "A" as const,
+      minute: goal.minute,
+      scorer:
+        members?.find((m) => m.id === goal.scorer_id)?.name || "알 수 없음",
+      assist: goal.assist_id
+        ? members?.find((m) => m.id === goal.assist_id)?.name || "알 수 없음"
+        : null,
+    })),
+    ...(match.team_b.goals_detail || []).map((goal) => ({
+      type: "goal" as const,
+      team: "B" as const,
+      minute: goal.minute,
+      scorer:
+        members?.find((m) => m.id === goal.scorer_id)?.name || "알 수 없음",
+      assist: goal.assist_id
+        ? members?.find((m) => m.id === goal.assist_id)?.name || "알 수 없음"
+        : null,
+    })),
+    ...(match.team_a.substitutions || []).map((sub) => ({
+      type: "sub" as const,
+      team: "A" as const,
+      minute: sub.minute,
+      playerOut:
+        members?.find((m) => m.id === sub.player_out_id)?.name || "알 수 없음",
+      playerIn:
+        members?.find((m) => m.id === sub.player_in_id)?.name || "알 수 없음",
+    })),
+    ...(match.team_b.substitutions || []).map((sub) => ({
+      type: "sub" as const,
+      team: "B" as const,
+      minute: sub.minute,
+      playerOut:
+        members?.find((m) => m.id === sub.player_out_id)?.name || "알 수 없음",
+      playerIn:
+        members?.find((m) => m.id === sub.player_in_id)?.name || "알 수 없음",
+    })),
+  ].sort((a, b) => a.minute - b.minute);
+
   const winner =
     match.status === "finished"
       ? scoreA > scoreB
@@ -531,325 +597,285 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
         </CardContent>
       </Card>
 
-      {/* Team Rosters - Moved above Timer for better accessibility */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Team A */}
-        <Card>
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
+        <Card className="border-primary/15">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              Team A ({teamAMembers.length}명)
-            </CardTitle>
+            <CardTitle className="text-center">경기 타이머 & 스코어</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {teamAMembers.map((member: Member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
-                >
-                  <MemberAvatar
-                    src={member.profile_photo}
-                    alt={member.name}
-                    size="sm"
-                  />
-                  <span className="text-sm font-medium">{member.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Button asChild variant="outline" className="w-full">
-                <Link href={`/team-division/A`}>전술 보드</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Team B */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-500" />
-              Team B ({teamBMembers.length}명)
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {teamBMembers.map((member: Member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center gap-2 p-2 bg-blue-500/10 rounded-lg"
-                >
-                  <MemberAvatar
-                    src={member.profile_photo}
-                    alt={member.name}
-                    size="sm"
-                  />
-                  <span className="text-sm font-medium">{member.name}</span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4">
-              <Button asChild variant="outline" className="w-full">
-                <Link href={`/team-division/B`}>전술 보드</Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Timer & Score */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-center">경기 타이머 & 스코어</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Timer */}
-          <div className="space-y-4">
-            <div className="text-6xl font-bold text-center text-primary">
-              {formatTime(timeInSeconds)}
-            </div>
-
-            <div className="h-2 bg-muted rounded-full overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all duration-1000 ease-linear"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-
-            {match.status === "pending" && (
-              <div className="flex items-center justify-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleSubtractMinute}
-                  disabled={!isAdmin || initialTime <= 60}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="text-sm text-muted-foreground min-w-[80px] text-center">
-                  {Math.floor(initialTime / 60)}분 설정
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleAddMinute}
-                  disabled={!isAdmin}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
+          <CardContent className="space-y-6">
+            {/* Timer */}
+            <div className="space-y-4">
+              <div className="text-6xl font-bold text-center text-primary">
+                {formatTime(timeInSeconds)}
               </div>
-            )}
 
-            <div className="flex gap-2 justify-center">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all duration-1000 ease-linear"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
               {match.status === "pending" && (
-                <Button
-                  onClick={handleMatchStart}
-                  size="lg"
-                  className="flex-1 max-w-[200px]"
-                  disabled={!isAdmin}
-                >
-                  <Play className="mr-2 h-5 w-5" />
-                  경기 시작
-                </Button>
-              )}
-              {match.status === "in_progress" && (
-                <>
+                <div className="flex items-center justify-center gap-2">
                   <Button
-                    onClick={handleMatchPause}
+                    variant="outline"
+                    size="icon"
+                    onClick={handleSubtractMinute}
+                    disabled={!isAdmin || initialTime <= 60}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground min-w-[80px] text-center">
+                    {Math.floor(initialTime / 60)}분 설정
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleAddMinute}
+                    disabled={!isAdmin}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+
+              <div className="flex gap-2 justify-center">
+                {match.status === "pending" && (
+                  <Button
+                    onClick={handleMatchStart}
                     size="lg"
                     className="flex-1 max-w-[200px]"
                     disabled={!isAdmin}
                   >
-                    <Pause className="mr-2 h-5 w-5" />
-                    일시정지
+                    <Play className="mr-2 h-5 w-5" />
+                    경기 시작
                   </Button>
+                )}
+                {match.status === "in_progress" && (
+                  <>
+                    <Button
+                      onClick={handleMatchPause}
+                      size="lg"
+                      className="flex-1 max-w-[200px]"
+                      disabled={!isAdmin}
+                    >
+                      <Pause className="mr-2 h-5 w-5" />
+                      일시정지
+                    </Button>
+                    <Button
+                      onClick={handleMatchFinish}
+                      size="lg"
+                      variant="destructive"
+                      className="flex-1 max-w-[200px]"
+                      disabled={!isAdmin}
+                    >
+                      경기 종료
+                    </Button>
+                  </>
+                )}
+                {match.status !== "finished" && (
                   <Button
-                    onClick={handleMatchFinish}
+                    onClick={handleReset}
+                    variant="outline"
                     size="lg"
-                    variant="destructive"
-                    className="flex-1 max-w-[200px]"
                     disabled={!isAdmin}
                   >
-                    경기 종료
+                    <RotateCcw className="h-5 w-5" />
                   </Button>
-                </>
+                )}
+              </div>
+
+              {!isAdmin && (
+                <p className="text-center text-sm text-muted-foreground">
+                  실시간 경기 운영과 기록 수정은 관리자만 할 수 있습니다.
+                </p>
               )}
-              {match.status !== "finished" && (
-                <Button
-                  onClick={handleReset}
-                  variant="outline"
-                  size="lg"
-                  disabled={!isAdmin}
-                >
-                  <RotateCcw className="h-5 w-5" />
-                </Button>
-              )}
+
+              <div className="text-center text-sm text-muted-foreground">
+                {timeInSeconds === 0 && "⏰ 경기 종료!"}
+                {isRunning &&
+                  timeInSeconds > 0 &&
+                  `⚽ 경기 진행 중 (${getCurrentMinute()}분)`}
+                {!isRunning &&
+                  timeInSeconds > 0 &&
+                  timeInSeconds < initialTime &&
+                  "⏸️ 일시정지"}
+                {!isRunning &&
+                  timeInSeconds === initialTime &&
+                  match.status === "pending" &&
+                  "⏱️ 준비"}
+              </div>
             </div>
 
-            {!isAdmin && (
-              <p className="text-center text-sm text-muted-foreground">
-                실시간 경기 운영과 기록 수정은 관리자만 할 수 있습니다.
+            <Separator />
+
+            <div className="grid items-start gap-6 lg:grid-cols-2">
+              {teamCards.map((team) => (
+                <div
+                  key={team.key}
+                  className="rounded-[1.5rem] border bg-muted/20 p-4"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                        {team.label}
+                      </p>
+                      <p className="mt-2 text-4xl font-semibold tracking-tight text-primary">
+                        {team.score}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleScoreChange(team.key, -1)}
+                        disabled={
+                          !isAdmin ||
+                          match.status === "finished" ||
+                          team.score === 0
+                        }
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleScoreChange(team.key, 1)}
+                        disabled={!isAdmin || match.status === "finished"}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={team.openGoal}
+                      disabled={match.status !== "in_progress" || !isAdmin}
+                    >
+                      <Target className="mr-2 h-4 w-4" />골 기록
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={team.openSave}
+                      disabled={match.status !== "in_progress" || !isAdmin}
+                    >
+                      <Hand className="mr-2 h-4 w-4" />
+                      선방
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={team.openSubstitution}
+                      disabled={match.status !== "in_progress" || !isAdmin}
+                    >
+                      <ArrowLeftRight className="mr-2 h-4 w-4" />
+                      교체
+                    </Button>
+                  </div>
+
+                  <div className="mt-4 space-y-2">
+                    {team.members.map((member: Member) => (
+                      <div
+                        key={member.id}
+                        className={`flex items-center gap-2 rounded-xl border p-2 ${team.accent === "blue" ? "border-blue-200/70 bg-blue-500/10" : "border-rose-200/70 bg-rose-500/10"}`}
+                      >
+                        <MemberAvatar
+                          src={member.profile_photo}
+                          alt={member.name}
+                          size="sm"
+                        />
+                        <span className="text-sm font-medium">
+                          {member.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4">
+                    <Button asChild variant="outline" className="w-full">
+                      <Link href={team.tacticsHref}>전술 보드</Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>운영 메모</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>- 스코어를 올리면 바로 골 기록 drawer가 열립니다.</p>
+              <p>
+                - 경기 중에는 팀별 기록 버튼만 강조하고, 종료 후에는 MVP와 개인
+                기록을 검토합니다.
               </p>
-            )}
+              <p>- 실수 방지를 위해 운영 액션은 관리자만 보이게 유지합니다.</p>
+            </CardContent>
+          </Card>
 
-            <div className="text-center text-sm text-muted-foreground">
-              {timeInSeconds === 0 && "⏰ 경기 종료!"}
-              {isRunning &&
-                timeInSeconds > 0 &&
-                `⚽ 경기 진행 중 (${getCurrentMinute()}분)`}
-              {!isRunning &&
-                timeInSeconds > 0 &&
-                timeInSeconds < initialTime &&
-                "⏸️ 일시정지"}
-              {!isRunning &&
-                timeInSeconds === initialTime &&
-                match.status === "pending" &&
-                "⏱️ 준비"}
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Score */}
-          <div className="flex items-center justify-around">
-            <div className="text-center flex-1">
-              <p className="text-sm text-muted-foreground mb-2">Team A</p>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleScoreChange("A", -1)}
-                  disabled={
-                    !isAdmin || match.status === "finished" || scoreA === 0
-                  }
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <div className="text-5xl font-bold text-primary w-20 text-center">
-                  {scoreA}
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleScoreChange("A", 1)}
-                  disabled={!isAdmin || match.status === "finished"}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="text-3xl font-bold text-muted-foreground px-4">
-              vs
-            </div>
-
-            <div className="text-center flex-1">
-              <p className="text-sm text-muted-foreground mb-2">Team B</p>
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleScoreChange("B", -1)}
-                  disabled={
-                    !isAdmin || match.status === "finished" || scoreB === 0
-                  }
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <div className="text-5xl font-bold text-primary w-20 text-center">
-                  {scoreB}
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => handleScoreChange("B", 1)}
-                  disabled={!isAdmin || match.status === "finished"}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          {/* Match Recording Buttons */}
-          {match.status === "in_progress" && isAdmin && (
-            <>
-              <Separator />
-              <div className="space-y-3">
-                <p className="text-sm font-semibold text-center">경기 기록</p>
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Team A Records */}
-                  <div className="space-y-2">
-                    <p className="text-xs text-center text-muted-foreground font-medium">
-                      Team A
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setGoalDialogOpen({ team: "A" })}
-                    >
-                      <Target className="mr-2 h-4 w-4" />골 기록
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setSaveDialogOpen({ team: "A" })}
-                    >
-                      <Hand className="mr-2 h-4 w-4" />
-                      선방 기록
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setSubstitutionDialogOpen({ team: "A" })}
-                    >
-                      <ArrowLeftRight className="mr-2 h-4 w-4" />
-                      교체
-                    </Button>
+          {combinedTimeline.length > 0 ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>타임라인</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {combinedTimeline.map((event, index) => (
+                  <div
+                    key={`${event.type}-${event.team}-${event.minute}-${index}`}
+                    className="rounded-[1.2rem] border bg-muted/25 p-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{event.minute}&apos;</Badge>
+                        <Badge variant="secondary">Team {event.team}</Badge>
+                      </div>
+                      <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                        {event.type === "goal" ? "Goal" : "Sub"}
+                      </span>
+                    </div>
+                    <div className="mt-3 text-sm">
+                      {event.type === "goal" ? (
+                        <>
+                          <p className="font-medium text-foreground">
+                            {event.scorer}
+                          </p>
+                          <p className="mt-1 text-muted-foreground">
+                            {event.assist
+                              ? `어시스트 ${event.assist}`
+                              : "어시스트 없음"}
+                          </p>
+                        </>
+                      ) : (
+                        <p className="font-medium text-foreground">
+                          <span className="text-rose-600">
+                            {event.playerOut}
+                          </span>
+                          {" → "}
+                          <span className="text-emerald-600">
+                            {event.playerIn}
+                          </span>
+                        </p>
+                      )}
+                    </div>
                   </div>
-
-                  {/* Team B Records */}
-                  <div className="space-y-2">
-                    <p className="text-xs text-center text-muted-foreground font-medium">
-                      Team B
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setGoalDialogOpen({ team: "B" })}
-                    >
-                      <Target className="mr-2 h-4 w-4" />골 기록
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setSaveDialogOpen({ team: "B" })}
-                    >
-                      <Hand className="mr-2 h-4 w-4" />
-                      선방 기록
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => setSubstitutionDialogOpen({ team: "B" })}
-                    >
-                      <ArrowLeftRight className="mr-2 h-4 w-4" />
-                      교체
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                ))}
+              </CardContent>
+            </Card>
+          ) : null}
+        </div>
+      </div>
 
       {/* Match Details - Goals, Saves, Substitutions */}
       {(match.team_a.goals_detail?.length > 0 ||
