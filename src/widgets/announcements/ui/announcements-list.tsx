@@ -11,12 +11,12 @@ import { AnnouncementCreateForm } from "@/features/announcement-create/ui/announ
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/shared/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
 import { LoadingState } from "@/shared/ui/loading-spinner";
 import { PageHero } from "@/shared/ui/page-hero";
 import { StatePanel } from "@/shared/ui/state-panel";
@@ -137,18 +137,18 @@ export function AnnouncementsList() {
       )}
 
       {isAdmin && (
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>새 공지 작성</DialogTitle>
-              <DialogDescription>
+        <Drawer open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DrawerContent className="max-h-[88vh]">
+            <DrawerHeader>
+              <DrawerTitle>새 공지 작성</DrawerTitle>
+              <DrawerDescription>
                 운영 공지, 일정 변경, 긴급 알림을 제품 수준의 톤으로 정리해
                 멤버에게 전달합니다.
-              </DialogDescription>
-            </DialogHeader>
+              </DrawerDescription>
+            </DrawerHeader>
             <AnnouncementCreateForm onSuccess={() => setIsCreateOpen(false)} />
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
       )}
     </div>
   );

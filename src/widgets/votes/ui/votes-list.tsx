@@ -8,12 +8,12 @@ import { VoteCreateForm } from "@/features/vote-create/ui/vote-create-form";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/shared/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { LoadingState } from "@/shared/ui/loading-spinner";
 import { PageHero } from "@/shared/ui/page-hero";
@@ -178,18 +178,18 @@ export function VotesList() {
       </div>
 
       {isAdmin && (
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>새 투표 생성</DialogTitle>
-              <DialogDescription>
+        <Drawer open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerHeader>
+              <DrawerTitle>새 투표 생성</DrawerTitle>
+              <DrawerDescription>
                 경기, 회식, 번개 같은 이벤트를 같은 운영 흐름 안에서 관리할 수
                 있게 만듭니다.
-              </DialogDescription>
-            </DialogHeader>
+              </DrawerDescription>
+            </DrawerHeader>
             <VoteCreateForm onSuccess={handleCreateSuccess} />
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
       )}
     </>
   );
