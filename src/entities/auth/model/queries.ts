@@ -9,6 +9,7 @@ import type { Member } from "@/shared/types/member";
 export const authKeys = {
   all: ["auth"] as const,
   profile: (userId?: string) => [...authKeys.all, "profile", userId] as const,
+  linkedMemberIds: () => [...authKeys.all, "linked-member-ids"] as const,
 };
 
 async function ensureProfile(user: User): Promise<AppProfile> {
@@ -92,7 +93,34 @@ export function useLinkMemberProfile(userId: string | null) {
         queryKey: authKeys.profile(userId ?? undefined),
       });
       queryClient.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: authKeys.linkedMemberIds() });
     },
+  });
+}
+
+export function useLinkedMemberIds(userId: string | null) {
+  return useQuery({
+    queryKey: authKeys.linkedMemberIds(),
+    queryFn: async () => {
+      if (!userId) {
+        return [] as string[];
+      }
+
+      const { data, error } = await supabase
+        .from("app_profiles")
+        .select("member_id")
+        .not("member_id", "is", null);
+
+      if (error) {
+        throw error;
+      }
+
+      return (data ?? [])
+        .map((profile) => profile.member_id)
+        .filter((memberId): memberId is string => typeof memberId === "string");
+    },
+    enabled: !!userId,
+    retry: false,
   });
 }
 
@@ -155,6 +183,7 @@ export function useUnlinkMemberProfile(userId: string | null) {
       queryClient.invalidateQueries({
         queryKey: authKeys.profile(userId ?? undefined),
       });
+      queryClient.invalidateQueries({ queryKey: authKeys.linkedMemberIds() });
     },
   });
 }

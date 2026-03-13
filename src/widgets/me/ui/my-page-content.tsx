@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AccountMemberEditForm } from "@/features/account-member-edit/ui/account-member-edit-form";
 import { useMembers } from "@/entities/member/model/queries";
 import {
+  useLinkedMemberIds,
   useLinkMemberProfile,
   useUnlinkMemberProfile,
 } from "@/entities/auth/model/queries";
@@ -44,13 +45,17 @@ import {
 export function MyPageContent() {
   const { user, profile, member, isAdmin, isLinked, isLoading } = useAuth();
   const { data: members } = useMembers();
+  const { data: linkedMemberIds } = useLinkedMemberIds(user?.id ?? null);
   const [selectedMemberId, setSelectedMemberId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const linkMutation = useLinkMemberProfile(user?.id ?? null);
   const unlinkMutation = useUnlinkMemberProfile(user?.id ?? null);
 
-  const availableMembers = useMemo(() => members ?? [], [members]);
+  const availableMembers = useMemo(() => {
+    const claimedIds = new Set(linkedMemberIds ?? []);
+    return (members ?? []).filter((candidate) => !claimedIds.has(candidate.id));
+  }, [linkedMemberIds, members]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -247,7 +252,7 @@ export function MyPageContent() {
                   <SelectTrigger id="member">
                     <SelectValue placeholder="멤버를 선택하세요" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-72">
                     {availableMembers.map((availableMember) => (
                       <SelectItem
                         key={availableMember.id}
@@ -259,6 +264,9 @@ export function MyPageContent() {
                     ))}
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  이미 다른 계정에 연결된 멤버는 목록에서 자동으로 숨깁니다.
+                </p>
               </div>
 
               {message && (
