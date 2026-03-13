@@ -98,6 +98,7 @@ function LandingBootScreen() {
     >
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:42px_42px] opacity-20" />
       <div className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-[120px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.08),transparent_18%),radial-gradient(circle_at_50%_70%,rgba(255,255,255,0.04),transparent_24%)] opacity-70" />
       <motion.div
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1.1 }}
@@ -116,19 +117,28 @@ function LandingBootScreen() {
           transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
           className="flex flex-col items-center gap-8"
         >
-          <div className="landing-logo-shell relative flex h-32 w-32 items-center justify-center rounded-[2.25rem] border border-white/10 bg-white/6 shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
-            <div className="absolute inset-4 rounded-[1.75rem] border border-primary/20" />
-            <div className="absolute inset-0 rounded-[2.25rem] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_36%)]" />
+          <div className="landing-logo-shell relative flex h-36 w-36 items-center justify-center rounded-[2.5rem] border border-white/10 bg-white/6 shadow-[0_30px_90px_rgba(0,0,0,0.42)] backdrop-blur-2xl">
+            <div className="absolute inset-4 rounded-[1.9rem] border border-primary/20" />
+            <div className="absolute inset-0 rounded-[2.5rem] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.18),transparent_36%)]" />
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               className="absolute inset-5 rounded-full border border-dashed border-primary/35"
             />
-            <div className="relative h-16 w-16">
-              <div className="absolute left-1/2 top-1/2 h-14 w-14 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.92),rgba(255,255,255,0.08)_42%,rgba(200,168,88,0.85)_68%,rgba(200,168,88,0.05)_100%)] shadow-[0_0_30px_rgba(200,168,88,0.35)]" />
-              <div className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/40 bg-black/30 backdrop-blur-md" />
-              <div className="absolute left-1/2 top-1/2 h-3 w-9 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/50" />
-              <div className="absolute left-1/2 top-1/2 h-9 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/50" />
+            <div className="relative h-20 w-20">
+              <div className="absolute left-1/2 top-1/2 h-16 w-16 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.98),rgba(255,255,255,0.12)_42%,rgba(200,168,88,0.85)_70%,rgba(200,168,88,0.05)_100%)] shadow-[0_0_40px_rgba(200,168,88,0.35)]" />
+              <div className="absolute left-1/2 top-1/2 h-7 w-7 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/40 bg-black/30 backdrop-blur-md" />
+              <div className="absolute left-1/2 top-1/2 h-3 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/50" />
+              <div className="absolute left-1/2 top-1/2 h-10 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-primary/50" />
+              <motion.div
+                animate={{ scale: [1, 1.1, 1], opacity: [0.35, 0.65, 0.35] }}
+                transition={{
+                  duration: 2.2,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+                className="absolute inset-1 rounded-full border border-white/18"
+              />
             </div>
           </div>
 
@@ -136,11 +146,14 @@ function LandingBootScreen() {
             <p className="text-[11px] font-medium uppercase tracking-[0.45em] text-white/50">
               The Run
             </p>
-            <h1 className="text-4xl font-semibold tracking-[0.18em] text-white sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-[0.12em] text-white sm:text-5xl">
               THE RUN
             </h1>
             <p className="text-sm tracking-[0.22em] text-white/58 uppercase">
-              AI Match Ritual
+              Precision Match Intelligence
+            </p>
+            <p className="text-[11px] tracking-[0.28em] text-white/36 uppercase">
+              Signal • Flow • Ritual
             </p>
           </div>
         </motion.div>
