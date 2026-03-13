@@ -44,7 +44,8 @@ import {
 import { Input } from "@/shared/ui/input";
 
 export function MyPageContent() {
-  const { user, profile, member, isAdmin, isLinked, isLoading } = useAuth();
+  const { user, profile, member, isAdmin, isSuperAdmin, isLinked, isLoading } =
+    useAuth();
   const { data: members } = useMembers();
   const { data: claimableMembers, isLoading: isClaimableMembersLoading } =
     useClaimableMembers(user?.id ?? null);
@@ -133,7 +134,8 @@ export function MyPageContent() {
         meta={
           <>
             <Badge variant="secondary">
-              역할 {isAdmin ? "관리자" : "일반 멤버"}
+              역할{" "}
+              {isSuperAdmin ? "슈퍼관리자" : isAdmin ? "관리자" : "일반 멤버"}
             </Badge>
             <Badge variant="secondary">연결 {isLinked ? "완료" : "필요"}</Badge>
           </>
@@ -161,7 +163,7 @@ export function MyPageContent() {
         />
         <StatTile
           label="권한"
-          value={isAdmin ? "ADMIN" : "MEMBER"}
+          value={isSuperAdmin ? "SUPER" : isAdmin ? "ADMIN" : "MEMBER"}
           icon={<Shield className="h-5 w-5" />}
           tone={isAdmin ? "success" : "muted"}
         />
@@ -188,7 +190,7 @@ export function MyPageContent() {
             </p>
             <p>
               <span className="text-muted-foreground">역할:</span>{" "}
-              {isAdmin ? "관리자" : "일반 멤버"}
+              {isSuperAdmin ? "슈퍼관리자" : isAdmin ? "관리자" : "일반 멤버"}
             </p>
             <p>
               <span className="text-muted-foreground">멤버 연결:</span>{" "}

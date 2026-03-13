@@ -26,7 +26,7 @@ const publicRoutes = ["/", "/login", "/club-guide"];
 
 export function AppChrome({ children }: AppChromeProps) {
   const pathname = usePathname();
-  const { user, isAdmin, member } = useAuth();
+  const { user, isAdmin, isSuperAdmin, member } = useAuth();
 
   const isPublicRoute = publicRoutes.some(
     (route) => pathname === route || pathname.startsWith("/auth/"),
@@ -80,7 +80,11 @@ export function AppChrome({ children }: AppChromeProps) {
                 Current Mode
               </p>
               <p className="mt-2 text-lg font-semibold">
-                {isAdmin ? "운영자 모드" : "멤버 모드"}
+                {isSuperAdmin
+                  ? "슈퍼관리자 모드"
+                  : isAdmin
+                    ? "운영자 모드"
+                    : "멤버 모드"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {member
@@ -137,7 +141,7 @@ export function AppChrome({ children }: AppChromeProps) {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">
-                  {isAdmin ? "Admin" : "Member"}
+                  {isSuperAdmin ? "Superadmin" : isAdmin ? "Admin" : "Member"}
                 </Badge>
                 <Badge variant="secondary">
                   {member?.name ?? user?.email ?? "Guest"}
