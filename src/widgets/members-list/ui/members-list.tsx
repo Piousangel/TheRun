@@ -7,12 +7,12 @@ import { MemberCreateForm } from "@/features/member-create/ui/member-create-form
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/shared/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
 import { LoadingState } from "@/shared/ui/loading-spinner";
 import { PageHero } from "@/shared/ui/page-hero";
 import { StatePanel } from "@/shared/ui/state-panel";
@@ -126,18 +126,18 @@ export function MembersList() {
       </div>
 
       {isAdmin && (
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>새 멤버 추가</DialogTitle>
-              <DialogDescription>
+        <Drawer open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <DrawerContent className="max-h-[90vh]">
+            <DrawerHeader>
+              <DrawerTitle>새 멤버 추가</DrawerTitle>
+              <DrawerDescription>
                 새로운 팀 멤버를 등록하고 이후 투표, 출석, 팀 구성 흐름에
                 자연스럽게 연결합니다.
-              </DialogDescription>
-            </DialogHeader>
+              </DrawerDescription>
+            </DrawerHeader>
             <MemberCreateForm onSuccess={handleCreateSuccess} />
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
       )}
     </>
   );

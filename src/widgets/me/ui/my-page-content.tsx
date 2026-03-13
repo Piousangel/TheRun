@@ -27,12 +27,12 @@ import { PageHero } from "@/shared/ui/page-hero";
 import { StatePanel } from "@/shared/ui/state-panel";
 import { StatTile } from "@/shared/ui/stat-tile";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/shared/ui/drawer";
 import { getMemberPhoneDisplay } from "@/shared/lib/utils";
 import {
   Select,
@@ -340,15 +340,15 @@ export function MyPageContent() {
       </Card>
 
       {member && user ? (
-        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>내 멤버 정보 수정</DialogTitle>
-              <DialogDescription>
+        <Drawer open={isEditOpen} onOpenChange={setIsEditOpen}>
+          <DrawerContent className="max-h-[88vh]">
+            <DrawerHeader>
+              <DrawerTitle>내 멤버 정보 수정</DrawerTitle>
+              <DrawerDescription>
                 로그인한 계정에 연결된 내 멤버의 이름과 전화번호를 직접
                 수정합니다.
-              </DialogDescription>
-            </DialogHeader>
+              </DrawerDescription>
+            </DrawerHeader>
             <AccountMemberEditForm
               member={member}
               userId={user.id}
@@ -357,8 +357,8 @@ export function MyPageContent() {
                 toast.success("내 멤버 정보를 저장했습니다.");
               }}
             />
-          </DialogContent>
-        </Dialog>
+          </DrawerContent>
+        </Drawer>
       ) : null}
     </div>
   );

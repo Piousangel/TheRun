@@ -104,7 +104,7 @@ export function AnnouncementCard({
         <div className="grid gap-3 md:grid-cols-2">
           <div className="rounded-2xl border bg-background/80 p-4">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              Tone
+              분위기
             </p>
             <p className="mt-2 text-sm font-medium">
               {announcement.category === "urgent"
@@ -114,7 +114,7 @@ export function AnnouncementCard({
           </div>
           <div className="rounded-2xl border bg-background/80 p-4">
             <p className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-              Status
+              상태
             </p>
             <p className="mt-2 text-sm font-medium">
               {isRead ? "이미 읽음" : "아직 확인 전"}
