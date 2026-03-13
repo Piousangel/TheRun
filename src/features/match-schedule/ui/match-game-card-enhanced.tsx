@@ -636,7 +636,9 @@ export function MatchGameCardEnhanced({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/strategy?team=${selectedTeamA}`)}
+                  onClick={() =>
+                    router.push(`/strategy?team=${selectedTeamA}&from=match`)
+                  }
                 >
                   Team {selectedTeamA}
                   <ChevronRight className="ml-1 h-3 w-3" />
@@ -644,7 +646,9 @@ export function MatchGameCardEnhanced({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/strategy?team=${selectedTeamB}`)}
+                  onClick={() =>
+                    router.push(`/strategy?team=${selectedTeamB}&from=match`)
+                  }
                 >
                   Team {selectedTeamB}
                   <ChevronRight className="ml-1 h-3 w-3" />

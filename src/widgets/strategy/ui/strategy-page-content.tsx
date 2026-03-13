@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   ClipboardList,
+  CornerUpLeft,
   Shield,
   Sparkles,
   Users,
@@ -50,9 +51,15 @@ function normalizeTab(value: string | null): TeamTab {
 
 interface StrategyPageContentProps {
   initialTeam?: string;
+  initialSource?: string;
+  initialMatchId?: string;
 }
 
-export function StrategyPageContent({ initialTeam }: StrategyPageContentProps) {
+export function StrategyPageContent({
+  initialTeam,
+  initialSource,
+  initialMatchId,
+}: StrategyPageContentProps) {
   const { isAdmin } = useAuth();
   const { teams, teamCount } = useTeamSplitStore();
   const pathname = usePathname();
@@ -160,6 +167,34 @@ export function StrategyPageContent({ initialTeam }: StrategyPageContentProps) {
           </CardContent>
         </Card>
       </div>
+
+      {initialSource === "match" ? (
+        <Card className="border-primary/20 bg-[linear-gradient(160deg,rgba(200,168,88,0.1),rgba(255,255,255,0.98))]">
+          <CardContent className="flex flex-col gap-4 pt-6 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.18em] text-primary">
+                Context linked
+              </p>
+              <p className="mt-2 text-lg font-semibold tracking-tight">
+                경기 운영 화면에서 바로 전략으로 넘어왔습니다
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                현재 경기 흐름을 놓치지 않도록, 이 전략 보드는 매치 운영과
+                이어진 맥락으로 열렸습니다.
+              </p>
+            </div>
+            {initialMatchId ? (
+              <Link
+                href={`/matches/${initialMatchId}`}
+                className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-background/85 px-4 py-2 text-sm font-medium text-foreground transition hover:border-primary/35 hover:bg-primary/5"
+              >
+                <CornerUpLeft className="h-4 w-4 text-primary" />
+                경기 운영으로 돌아가기
+              </Link>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <Card className="overflow-hidden border-primary/15 bg-[radial-gradient(circle_at_top,rgba(200,168,88,0.14),transparent_34%),linear-gradient(180deg,rgba(18,18,20,0.98),rgba(28,28,31,0.96))] text-white shadow-[0_24px_70px_rgba(0,0,0,0.18)]">

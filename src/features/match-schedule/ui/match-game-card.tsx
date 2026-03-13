@@ -42,7 +42,7 @@ export function MatchGameCard({
 
   const handleGoToTactics = () => {
     if (selectedTacticsTeam) {
-      router.push(`/strategy?team=${selectedTacticsTeam}`);
+      router.push(`/strategy?team=${selectedTacticsTeam}&from=match`);
     }
   };
 
