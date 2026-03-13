@@ -5,7 +5,6 @@ import {
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
 } from "react";
-import { MemberAvatar } from "@/entities/member/ui/member-avatar";
 import type { Member } from "@/shared/types/member";
 import type { PositionRole } from "@/shared/types/formation";
 
@@ -96,6 +95,8 @@ export function PlayerMarker({
     }
   };
 
+  const initials = member?.name.slice(0, 1) ?? role;
+
   return (
     <div
       ref={markerRef}
@@ -121,13 +122,31 @@ export function PlayerMarker({
               <div
                 className={`absolute inset-0 rounded-full bg-gradient-to-br ${ROLE_COLORS[role]} blur-md opacity-80`}
               />
-              <div className="relative rounded-full border-2 border-white/95 bg-white/15 p-[2px] shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md">
-                <MemberAvatar
-                  src={member.profile_photo}
-                  alt={member.name}
-                  size="sm"
-                  bgColor={`bg-gradient-to-br ${ROLE_COLORS[role]}`}
-                />
+              <div className="relative flex h-[4rem] w-[3.2rem] flex-col items-center rounded-[1.6rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.34),rgba(255,255,255,0.08))] px-1 pt-1 shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md">
+                <div className="relative flex h-7 w-7 items-center justify-center rounded-full border border-black/5 bg-[#ffd8b5] shadow-inner">
+                  <span className="text-[11px] font-bold text-slate-700">
+                    {initials}
+                  </span>
+                  <span className="absolute left-[7px] top-[10px] h-[2px] w-[2px] rounded-full bg-slate-700" />
+                  <span className="absolute right-[7px] top-[10px] h-[2px] w-[2px] rounded-full bg-slate-700" />
+                  <span className="absolute bottom-[6px] left-1/2 h-[2px] w-[8px] -translate-x-1/2 rounded-full bg-rose-400/80" />
+                  <div className="absolute -top-1 left-1/2 h-3 w-6 -translate-x-1/2 rounded-t-full bg-slate-800" />
+                </div>
+                <div
+                  className={`mt-1 flex h-5 w-8 items-center justify-center rounded-t-[0.65rem] rounded-b-[0.95rem] bg-gradient-to-br ${ROLE_COLORS[role]} shadow-sm`}
+                >
+                  <span className="text-[9px] font-black uppercase tracking-[0.08em] text-white">
+                    {ROLE_BADGES[role]}
+                  </span>
+                </div>
+                <div className="mt-[2px] flex w-full items-center justify-center gap-2 px-1">
+                  <span className="h-2 w-[2px] rounded-full bg-white/85" />
+                  <span className="h-2 w-[2px] rounded-full bg-white/85" />
+                </div>
+                <div className="mt-[1px] flex w-full items-center justify-center gap-2 px-1">
+                  <span className="h-[6px] w-[2px] rounded-full bg-slate-900/60" />
+                  <span className="h-[6px] w-[2px] rounded-full bg-slate-900/60" />
+                </div>
               </div>
               <div className="absolute -right-1 -top-1 rounded-full border border-white/60 bg-black/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-md">
                 {ROLE_BADGES[role]}

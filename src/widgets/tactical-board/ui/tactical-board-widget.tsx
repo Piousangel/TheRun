@@ -161,50 +161,43 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       return;
     }
 
-    // Find available slot with the target role
     const targetSlots = positions.filter(
       (p) => p.role === role && p.role !== "SUB",
     );
 
-    // Find empty slot first
     const emptySlot = targetSlots.find((p) => !p.memberId);
 
     if (emptySlot) {
-      // Move to empty slot
       const updatedPositions = positions.map((p) => {
         if (p.id === currentPosition.id) {
-          // Move current player to target slot position
           return {
             ...p,
-            x: emptySlot.x,
-            y: emptySlot.y,
-            role: role,
+            memberId: null,
+          };
+        }
+        if (p.id === emptySlot.id) {
+          return {
+            ...p,
+            memberId: currentPosition.memberId,
           };
         }
         return p;
       });
       setPositions(updatedPositions);
     } else {
-      // No empty slot, swap with first player in target role
       const occupiedSlot = targetSlots[0];
       if (occupiedSlot) {
         const updatedPositions = positions.map((p) => {
           if (p.id === currentPosition.id) {
-            // Move current player to occupied slot position
             return {
               ...p,
-              x: occupiedSlot.x,
-              y: occupiedSlot.y,
-              role: role,
+              memberId: occupiedSlot.memberId,
             };
           }
           if (p.id === occupiedSlot.id) {
-            // Move occupied player to current position
             return {
               ...p,
-              x: currentPosition.x,
-              y: currentPosition.y,
-              role: currentPosition.role,
+              memberId: currentPosition.memberId,
             };
           }
           return p;
