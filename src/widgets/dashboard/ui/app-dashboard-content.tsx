@@ -643,8 +643,8 @@ export function AppDashboardContent() {
                       icon: CalendarDays,
                     },
                     {
-                      href: "/team-division",
-                      title: "팀 구성",
+                      href: "/strategy",
+                      title: "전략 보드",
                       body:
                         pendingMatch || liveMatch
                           ? "기존 팀 확인"
@@ -849,7 +849,7 @@ export function AppDashboardContent() {
                 </Button>
                 {isAdmin && (
                   <Button asChild size="sm" variant="outline">
-                    <Link href="/team-division">팀 나누기</Link>
+                    <Link href="/strategy">전략 보드</Link>
                   </Button>
                 )}
               </div>

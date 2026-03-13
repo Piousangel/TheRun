@@ -81,9 +81,9 @@ export function MobileNav() {
       icon: Users,
     });
     navItems.splice(6, 0, {
-      href: "/team-division",
-      label: "팀 나누기",
-      shortLabel: "팀",
+      href: "/strategy",
+      label: "전략 워크스페이스",
+      shortLabel: "전략",
       icon: ClipboardList,
     });
   }

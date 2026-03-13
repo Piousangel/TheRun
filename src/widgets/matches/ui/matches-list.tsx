@@ -113,7 +113,7 @@ export function MatchesList() {
                   완료하기&quot; 버튼을 눌러주세요.
                 </p>
               </div>
-              <Button onClick={() => router.push("/team-division")}>
+              <Button onClick={() => router.push("/strategy")}>
                 팀 나누기로 이동
               </Button>
             </div>

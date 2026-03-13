@@ -332,13 +332,13 @@ export function MatchCardEnhanced({ match }: MatchCardEnhancedProps) {
         {/* Tactical Board Link */}
         <div className="grid grid-cols-2 gap-2">
           <Button asChild variant="outline" size="sm" className="w-full">
-            <Link href={`/team-division/A`}>
+            <Link href={`/strategy?team=A`}>
               Team A 전술
               <ChevronRight className="ml-1 h-3 w-3" />
             </Link>
           </Button>
           <Button asChild variant="outline" size="sm" className="w-full">
-            <Link href={`/team-division/B`}>
+            <Link href={`/strategy?team=B`}>
               Team B 전술
               <ChevronRight className="ml-1 h-3 w-3" />
             </Link>

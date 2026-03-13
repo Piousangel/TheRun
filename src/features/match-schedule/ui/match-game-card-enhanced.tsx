@@ -77,7 +77,7 @@ export function MatchGameCardEnhanced({
 
   const TEAM_NAMES: TeamName[] = ["A", "B", "C", "D"];
   const activeTeams = TEAM_NAMES.slice(0, teamCount).filter(
-    (t) => teams[t].length > 0
+    (t) => teams[t].length > 0,
   );
 
   // Restore match state on component mount
@@ -91,11 +91,11 @@ export function MatchGameCardEnhanced({
       // Restore team selections from store (parse "Team A" -> "A")
       const teamALetter = matchProgressStore.teamAName?.replace(
         "Team ",
-        ""
+        "",
       ) as TeamName;
       const teamBLetter = matchProgressStore.teamBName?.replace(
         "Team ",
-        ""
+        "",
       ) as TeamName;
       if (teamALetter && teamBLetter) {
         setSelectedTeamA(teamALetter);
@@ -172,7 +172,7 @@ export function MatchGameCardEnhanced({
         onSuccess: (match) => {
           setCreatedMatch(match);
         },
-      }
+      },
     );
   };
 
@@ -190,7 +190,7 @@ export function MatchGameCardEnhanced({
       matchNumber,
       `Team ${selectedTeamA}`,
       `Team ${selectedTeamB}`,
-      matchDurationMinutes
+      matchDurationMinutes,
     );
 
     // Update database
@@ -636,7 +636,7 @@ export function MatchGameCardEnhanced({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/team-division/${selectedTeamA}`)}
+                  onClick={() => router.push(`/strategy?team=${selectedTeamA}`)}
                 >
                   Team {selectedTeamA}
                   <ChevronRight className="ml-1 h-3 w-3" />
@@ -644,7 +644,7 @@ export function MatchGameCardEnhanced({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => router.push(`/team-division/${selectedTeamB}`)}
+                  onClick={() => router.push(`/strategy?team=${selectedTeamB}`)}
                 >
                   Team {selectedTeamB}
                   <ChevronRight className="ml-1 h-3 w-3" />

@@ -440,7 +440,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
       openGoal: () => setGoalDialogOpen({ team: "A" }),
       openSave: () => setSaveDialogOpen({ team: "A" }),
       openSubstitution: () => setSubstitutionDialogOpen({ team: "A" }),
-      tacticsHref: "/team-division/A",
+      tacticsHref: "/strategy?team=A",
     },
     {
       key: "B" as const,
@@ -451,7 +451,7 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
       openGoal: () => setGoalDialogOpen({ team: "B" }),
       openSave: () => setSaveDialogOpen({ team: "B" }),
       openSubstitution: () => setSubstitutionDialogOpen({ team: "B" }),
-      tacticsHref: "/team-division/B",
+      tacticsHref: "/strategy?team=B",
     },
   ];
 

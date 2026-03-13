@@ -37,12 +37,12 @@ export function MatchGameCard({
 
   const TEAM_NAMES: TeamName[] = ["A", "B", "C", "D"];
   const activeTeams = TEAM_NAMES.slice(0, teamCount).filter(
-    (t) => teams[t].length > 0
+    (t) => teams[t].length > 0,
   );
 
   const handleGoToTactics = () => {
     if (selectedTacticsTeam) {
-      router.push(`/team-division/${selectedTacticsTeam}`);
+      router.push(`/strategy?team=${selectedTacticsTeam}`);
     }
   };
 
