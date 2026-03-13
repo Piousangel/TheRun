@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ClipboardList, Shield, Sparkles, Users } from "lucide-react";
+import Link from "next/link";
+import {
+  ArrowRight,
+  ClipboardList,
+  Shield,
+  Sparkles,
+  Users,
+} from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { useTeamSplitStore } from "@/features/team-split-manual/model/store";
 import { TeamSplitAuto } from "@/features/team-split-auto/ui/team-split-auto";
@@ -50,7 +57,9 @@ export function StrategyPageContent({ initialTeam }: StrategyPageContentProps) {
   const { teams, teamCount } = useTeamSplitStore();
   const pathname = usePathname();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TeamTab>(() => normalizeTab(initialTeam ?? null));
+  const [activeTab, setActiveTab] = useState<TeamTab>(() =>
+    normalizeTab(initialTeam ?? null),
+  );
 
   const availableTeams = useMemo<TeamCode[]>(() => {
     const labels: TeamCode[] = ["A", "B", "C", "D"];
@@ -148,6 +157,91 @@ export function StrategyPageContent({ initialTeam }: StrategyPageContentProps) {
               팀 나누기 이후 포지션 전략까지 끊기지 않도록 한 흐름으로
               연결했습니다.
             </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+        <Card className="overflow-hidden border-primary/15 bg-[radial-gradient(circle_at_top,rgba(200,168,88,0.14),transparent_34%),linear-gradient(180deg,rgba(18,18,20,0.98),rgba(28,28,31,0.96))] text-white shadow-[0_24px_70px_rgba(0,0,0,0.18)]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-white">
+              <Sparkles className="h-5 w-5 text-primary" />
+              전략 허브
+            </CardTitle>
+            <CardDescription className="text-white/68">
+              팀 분배부터 팀별 전술 보드 진입까지 경기 전 운영 동선을 하나의
+              공간으로 묶었습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
+                Step 01
+              </p>
+              <p className="mt-3 text-base font-semibold">팀 배정 확정</p>
+              <p className="mt-2 text-sm leading-6 text-white/64">
+                자동 밸런싱으로 초안을 만들고 수동 배정으로 마무리합니다.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
+                Step 02
+              </p>
+              <p className="mt-3 text-base font-semibold">포지션 전략 점검</p>
+              <p className="mt-2 text-sm leading-6 text-white/64">
+                팀별 전술 탭에서 롱프레스 이동과 역할 변경으로 포지션을
+                다듬습니다.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-white/10 bg-white/6 p-4">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/42">
+                Step 03
+              </p>
+              <p className="mt-3 text-base font-semibold">경기 운영 연결</p>
+              <p className="mt-2 text-sm leading-6 text-white/64">
+                정리된 팀 구성을 곧바로 경기 상세 운영 화면과 연결합니다.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.08),rgba(255,255,255,0.98))]">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <ClipboardList className="h-4 w-4 text-primary" />
+              빠른 팀 진입
+            </CardTitle>
+            <CardDescription>
+              지금 바로 전략을 다듬을 수 있는 팀만 빠르게 열 수 있게
+              정리했습니다.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {availableTeams.length > 0 ? (
+              availableTeams.map((team) => (
+                <Link
+                  key={team}
+                  href={`/strategy?team=${team}`}
+                  className="flex items-center justify-between rounded-2xl border bg-background/85 px-4 py-4 transition-all hover:border-primary/25 hover:bg-primary/5"
+                >
+                  <div>
+                    <p className="text-sm font-semibold">
+                      Team {team} 전술 보드
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      배정된 멤버 {teams[team]?.length ?? 0}명 · 바로 포지션
+                      정렬
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-primary" />
+                </Link>
+              ))
+            ) : (
+              <div className="rounded-2xl border border-dashed bg-background/75 px-4 py-5 text-sm text-muted-foreground">
+                아직 멤버가 배정된 팀이 없습니다. 먼저 팀 나누기 탭에서 배정을
+                완료해주세요.
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
