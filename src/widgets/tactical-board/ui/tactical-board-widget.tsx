@@ -1,50 +1,72 @@
-'use client';
+"use client";
 
-import { useRef, useEffect, useMemo, useState } from 'react';
-import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
-import { useTacticalBoardStore } from '@/features/tactical-board/model/store';
-import { generateDefaultFormation } from '@/features/tactical-board/model/formations';
-import { generateOpponentFormation } from '@/features/tactical-board/model/opponent-formation';
-import { SoccerField } from '@/entities/field/ui/soccer-field';
-import { PlayerMarker } from '@/features/tactical-board/ui/player-marker';
-import { OpponentMarker } from '@/features/tactical-board/ui/opponent-marker';
-import { PositionSlot } from '@/features/tactical-board/ui/position-slot';
-import { PositionChangeMenu } from '@/features/tactical-board/ui/position-change-menu';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/shared/ui/card';
-import { Button } from '@/shared/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
-import { Badge } from '@/shared/ui/badge';
-import { RotateCcw, Users, ArrowLeftRight } from 'lucide-react';
-import type { PlayerPosition, PositionRole } from '@/shared/types/formation';
+import { useRef, useEffect, useMemo, useState } from "react";
+import { useTeamSplitStore } from "@/features/team-split-manual/model/store";
+import { useTacticalBoardStore } from "@/features/tactical-board/model/store";
+import { generateDefaultFormation } from "@/features/tactical-board/model/formations";
+import { generateOpponentFormation } from "@/features/tactical-board/model/opponent-formation";
+import { SoccerField } from "@/entities/field/ui/soccer-field";
+import { PlayerMarker } from "@/features/tactical-board/ui/player-marker";
+import { OpponentMarker } from "@/features/tactical-board/ui/opponent-marker";
+import { PositionSlot } from "@/features/tactical-board/ui/position-slot";
+import { PositionChangeMenu } from "@/features/tactical-board/ui/position-change-menu";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/shared/ui/card";
+import { Button } from "@/shared/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/ui/select";
+import { Badge } from "@/shared/ui/badge";
+import { RotateCcw, Users, ArrowLeftRight } from "lucide-react";
+import type { PlayerPosition, PositionRole } from "@/shared/types/formation";
 
 interface TacticalBoardWidgetProps {
   teamName: string;
 }
 
-type TeamName = 'A' | 'B' | 'C' | 'D';
+type TeamName = "A" | "B" | "C" | "D";
 
 export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { teams } = useTeamSplitStore();
-  const { positions, playerCount, setPositions, setPlayerCount, swapPlayers } = useTacticalBoardStore();
+  const { positions, playerCount, setPositions, setPlayerCount, swapPlayers } =
+    useTacticalBoardStore();
   const [showOpponents, setShowOpponents] = useState(true);
-  const [substituteToSwap, setSubstituteToSwap] = useState<PlayerPosition | null>(null);
+  const [substituteToSwap, setSubstituteToSwap] =
+    useState<PlayerPosition | null>(null);
+  const [movingFieldPlayer, setMovingFieldPlayer] =
+    useState<PlayerPosition | null>(null);
   const [positionMenu, setPositionMenu] = useState<{
     isOpen: boolean;
     position: { x: number; y: number };
-    playerPosition: PlayerPosition | null;
+    playerPositionId: string | null;
   }>({
     isOpen: false,
     position: { x: 0, y: 0 },
-    playerPosition: null,
+    playerPositionId: null,
   });
 
-  const teamMembers = useMemo(() => teams[teamName as TeamName] || [], [teamName, teams]);
+  const teamMembers = useMemo(
+    () => teams[teamName as TeamName] || [],
+    [teamName, teams],
+  );
 
   // Initialize formation when component mounts or team changes
   useEffect(() => {
     if (teamMembers.length > 0 && positions.length === 0) {
-      const defaultPositions = generateDefaultFormation(teamMembers, playerCount);
+      const defaultPositions = generateDefaultFormation(
+        teamMembers,
+        playerCount,
+      );
       setPositions(defaultPositions);
     }
   }, [teamMembers, positions, playerCount, setPositions]);
@@ -68,33 +90,81 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   };
 
   const handlePlayerClick = (position: PlayerPosition, e: React.MouseEvent) => {
+    if (movingFieldPlayer) {
+      if (movingFieldPlayer.id === position.id) {
+        setMovingFieldPlayer(null);
+        return;
+      }
+
+      swapPlayers(movingFieldPlayer.id, position.id);
+      setMovingFieldPlayer(null);
+      setPositionMenu({
+        isOpen: false,
+        position: { x: 0, y: 0 },
+        playerPositionId: null,
+      });
+      return;
+    }
+
     if (substituteToSwap) {
       // Swap substitute with this field player
       swapPlayers(substituteToSwap.id, position.id);
       setSubstituteToSwap(null);
-    } else if (position.role !== 'SUB') {
+      setPositionMenu({
+        isOpen: false,
+        position: { x: 0, y: 0 },
+        playerPositionId: null,
+      });
+    } else if (position.role !== "SUB") {
       // Show position change menu for field players only
       setPositionMenu({
         isOpen: true,
         position: { x: e.clientX, y: e.clientY },
-        playerPosition: position,
+        playerPositionId: position.id,
       });
     }
   };
 
-  const handlePositionRoleChange = (role: PositionRole) => {
-    if (!positionMenu.playerPosition) return;
+  const handleFieldPlayerLongPress = (position: PlayerPosition) => {
+    if (position.role === "SUB") return;
 
-    const currentPosition = positionMenu.playerPosition;
+    setSubstituteToSwap(null);
+    setPositionMenu({
+      isOpen: false,
+      position: { x: 0, y: 0 },
+      playerPositionId: null,
+    });
+    setMovingFieldPlayer(position);
+  };
+
+  const handlePositionRoleChange = (role: PositionRole) => {
+    const currentPosition = positions.find(
+      (position) => position.id === positionMenu.playerPositionId,
+    );
+
+    if (!currentPosition) {
+      setPositionMenu({
+        isOpen: false,
+        position: { x: 0, y: 0 },
+        playerPositionId: null,
+      });
+      return;
+    }
 
     // If same role, just close menu
     if (currentPosition.role === role) {
-      setPositionMenu({ isOpen: false, position: { x: 0, y: 0 }, playerPosition: null });
+      setPositionMenu({
+        isOpen: false,
+        position: { x: 0, y: 0 },
+        playerPositionId: null,
+      });
       return;
     }
 
     // Find available slot with the target role
-    const targetSlots = positions.filter((p) => p.role === role && p.role !== 'SUB');
+    const targetSlots = positions.filter(
+      (p) => p.role === role && p.role !== "SUB",
+    );
 
     // Find empty slot first
     const emptySlot = targetSlots.find((p) => !p.memberId);
@@ -143,10 +213,20 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       }
     }
 
-    setPositionMenu({ isOpen: false, position: { x: 0, y: 0 }, playerPosition: null });
+    setPositionMenu({
+      isOpen: false,
+      position: { x: 0, y: 0 },
+      playerPositionId: null,
+    });
   };
 
   const handleSubstituteClick = (subPosition: PlayerPosition) => {
+    setMovingFieldPlayer(null);
+    setPositionMenu({
+      isOpen: false,
+      position: { x: 0, y: 0 },
+      playerPositionId: null,
+    });
     if (substituteToSwap && substituteToSwap.id === subPosition.id) {
       // Cancel selection
       setSubstituteToSwap(null);
@@ -157,6 +237,19 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
   };
 
   const handleEmptySlotClick = (position: PlayerPosition) => {
+    if (movingFieldPlayer) {
+      if (movingFieldPlayer.id !== position.id) {
+        swapPlayers(movingFieldPlayer.id, position.id);
+      }
+      setMovingFieldPlayer(null);
+      setPositionMenu({
+        isOpen: false,
+        position: { x: 0, y: 0 },
+        playerPositionId: null,
+      });
+      return;
+    }
+
     if (substituteToSwap) {
       // Move substitute to this empty slot
       swapPlayers(substituteToSwap.id, position.id);
@@ -164,14 +257,17 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
     }
   };
 
-  const fieldPlayers = positions.filter((p) => p.role !== 'SUB');
-  const substitutes = positions.filter((p) => p.role === 'SUB');
+  const fieldPlayers = positions.filter((p) => p.role !== "SUB");
+  const substitutes = positions.filter((p) => p.role === "SUB");
   const opponentPositions = generateOpponentFormation(playerCount);
+  const activeMenuPosition = positions.find(
+    (position) => position.id === positionMenu.playerPositionId,
+  );
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <Card>
+      <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.08),rgba(255,255,255,0.98))]">
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
@@ -180,15 +276,49 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 Team {teamName} 전술 보드
               </CardTitle>
               <CardDescription className="mt-1">
-                선수를 클릭하여 포지션 변경 (GK, DF, MF, FW)
+                탭하면 포지션 변경, 길게 누르면 원하는 고정 슬롯으로 이동합니다.
               </CardDescription>
             </div>
             <Badge variant="secondary">{teamMembers.length}명</Badge>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Interaction
+              </p>
+              <p className="mt-3 text-base font-semibold">
+                {movingFieldPlayer
+                  ? "이동 모드 활성화"
+                  : substituteToSwap
+                    ? "교체 모드 활성화"
+                    : "탭 / 롱프레스 지원"}
+              </p>
+            </div>
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Formation
+              </p>
+              <p className="mt-3 text-base font-semibold">
+                {playerCount}v{playerCount} 기준
+              </p>
+            </div>
+            <div className="rounded-2xl border bg-background/80 p-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                Board state
+              </p>
+              <p className="mt-3 text-base font-semibold">
+                {showOpponents ? "상대팀 표시 중" : "우리팀만 집중"}
+              </p>
+            </div>
+          </div>
+
           <div className="flex flex-wrap gap-2">
-            <Select value={playerCount.toString()} onValueChange={handlePlayerCountChange}>
+            <Select
+              value={playerCount.toString()}
+              onValueChange={handlePlayerCountChange}
+            >
               <SelectTrigger className="w-[150px]">
                 <SelectValue />
               </SelectTrigger>
@@ -206,10 +336,25 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
             </Button>
             <Button
               onClick={() => setShowOpponents(!showOpponents)}
-              variant={showOpponents ? 'default' : 'outline'}
+              variant={showOpponents ? "default" : "outline"}
             >
-              {showOpponents ? '상대팀 숨기기' : '상대팀 보기'}
+              {showOpponents ? "상대팀 숨기기" : "상대팀 보기"}
             </Button>
+            {movingFieldPlayer ? (
+              <Button
+                onClick={() => {
+                  setMovingFieldPlayer(null);
+                  setPositionMenu({
+                    isOpen: false,
+                    position: { x: 0, y: 0 },
+                    playerPositionId: null,
+                  });
+                }}
+                variant="outline"
+              >
+                이동 취소
+              </Button>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -218,14 +363,15 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       <div ref={containerRef} className="relative">
         <SoccerField>
           {/* Opponent markers */}
-          {showOpponents && opponentPositions.map((pos, index) => (
-            <OpponentMarker
-              key={`opponent-${index}`}
-              x={pos.x}
-              y={pos.y}
-              role={pos.role}
-            />
-          ))}
+          {showOpponents &&
+            opponentPositions.map((pos, index) => (
+              <OpponentMarker
+                key={`opponent-${index}`}
+                x={pos.x}
+                y={pos.y}
+                role={pos.role}
+              />
+            ))}
 
           {/* Position slots (show all slots, including empty ones) */}
           {fieldPlayers.map((position) => (
@@ -236,6 +382,8 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
               role={position.role}
               isEmpty={!position.memberId}
               onClick={() => handleEmptySlotClick(position)}
+              isVisible={movingFieldPlayer !== null || !position.memberId}
+              isActive={movingFieldPlayer?.id === position.id}
             />
           ))}
 
@@ -255,7 +403,9 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
                 onPositionChange={() => {}} // No drag functionality
                 containerRef={containerRef}
                 onClick={(e) => handlePlayerClick(position, e)}
-                isSelected={substituteToSwap ? true : false}
+                onLongPress={() => handleFieldPlayerLongPress(position)}
+                isSelected={movingFieldPlayer?.id === position.id}
+                isMoveMode={movingFieldPlayer?.id === position.id}
               />
             );
           })}
@@ -264,32 +414,34 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
 
       {/* Substitutes */}
       {substitutes.length > 0 && (
-        <Card>
+        <Card className="border-primary/10">
           <CardHeader>
             <CardTitle className="text-lg">
               후보 선수 ({substitutes.length}명)
             </CardTitle>
             <CardDescription>
-              {substituteToSwap
-                ? '교체할 필드 선수를 선택하세요'
-                : '후보 선수를 클릭 후 필드 선수를 클릭하여 교체하세요'}
+              {movingFieldPlayer
+                ? "이동할 고정 슬롯이나 다른 필드 선수를 선택하세요"
+                : substituteToSwap
+                  ? "교체할 필드 선수를 선택하세요"
+                  : "후보 선수를 클릭 후 필드 선수를 클릭하여 교체하세요"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {substitutes.map((position) => {
                 const member = getMemberById(position.memberId);
                 return member ? (
                   <button
                     key={position.id}
                     onClick={() => handleSubstituteClick(position)}
-                    className={`flex items-center gap-2 p-2 rounded-lg hover:bg-muted/80 transition-colors cursor-pointer ${
+                    className={`flex items-center gap-2 rounded-2xl border p-3 transition-all cursor-pointer ${
                       substituteToSwap?.id === position.id
-                        ? 'bg-primary/20 border-2 border-primary'
-                        : 'bg-muted'
+                        ? "border-primary bg-primary/15 shadow-[0_12px_30px_rgba(200,168,88,0.16)]"
+                        : "border-border/70 bg-muted/60 hover:bg-muted/80"
                     }`}
                   >
-                    <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-white flex items-center justify-center text-white text-xs font-bold">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-gradient-to-br from-slate-300 to-slate-500 text-xs font-bold text-white shadow-md">
                       SUB
                     </div>
                     <span className="text-sm font-medium">{member.name}</span>
@@ -303,34 +455,34 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       )}
 
       {/* Legend */}
-      <Card>
+      <Card className="border-border/70 bg-muted/20">
         <CardHeader>
           <CardTitle className="text-lg">범례</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-yellow-500 border-2 border-white" />
+              <div className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-amber-300 to-yellow-500" />
               <span className="text-sm">우리팀 GK</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-blue-500 border-2 border-white" />
+              <div className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-sky-300 to-blue-500" />
               <span className="text-sm">우리팀 DF</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-green-500 border-2 border-white" />
+              <div className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-emerald-300 to-green-500" />
               <span className="text-sm">우리팀 MF</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-red-500 border-2 border-white" />
+              <div className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-rose-300 to-red-500" />
               <span className="text-sm">우리팀 FW</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-500 border-2 border-dashed border-gray-400 opacity-40" />
+              <div className="h-8 w-8 rounded-full border-2 border-dashed border-gray-300 bg-white/10 opacity-70" />
               <span className="text-sm">상대팀</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gray-400 border-2 border-white" />
+              <div className="h-8 w-8 rounded-full border-2 border-white bg-gradient-to-br from-slate-300 to-slate-500" />
               <span className="text-sm">후보</span>
             </div>
           </div>
@@ -341,9 +493,15 @@ export function TacticalBoardWidget({ teamName }: TacticalBoardWidgetProps) {
       <PositionChangeMenu
         isOpen={positionMenu.isOpen}
         position={positionMenu.position}
-        currentRole={positionMenu.playerPosition?.role || 'DF'}
+        currentRole={activeMenuPosition?.role || "DF"}
         onSelectRole={handlePositionRoleChange}
-        onClose={() => setPositionMenu({ isOpen: false, position: { x: 0, y: 0 }, playerPosition: null })}
+        onClose={() =>
+          setPositionMenu({
+            isOpen: false,
+            position: { x: 0, y: 0 },
+            playerPositionId: null,
+          })
+        }
       />
     </div>
   );

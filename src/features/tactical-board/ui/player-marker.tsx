@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import { useRef, MouseEvent as ReactMouseEvent } from 'react';
-import { MemberAvatar } from '@/entities/member/ui/member-avatar';
-import type { Member } from '@/shared/types/member';
-import type { PositionRole } from '@/shared/types/formation';
+import {
+  useRef,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
+import { MemberAvatar } from "@/entities/member/ui/member-avatar";
+import type { Member } from "@/shared/types/member";
+import type { PositionRole } from "@/shared/types/formation";
 
 interface PlayerMarkerProps {
   id: string;
@@ -14,15 +18,25 @@ interface PlayerMarkerProps {
   onPositionChange: (id: string, x: number, y: number) => void;
   containerRef: React.RefObject<HTMLDivElement | null>;
   onClick?: (e: React.MouseEvent) => void;
+  onLongPress?: () => void;
   isSelected?: boolean;
+  isMoveMode?: boolean;
 }
 
 const ROLE_COLORS = {
-  GK: 'bg-yellow-500',
-  DF: 'bg-blue-500',
-  MF: 'bg-green-500',
-  FW: 'bg-red-500',
-  SUB: 'bg-gray-400',
+  GK: "from-amber-300 to-yellow-500",
+  DF: "from-sky-300 to-blue-500",
+  MF: "from-emerald-300 to-green-500",
+  FW: "from-rose-300 to-red-500",
+  SUB: "from-slate-300 to-slate-500",
+};
+
+const ROLE_BADGES = {
+  GK: "GK",
+  DF: "DF",
+  MF: "MF",
+  FW: "FW",
+  SUB: "SUB",
 };
 
 export function PlayerMarker({
@@ -31,13 +45,51 @@ export function PlayerMarker({
   y,
   role,
   onClick,
+  onLongPress,
   isSelected = false,
+  isMoveMode = false,
 }: PlayerMarkerProps) {
   const markerRef = useRef<HTMLDivElement>(null);
+  const longPressTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const shouldSuppressClickRef = useRef(false);
+
+  const clearLongPressTimer = () => {
+    if (longPressTimerRef.current) {
+      clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  };
+
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "mouse" && event.button !== 0) {
+      return;
+    }
+
+    shouldSuppressClickRef.current = false;
+    clearLongPressTimer();
+
+    if (!onLongPress) {
+      return;
+    }
+
+    longPressTimerRef.current = setTimeout(() => {
+      shouldSuppressClickRef.current = true;
+      onLongPress();
+    }, 420);
+  };
+
+  const handlePointerEnd = () => {
+    clearLongPressTimer();
+  };
 
   const handleClick = (e: ReactMouseEvent) => {
     // Prevent event bubbling
     e.stopPropagation();
+
+    if (shouldSuppressClickRef.current) {
+      shouldSuppressClickRef.current = false;
+      return;
+    }
 
     if (onClick) {
       onClick(e);
@@ -48,36 +100,51 @@ export function PlayerMarker({
     <div
       ref={markerRef}
       className={`absolute cursor-pointer transition-all opacity-100 z-10 ${
-        isSelected ? 'ring-4 ring-primary ring-offset-2 rounded-full' : ''
+        isSelected ? "ring-4 ring-primary ring-offset-2 rounded-full" : ""
       }`}
       style={{
         left: `${x}%`,
         top: `${y}%`,
-        transform: 'translate(-50%, -50%)',
+        transform: "translate(-50%, -50%)",
       }}
+      onPointerDown={handlePointerDown}
+      onPointerUp={handlePointerEnd}
+      onPointerLeave={handlePointerEnd}
+      onPointerCancel={handlePointerEnd}
       onClick={handleClick}
     >
       <div className="relative">
         {/* Player avatar/marker */}
         {member ? (
-          <div className="flex flex-col items-center gap-1">
-            <div className="rounded-full border-2 border-white shadow-lg">
-              <MemberAvatar
-                src={member.profile_photo}
-                alt={member.name}
-                size="sm"
-                bgColor={ROLE_COLORS[role]}
+          <div className="flex flex-col items-center gap-1.5">
+            <div className="relative">
+              <div
+                className={`absolute inset-0 rounded-full bg-gradient-to-br ${ROLE_COLORS[role]} blur-md opacity-80`}
               />
+              <div className="relative rounded-full border-2 border-white/95 bg-white/15 p-[2px] shadow-[0_10px_30px_rgba(0,0,0,0.28)] backdrop-blur-md">
+                <MemberAvatar
+                  src={member.profile_photo}
+                  alt={member.name}
+                  size="sm"
+                  bgColor={`bg-gradient-to-br ${ROLE_COLORS[role]}`}
+                />
+              </div>
+              <div className="absolute -right-1 -top-1 rounded-full border border-white/60 bg-black/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-md">
+                {ROLE_BADGES[role]}
+              </div>
             </div>
-            <div className="bg-black/70 text-white text-xs px-2 py-0.5 rounded whitespace-nowrap">
+            {isMoveMode ? (
+              <div className="absolute -inset-3 rounded-full border-2 border-dashed border-primary/90 animate-pulse" />
+            ) : null}
+            <div className="rounded-full border border-white/10 bg-black/72 px-2.5 py-1 text-[11px] font-medium tracking-tight text-white shadow-lg backdrop-blur-md whitespace-nowrap">
               {member.name}
             </div>
           </div>
         ) : (
           <div
-            className={`w-10 h-10 rounded-full border-2 border-white shadow-lg ${ROLE_COLORS[role]} flex items-center justify-center`}
+            className={`flex h-12 w-12 items-center justify-center rounded-full border-2 border-white/70 bg-gradient-to-br ${ROLE_COLORS[role]} shadow-[0_10px_30px_rgba(0,0,0,0.28)]`}
           >
-            <span className="text-white text-xs font-bold">{role}</span>
+            <span className="text-[11px] font-bold text-white">{role}</span>
           </div>
         )}
       </div>
