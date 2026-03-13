@@ -14,6 +14,55 @@ import {
 
 const splashDurationMs = 2000;
 
+function TheRunMark({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 64 64"
+      aria-hidden="true"
+      className={className}
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <circle cx="40" cy="11" r="6" fill="currentColor" />
+      <path
+        d="M34 22L41 19L49 26"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M41 19L35 32L25 39"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M36 31L48 35L56 28"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M35 32L30 50"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M46 35L52 51"
+        stroke="currentColor"
+        strokeWidth="5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 const landingSlides: MobileLandingSlide[] = [
   {
     eyebrow: "Saturday Readiness",
@@ -136,11 +185,7 @@ function LandingBootScreen() {
               }}
               className="absolute inset-4 rounded-full border border-primary/18"
             />
-            <div className="relative flex h-28 w-28 items-center justify-center">
-              <div className="absolute h-20 w-[4px] rounded-full bg-white shadow-[0_0_24px_rgba(255,255,255,0.45)]" />
-              <div className="absolute bottom-[22px] h-[4px] w-14 rounded-full bg-primary shadow-[0_0_24px_rgba(200,168,88,0.55)]" />
-              <div className="absolute top-[14px] h-4 w-4 rounded-full bg-primary shadow-[0_0_22px_rgba(200,168,88,0.68)]" />
-            </div>
+            <TheRunMark className="relative h-24 w-24 text-white drop-shadow-[0_0_22px_rgba(200,168,88,0.42)]" />
           </motion.div>
 
           <div className="space-y-3 text-center">
@@ -211,11 +256,7 @@ export function HomePageContent() {
           >
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/12 bg-white/7 shadow-[0_10px_30px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-                <div className="relative flex h-5 w-5 items-center justify-center">
-                  <div className="absolute h-5 w-[2px] rounded-full bg-white/90" />
-                  <div className="absolute bottom-[5px] h-[2px] w-4 rounded-full bg-primary/90" />
-                  <div className="absolute top-[1px] h-[5px] w-[5px] rounded-full bg-primary shadow-[0_0_8px_rgba(200,168,88,0.45)]" />
-                </div>
+                <TheRunMark className="h-5 w-5 text-white" />
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.36em] text-white/46">
