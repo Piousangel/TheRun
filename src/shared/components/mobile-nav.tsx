@@ -95,7 +95,7 @@ export function MobileNav() {
   );
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-border/70 bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl md:hidden">
       <div className="mx-auto flex h-20 max-w-xl items-center justify-between gap-2 px-3">
         {primaryItems.map(({ href, label, shortLabel, icon: Icon }) => {
           const isActive = isRouteActive(pathname, href);
@@ -139,7 +139,7 @@ export function MobileNav() {
             </button>
           </DrawerTrigger>
 
-          <DrawerContent>
+          <DrawerContent className="border-primary/30 bg-[linear-gradient(180deg,rgba(255,249,235,0.99),rgba(255,255,255,1))] shadow-[0_-36px_110px_rgba(0,0,0,0.36)]">
             <DrawerHeader>
               <DrawerTitle>빠른 이동</DrawerTitle>
               <DrawerDescription>
@@ -148,7 +148,7 @@ export function MobileNav() {
               </DrawerDescription>
             </DrawerHeader>
 
-            <div className="grid gap-3 pt-2">
+            <div className="grid gap-3 pt-3">
               {secondaryItems.map(({ href, label, shortLabel, icon: Icon }) => {
                 const isActive = isRouteActive(pathname, href);
 
@@ -157,17 +157,19 @@ export function MobileNav() {
                     <Link
                       href={href}
                       className={cn(
-                        "flex items-center justify-between rounded-[1.35rem] border px-4 py-4 transition-all duration-200",
+                        "flex items-center justify-between rounded-[1.35rem] border px-4 py-4 shadow-[0_14px_34px_rgba(15,23,42,0.06)] transition-all duration-200",
                         isActive
-                          ? "border-primary/25 bg-primary/10 text-primary"
-                          : "border-border/70 bg-muted/20 hover:border-primary/20 hover:bg-primary/5",
+                          ? "border-primary/30 bg-primary/12 text-primary shadow-[0_20px_44px_rgba(200,168,88,0.18)]"
+                          : "border-border/70 bg-white/95 hover:border-primary/25 hover:bg-primary/5",
                       )}
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={cn(
-                            "flex h-11 w-11 items-center justify-center rounded-2xl",
-                            isActive ? "bg-primary/12" : "bg-background",
+                            "flex h-11 w-11 items-center justify-center rounded-2xl border",
+                            isActive
+                              ? "border-primary/15 bg-primary/12"
+                              : "border-border/60 bg-background",
                           )}
                         >
                           <Icon className="h-5 w-5" />
