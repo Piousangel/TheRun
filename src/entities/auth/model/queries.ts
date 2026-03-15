@@ -3,6 +3,11 @@
 import type { User } from "@supabase/supabase-js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/shared/api/supabase/config";
+import {
+  MASKED_MEMBER_PHONE_NUMBER,
+  normalizePhoneNumber,
+} from "@/shared/lib/utils";
+import { memberKeys } from "@/entities/member/model/queries";
 import type { AppProfile } from "@/shared/types/auth";
 import type { Member } from "@/shared/types/member";
 
@@ -12,6 +17,67 @@ export const authKeys = {
   claimableMembers: (userId?: string) =>
     [...authKeys.all, "claimable-members", userId] as const,
 };
+
+interface RpcErrorLike {
+  code?: string;
+  details?: string | null;
+  hint?: string | null;
+  message: string;
+}
+
+function isRpcErrorLike(error: unknown): error is RpcErrorLike {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  );
+}
+
+function isRpcContractError(error: unknown, functionName?: string) {
+  if (!isRpcErrorLike(error)) {
+    return false;
+  }
+
+  if (["PGRST202", "PGRST203", "42883"].includes(error.code ?? "")) {
+    return true;
+  }
+
+  const functionPattern = functionName
+    ? `${functionName}|${functionName.replace(/_/g, " ")}`
+    : "";
+
+  return new RegExp(
+    [
+      "function",
+      "signature",
+      "No function matches",
+      "Could not find the function",
+      "Could not choose the best candidate",
+      functionPattern,
+      "input_phone",
+    ]
+      .filter(Boolean)
+      .join("|"),
+    "i",
+  ).test(error.message);
+}
+
+function getLinkMemberErrorMessage(error: unknown) {
+  if (!isRpcErrorLike(error)) {
+    return "멤버 연결에 실패했습니다.";
+  }
+
+  if (error.code === "PGRST203") {
+    return "서버의 멤버 연결 함수가 중복되어 연결에 실패했습니다. 관리자에게 최신 마이그레이션 정리를 요청해주세요.";
+  }
+
+  if (error.code === "PGRST202" || error.code === "42883") {
+    return "서버의 멤버 연결 함수 구성이 오래되어 연결에 실패했습니다. 관리자에게 최신 마이그레이션 적용을 요청해주세요.";
+  }
+
+  return error.message;
+}
 
 async function ensureProfile(user: User): Promise<AppProfile> {
   const { data: existingProfile, error: selectError } = await supabase
@@ -96,38 +162,59 @@ export function useLinkMemberProfile(userId: string | null) {
           target_member_id: memberId,
         });
 
+      const attemptLegacyContract = async (inputPhone: string) =>
+        supabase.rpc("link_my_member", {
+          target_member_id: memberId,
+          input_phone: inputPhone,
+        });
+
+      const normalizedPhoneNumber = normalizePhoneNumber(phoneNumber ?? "");
+
       let { data, error } = await attemptCurrentContract();
 
-      const shouldRetryWithLegacyPhone =
-        !!error &&
-        /function|signature|input_phone|No function matches/i.test(
-          error.message,
-        );
+      const shouldRetryWithLegacyPhone = isRpcContractError(
+        error,
+        "link_my_member",
+      );
 
       if (shouldRetryWithLegacyPhone) {
-        if (!phoneNumber?.trim()) {
+        if (!normalizedPhoneNumber) {
           throw new Error(
             "현재 서버는 전화번호 확인 방식의 멤버 연결을 사용 중입니다. 전화번호를 입력한 뒤 다시 시도해주세요.",
           );
         }
 
-        ({ data, error } = await supabase.rpc("link_my_member", {
-          target_member_id: memberId,
-          input_phone: phoneNumber.trim(),
-        }));
+        ({ data, error } = await attemptLegacyContract(normalizedPhoneNumber));
+
+        const shouldRetryWithMaskedPhone =
+          !!error &&
+          /전화번호가 일치하지 않습니다/.test(error.message) &&
+          normalizedPhoneNumber !== MASKED_MEMBER_PHONE_NUMBER;
+
+        if (shouldRetryWithMaskedPhone) {
+          ({ data, error } = await attemptLegacyContract(
+            MASKED_MEMBER_PHONE_NUMBER,
+          ));
+        }
       }
 
       if (error) {
-        throw error;
+        throw new Error(getLinkMemberErrorMessage(error));
       }
 
       return data as AppProfile;
     },
-    onSuccess: () => {
+    onSuccess: (profile) => {
       queryClient.invalidateQueries({
         queryKey: authKeys.profile(userId ?? undefined),
       });
       queryClient.invalidateQueries({ queryKey: ["members"] });
+      queryClient.invalidateQueries({ queryKey: memberKeys.details() });
+      if (profile.member_id) {
+        queryClient.invalidateQueries({
+          queryKey: memberKeys.detail(profile.member_id),
+        });
+      }
       queryClient.invalidateQueries({
         queryKey: authKeys.claimableMembers(userId ?? undefined),
       });
@@ -146,7 +233,7 @@ export function useClaimableMembers(userId: string | null) {
       const { data, error } = await supabase.rpc("get_claimable_members");
 
       if (error) {
-        if (/function|signature|get_claimable_members/i.test(error.message)) {
+        if (isRpcContractError(error, "get_claimable_members")) {
           return null;
         }
         throw error;
@@ -176,7 +263,7 @@ export function useUpdateMyMemberProfile(userId: string | null) {
 
       const { data, error } = await supabase.rpc("update_my_member_profile", {
         input_name: name.trim(),
-        input_phone: phoneNumber.trim(),
+        input_phone: normalizePhoneNumber(phoneNumber),
       });
 
       if (error) {
