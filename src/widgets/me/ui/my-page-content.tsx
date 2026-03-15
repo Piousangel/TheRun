@@ -476,6 +476,9 @@ export function MyPageContent() {
 
                 <Input
                   id="legacy_phone_number"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  maxLength={13}
                   value={phoneNumber}
                   onChange={(event) => setPhoneNumber(event.target.value)}
                   onBlur={(event) =>
