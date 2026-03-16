@@ -7,61 +7,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { useAuth } from "@/providers/auth-provider";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { TheRunLogo } from "@/shared/ui/the-run-logo";
 import {
   MobileLandingCarousel,
   type MobileLandingSlide,
 } from "./mobile-landing-carousel";
 
 const splashDurationMs = 2000;
-
-function TheRunMark({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <circle cx="40" cy="11" r="6" fill="currentColor" />
-      <path
-        d="M34 22L41 19L49 26"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M41 19L35 32L25 39"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M36 31L48 35L56 28"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M35 32L30 50"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M46 35L52 51"
-        stroke="currentColor"
-        strokeWidth="5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 const landingSlides: MobileLandingSlide[] = [
   {
@@ -185,7 +137,7 @@ function LandingBootScreen() {
               }}
               className="absolute inset-4 rounded-full border border-primary/18"
             />
-            <TheRunMark className="relative h-24 w-24 text-white drop-shadow-[0_0_22px_rgba(200,168,88,0.42)]" />
+            <TheRunLogo className="relative h-28 w-28" tone="light" />
           </motion.div>
 
           <div className="space-y-3 text-center">
@@ -256,7 +208,7 @@ export function HomePageContent() {
           >
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/12 bg-white/7 shadow-[0_10px_30px_rgba(0,0,0,0.22)] backdrop-blur-xl">
-                <TheRunMark className="h-5 w-5 text-white" />
+                <TheRunLogo className="h-7 w-7" tone="light" />
               </div>
               <div>
                 <p className="text-[11px] uppercase tracking-[0.36em] text-white/46">
@@ -291,6 +243,25 @@ export function HomePageContent() {
             data-testid="login-cta"
             className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+1rem)] z-10 sm:inset-x-6 md:inset-x-8 lg:inset-x-10 lg:bottom-8"
           >
+            <div className="mx-auto mb-3 flex max-w-5xl items-center justify-between gap-3 px-1 sm:px-2">
+              <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/6 px-3 py-2 backdrop-blur-xl">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/8">
+                  <TheRunLogo className="h-5.5 w-5.5" tone="light" />
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-white/48">
+                    Runner brand
+                  </p>
+                  <p className="mt-0.5 text-xs font-medium text-white/88">
+                    빠른 진입과 운영 리듬을 같은 마크로 연결
+                  </p>
+                </div>
+              </div>
+              <div className="hidden rounded-full border border-white/10 bg-black/18 px-3 py-2 text-[10px] uppercase tracking-[0.24em] text-white/52 backdrop-blur-xl sm:block">
+                Weekly motion system
+              </div>
+            </div>
+
             <div className="mx-auto max-w-5xl overflow-hidden rounded-[2rem] border border-white/10 bg-black/42 p-3 shadow-[0_28px_100px_rgba(0,0,0,0.42)] backdrop-blur-2xl sm:p-4 lg:p-5">
               <div className="flex flex-col gap-4 rounded-[1.65rem] border border-white/8 bg-[linear-gradient(145deg,rgba(255,255,255,0.07),rgba(255,255,255,0.03))] p-4 sm:p-5 lg:flex-row lg:items-end lg:justify-between lg:p-6">
                 <div className="space-y-3">
@@ -306,6 +277,7 @@ export function HomePageContent() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 text-xs text-white/58">
+                    <span className="landing-chip">The Run runner mark</span>
                     <span className="landing-chip">하단 안전 영역 최적화</span>
                     <span className="landing-chip">
                       자동 슬라이드 + 직접 스와이프
@@ -348,7 +320,7 @@ export function HomePageContent() {
               </div>
               <div className="flex items-center gap-2 text-white/52">
                 <Sparkles className="h-3.5 w-3.5 text-primary/70" />
-                <span>New landing sequence</span>
+                <span>New landing sequence with runner identity</span>
               </div>
             </div>
           </motion.div>

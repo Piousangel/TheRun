@@ -11,7 +11,9 @@ import {
   UserPlus,
   Vote,
 } from "lucide-react";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
+import { TheRunLogo } from "@/shared/ui/the-run-logo";
 import {
   Card,
   CardContent,
@@ -58,9 +60,27 @@ export function ClubGuidePageContent() {
       <section className="editorial-hero relative overflow-hidden border-b border-border/70 text-white">
         <div className="editorial-glow-gold absolute left-0 top-0 h-64 w-64 rounded-full" />
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 lg:px-10">
-          <p className="text-sm uppercase tracking-[0.24em] text-primary/85">
-            Club Guide
-          </p>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3 rounded-full border border-white/12 bg-white/8 px-3 py-2 backdrop-blur-xl">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10">
+                <TheRunLogo className="h-6 w-6" tone="light" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-[0.3em] text-primary/75">
+                  Club Guide
+                </p>
+                <p className="mt-0.5 text-xs text-white/76">
+                  Runner-first operating playbook
+                </p>
+              </div>
+            </div>
+            <Badge className="border-white/10 bg-white/10 text-white hover:bg-white/10">
+              Weekly routine
+            </Badge>
+            <Badge className="border-white/10 bg-white/10 text-white hover:bg-white/10">
+              Onboarding ready
+            </Badge>
+          </div>
           <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
             The Run 운영 가이드
           </h1>
@@ -107,7 +127,7 @@ export function ClubGuidePageContent() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="border-primary/15 bg-[linear-gradient(160deg,rgba(255,249,235,0.98),rgba(255,255,255,0.98))]">
             <CardHeader>
               <CardTitle className="text-2xl">운영자 역할 정리</CardTitle>
               <CardDescription>
@@ -117,7 +137,10 @@ export function ClubGuidePageContent() {
             </CardHeader>
             <CardContent className="grid gap-3 sm:grid-cols-2">
               {adminRoles.map((item) => (
-                <div key={item} className="rounded-2xl border bg-muted/30 p-4">
+                <div
+                  key={item}
+                  className="rounded-2xl border border-primary/10 bg-white/80 p-4 shadow-[0_10px_24px_rgba(15,23,42,0.04)]"
+                >
                   <ShieldCheck className="h-4 w-4 text-primary" />
                   <p className="mt-3 text-sm font-medium leading-6">{item}</p>
                 </div>
@@ -126,7 +149,7 @@ export function ClubGuidePageContent() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="border-primary/15 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,246,236,0.94))]">
           <CardHeader>
             <CardTitle className="text-2xl">주간 운영 루틴</CardTitle>
             <CardDescription>
@@ -135,13 +158,13 @@ export function ClubGuidePageContent() {
             </CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 lg:grid-cols-3">
-            {weeklyOps.map(({ title, body, icon: Icon }) => (
-              <div
-                key={title}
-                className="rounded-3xl border bg-background p-5 shadow-sm"
-              >
-                <Icon className="h-5 w-5 text-primary" />
-                <p className="mt-4 text-lg font-semibold">{title}</p>
+              {weeklyOps.map(({ title, body, icon: Icon }) => (
+                <div
+                  key={title}
+                  className="rounded-3xl border border-primary/10 bg-background p-5 shadow-sm"
+                >
+                  <Icon className="h-5 w-5 text-primary" />
+                  <p className="mt-4 text-lg font-semibold">{title}</p>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   {body}
                 </p>
