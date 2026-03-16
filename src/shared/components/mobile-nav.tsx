@@ -17,6 +17,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/shared/lib/utils";
+import { TheRunLogo } from "@/shared/ui/the-run-logo";
 import {
   DrawerClose,
   Drawer,
@@ -96,7 +97,27 @@ export function MobileNav() {
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-background/92 pb-[env(safe-area-inset-bottom)] backdrop-blur-2xl md:hidden">
-      <div className="mx-auto flex h-20 max-w-xl items-center justify-between gap-2 px-3">
+      <div className="mx-auto max-w-xl px-3 pb-2 pt-2">
+        <div className="mb-2 flex items-center justify-between rounded-[1.15rem] border border-primary/10 bg-[linear-gradient(160deg,rgba(200,168,88,0.1),rgba(255,255,255,0.92))] px-3 py-2.5 shadow-[0_10px_24px_rgba(200,168,88,0.08)]">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/15 bg-white/80">
+              <TheRunLogo className="h-5.5 w-5.5" />
+            </div>
+            <div>
+              <p className="text-[10px] font-medium uppercase tracking-[0.24em] text-primary/80">
+                The Run
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Weekly club flow
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-medium uppercase tracking-[0.18em] text-primary/75">
+            Mobile ready
+          </span>
+        </div>
+
+        <div className="flex h-20 items-center justify-between gap-2">
         {primaryItems.map(({ href, label, shortLabel, icon: Icon }) => {
           const isActive = isRouteActive(pathname, href);
 
@@ -141,10 +162,20 @@ export function MobileNav() {
 
           <DrawerContent className="border-primary/30 bg-[linear-gradient(180deg,rgba(255,249,235,0.99),rgba(255,255,255,1))] shadow-[0_-36px_110px_rgba(0,0,0,0.36)]">
             <DrawerHeader>
-              <DrawerTitle>빠른 이동</DrawerTitle>
+              <div className="flex items-center gap-3 rounded-[1.25rem] border border-primary/12 bg-[linear-gradient(160deg,rgba(200,168,88,0.1),rgba(255,255,255,0.96))] px-3 py-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-primary/15 bg-white/80">
+                  <TheRunLogo className="h-7 w-7" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-primary/75">
+                    The Run
+                  </p>
+                  <DrawerTitle className="mt-1">빠른 이동</DrawerTitle>
+                </div>
+              </div>
               <DrawerDescription>
-                자주 쓰는 화면은 아래에 고정하고, 나머지 관리 메뉴는 이곳에
-                정리했습니다.
+                자주 쓰는 화면은 아래에 고정하고, 나머지 운영 메뉴는 러닝
+                흐름이 끊기지 않도록 이곳에 정리했습니다.
               </DrawerDescription>
             </DrawerHeader>
 
@@ -193,6 +224,7 @@ export function MobileNav() {
             </div>
           </DrawerContent>
         </Drawer>
+        </div>
       </div>
     </nav>
   );

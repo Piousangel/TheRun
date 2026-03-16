@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { TheRunLogo } from "@/shared/ui/the-run-logo";
 
 interface AuthShellProps {
   eyebrow: string;
@@ -23,9 +24,19 @@ export function AuthShell({
       <div className="relative mx-auto grid min-h-[calc(100vh-2rem)] max-w-6xl gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:items-stretch">
         <section className="overflow-hidden rounded-[2rem] border border-primary/15 bg-[linear-gradient(165deg,rgba(17,17,19,0.96),rgba(31,30,27,0.94))] p-6 text-white shadow-[0_28px_100px_rgba(0,0,0,0.18)] lg:flex lg:flex-col lg:justify-between lg:p-8">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-primary/80">
-              {eyebrow}
-            </p>
+            <div className="flex items-center gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.05] px-4 py-4 backdrop-blur-xl">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] border border-primary/20 bg-[linear-gradient(160deg,rgba(212,175,84,0.18),rgba(255,255,255,0.08))]">
+                <TheRunLogo className="h-9 w-9" tone="light" />
+              </div>
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-primary/80">
+                  {eyebrow}
+                </p>
+                <p className="mt-1 text-sm font-medium text-white/76">
+                  Club access for real matchday flow
+                </p>
+              </div>
+            </div>
             <h1 className="mt-5 max-w-md text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
               {title}
             </h1>
@@ -37,14 +48,14 @@ export function AuthShell({
           <div className="mt-8 space-y-4 lg:mt-0">
             <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
               <p className="text-[11px] uppercase tracking-[0.28em] text-white/48">
-                Access flow
+                Brand rhythm
               </p>
               <p className="mt-3 text-lg font-semibold text-white">
-                Landing → Login → Member Link → Weekly Routine
+                Runner mark first, weekly flow second.
               </p>
               <p className="mt-2 text-sm leading-6 text-white/62">
-                첫 진입의 분위기를 유지한 채, 로그인 이후 바로 개인 응답
-                흐름으로 이어지게 설계합니다.
+                첫 화면의 러닝 에너지와 운영 제품의 신뢰감을 같은 톤으로
+                이어서, 로그인 이후에도 브랜드 인상이 흐트러지지 않게 정리합니다.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">

@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { Badge } from "@/shared/ui/badge";
+import { TheRunLogo } from "@/shared/ui/the-run-logo";
 import { cn } from "@/shared/lib/utils";
 
 interface AppChromeProps {
@@ -61,17 +62,24 @@ export function AppChrome({ children }: AppChromeProps) {
       <div className="mx-auto flex min-h-screen max-w-[1600px]">
         <aside className="hidden w-[260px] shrink-0 border-r border-border/70 bg-background/80 px-5 py-6 backdrop-blur xl:block">
           <div className="space-y-6">
-            <div className="space-y-2">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">
-                The Run
-              </p>
+            <div className="flex items-start gap-3">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.35rem] border border-primary/15 bg-[linear-gradient(160deg,rgba(200,168,88,0.16),rgba(255,255,255,0.96))] shadow-[0_14px_30px_rgba(200,168,88,0.14)]">
+                <TheRunLogo className="h-9 w-9" />
+              </div>
               <div>
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-primary">
+                  The Run
+                </p>
                 <h2 className="text-2xl font-semibold tracking-tight">
                   Club OS
                 </h2>
                 <p className="mt-1 text-sm leading-6 text-muted-foreground">
                   동호회 운영을 위한 실제 앱 워크스페이스
                 </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant="secondary">Runner mark</Badge>
+                  <Badge variant="secondary">Weekly ops</Badge>
+                </div>
               </div>
             </div>
 
@@ -90,6 +98,9 @@ export function AppChrome({ children }: AppChromeProps) {
                 {member
                   ? `${member.name}님으로 사용 중`
                   : "계정 연결 상태를 확인하세요."}
+              </p>
+              <p className="mt-3 text-xs uppercase tracking-[0.2em] text-primary/70">
+                Ready for Saturday flow
               </p>
             </div>
 
