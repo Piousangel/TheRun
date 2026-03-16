@@ -14,6 +14,7 @@ import type { Member } from "@/shared/types/member";
 export const authKeys = {
   all: ["auth"] as const,
   profile: (userId?: string) => [...authKeys.all, "profile", userId] as const,
+  adminProfiles: () => [...authKeys.all, "admin-profiles"] as const,
   claimableMembers: (userId?: string) =>
     [...authKeys.all, "claimable-members", userId] as const,
 };
@@ -79,6 +80,14 @@ function getLinkMemberErrorMessage(error: unknown) {
   return error.message;
 }
 
+function getRoleManagementErrorMessage(error: unknown) {
+  if (!isRpcErrorLike(error)) {
+    return "역할 변경에 실패했습니다.";
+  }
+
+  return error.message;
+}
+
 async function ensureProfile(user: User): Promise<AppProfile> {
   const { data: existingProfile, error: selectError } = await supabase
     .from("app_profiles")
@@ -139,6 +148,62 @@ export function useAuthProfile(user: User | null) {
       return ensureProfile(user);
     },
     enabled: !!user,
+  });
+}
+
+export function useAdminProfiles(enabled: boolean) {
+  return useQuery({
+    queryKey: authKeys.adminProfiles(),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_profiles")
+        .select("*")
+        .order("role", { ascending: false })
+        .order("email", { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      return (data ?? []) as AppProfile[];
+    },
+    enabled,
+  });
+}
+
+export function useUpdateAppProfileRole(userId: string | null) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      profileId,
+      role,
+    }: {
+      profileId: string;
+      role: Extract<AppProfile["role"], "member" | "admin">;
+    }) => {
+      if (!userId) {
+        throw new Error("로그인이 필요합니다.");
+      }
+
+      const { data, error } = await supabase.rpc("set_app_profile_role", {
+        target_profile_id: profileId,
+        next_role: role,
+      });
+
+      if (error) {
+        throw new Error(getRoleManagementErrorMessage(error));
+      }
+
+      return data as AppProfile;
+    },
+    onSuccess: (profile) => {
+      queryClient.invalidateQueries({ queryKey: authKeys.adminProfiles() });
+      queryClient.invalidateQueries({
+        queryKey: authKeys.profile(profile.id),
+      });
+      queryClient.invalidateQueries({ queryKey: ["members"] });
+    },
   });
 }
 

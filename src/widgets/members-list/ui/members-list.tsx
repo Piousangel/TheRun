@@ -6,6 +6,7 @@ import { MemberCard } from "@/entities/member/ui/member-card";
 import { MemberCreateForm } from "@/features/member-create/ui/member-create-form";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/shared/ui/button";
+import { RoleManagementPanel } from "./role-management-panel";
 import {
   Drawer,
   DrawerContent,
@@ -98,6 +99,8 @@ export function MembersList() {
             tone="muted"
           />
         </div>
+
+        <RoleManagementPanel members={members ?? []} />
 
         {members && members.length === 0 ? (
           <StatePanel
