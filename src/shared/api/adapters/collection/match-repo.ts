@@ -1,5 +1,5 @@
 import type { Collection } from '@/shared/api/adapters/collection/collection';
-import { newId } from '@/shared/api/adapters/collection/member-repo';
+import { newId } from '@/shared/lib/id';
 import type { MatchRepo } from '@/shared/api/ports/match-repo';
 import type { Match } from '@/shared/types/match';
 

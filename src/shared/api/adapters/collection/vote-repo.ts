@@ -1,5 +1,5 @@
 import type { Collection } from '@/shared/api/adapters/collection/collection';
-import { newId } from '@/shared/api/adapters/collection/member-repo';
+import { newId } from '@/shared/lib/id';
 import { withSingleActiveMatchSession } from '@/shared/api/adapters/single-active-match';
 import type { VoteRepo, VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
 import type { Member } from '@/shared/types/member';

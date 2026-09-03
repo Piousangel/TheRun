@@ -1,5 +1,5 @@
 import type { Collection } from '@/shared/api/adapters/collection/collection';
-import { newId } from '@/shared/api/adapters/collection/member-repo';
+import { newId } from '@/shared/lib/id';
 import type { AnnouncementRepo } from '@/shared/api/ports/announcement-repo';
 import type { Announcement, AnnouncementRead } from '@/shared/types/announcement';
 

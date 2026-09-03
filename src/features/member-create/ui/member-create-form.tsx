@@ -13,6 +13,7 @@ import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { Slider } from "@/shared/ui/slider";
 import { STAT_LABELS, DEFAULT_STATS } from "@/shared/lib/constants";
+import { newId } from "@/shared/lib/id";
 
 interface MemberCreateFormProps {
   onSuccess: () => void;
@@ -45,7 +46,7 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
 
     try {
       if (data.profile_photo) {
-        const tempId = crypto.randomUUID();
+        const tempId = newId();
         photoUrl = await getApi().members.uploadPhoto(data.profile_photo, tempId);
       }
 
