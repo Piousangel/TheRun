@@ -152,7 +152,7 @@ import '@testing-library/jest-dom/vitest';
 import 'fake-indexeddb/auto';
 ```
 
-`tsconfig.json`의 `compilerOptions`에 `"types": ["vitest/globals", "@testing-library/jest-dom"]` 추가. `include`에 `"vitest.setup.ts"` 추가.
+`tsconfig.json`의 `compilerOptions`에 `"types": ["node", "vitest/globals", "@testing-library/jest-dom"]` 추가. `include`에 `"vitest.setup.ts"` 추가.
 
 `.gitignore` 끝에 추가:
 
