@@ -11,7 +11,7 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['node_modules/**', '.next/**', 'out/**', 'coverage/**'],
+    ignores: ['node_modules/**', '.next/**', 'out/**', 'coverage/**', 'next-env.d.ts', 'tailwind.config.ts'],
   },
   ...compat.extends('next/core-web-vitals', 'next/typescript'),
 ];
