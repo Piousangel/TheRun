@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useCreateMember } from "@/entities/member/model/queries";
 import { getApi } from "@/shared/api/client";
-import { memberCreateSchema, type MemberCreateFormData } from "../model/schema";
+import { memberCreateSchema, type MemberCreateFormData } from "@/features/member-create/model/schema";
 import { Button } from "@/shared/ui/button";
 import { FormSection } from "@/shared/ui/form-section";
 import { Input } from "@/shared/ui/input";

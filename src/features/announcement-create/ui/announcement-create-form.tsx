@@ -7,7 +7,7 @@ import { useCreateAnnouncement } from "@/entities/announcement/model/queries";
 import {
   announcementCreateSchema,
   type AnnouncementCreateFormData,
-} from "../model/schema";
+} from "@/features/announcement-create/model/schema";
 import { Button } from "@/shared/ui/button";
 import { FormSection } from "@/shared/ui/form-section";
 import { Input } from "@/shared/ui/input";

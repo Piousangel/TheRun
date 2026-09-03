@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import { getMemberPhoneDisplay } from "@/shared/lib/utils";
-import { MemberAvatar } from "./member-avatar";
+import { MemberAvatar } from "@/entities/member/ui/member-avatar";
 import type { Member } from "@/shared/types/member";
 import { ArrowRight, Sparkles } from "lucide-react";
 

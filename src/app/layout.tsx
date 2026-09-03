@@ -6,7 +6,7 @@ import { isLocalAdapter } from '@/shared/api/client';
 import { MobileNav } from '@/shared/components/mobile-nav';
 import { AppChrome } from '@/shared/ui/app-chrome';
 import { Toaster } from 'sonner';
-import './globals.css';
+import '@/app/globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('http://localhost:3000'),

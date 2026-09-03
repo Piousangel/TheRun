@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
-import { MatchGameCardEnhanced } from "./match-game-card-enhanced";
+import { MatchGameCardEnhanced } from "@/features/match-schedule/ui/match-game-card-enhanced";
 import { ArrowRight, Calendar, Plus, Sparkles } from "lucide-react";
 import type { VoteSession } from "@/shared/types/vote";
 

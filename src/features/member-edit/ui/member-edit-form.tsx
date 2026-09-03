@@ -6,7 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useUpdateMember } from "@/entities/member/model/queries";
 import { getApi } from "@/shared/api/client";
-import { memberEditSchema, type MemberEditFormData } from "../model/schema";
+import { memberEditSchema, type MemberEditFormData } from "@/features/member-edit/model/schema";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";

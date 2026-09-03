@@ -12,7 +12,7 @@ import type { Member } from "@/shared/types/member";
 import {
   accountMemberEditSchema,
   type AccountMemberEditFormData,
-} from "../model/schema";
+} from "@/features/account-member-edit/model/schema";
 
 interface AccountMemberEditFormProps {
   member: Member;
