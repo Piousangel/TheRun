@@ -1,12 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/shared/api/supabase/config';
-import type {
-  VoteSession,
-  VoteResponse,
-  CreateVoteSessionData,
-  UpdateVoteSessionData,
-} from '@/shared/types/vote';
-import type { Member } from '@/shared/types/member';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getApi } from '@/shared/api/client';
+import type { RespondInput } from '@/shared/api/ports/vote-repo';
+import type { CreateVoteSessionData, UpdateVoteSessionData, VoteSession } from '@/shared/types/vote';
 
 export const voteKeys = {
   all: ['votes'] as const,
@@ -17,89 +12,38 @@ export const voteKeys = {
   activeSessions: () => [...voteKeys.all, 'active-sessions'] as const,
 };
 
-// Query: Get all vote sessions
 export function useVoteSessions() {
-  return useQuery({
-    queryKey: voteKeys.sessions(),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vote_sessions')
-        .select('*')
-        .order('event_date', { ascending: false });
-
-      if (error) throw error;
-      return data as VoteSession[];
-    },
-  });
+  return useQuery({ queryKey: voteKeys.sessions(), queryFn: () => getApi().votes.listSessions() });
 }
 
-// Query: Get active vote sessions
 export function useActiveVoteSessions() {
-  return useQuery({
-    queryKey: voteKeys.activeSessions(),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vote_sessions')
-        .select('*')
-        .eq('is_active', true)
-        .order('event_date', { ascending: true });
-
-      if (error) throw error;
-      return data as VoteSession[];
-    },
-  });
+  return useQuery({ queryKey: voteKeys.activeSessions(), queryFn: () => getApi().votes.listActiveSessions() });
 }
 
-// Query: Get single vote session
 export function useVoteSession(id: string) {
   return useQuery({
     queryKey: voteKeys.session(id),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vote_sessions')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      return data as VoteSession;
+    queryFn: async (): Promise<VoteSession> => {
+      const session = await getApi().votes.getSession(id);
+      if (!session) throw new Error('투표를 찾을 수 없습니다.');
+      return session;
     },
     enabled: !!id,
   });
 }
 
-// Query: Get responses for a session
 export function useVoteResponses(sessionId: string) {
   return useQuery({
     queryKey: voteKeys.responsesBySession(sessionId),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('vote_responses')
-        .select('*, members(*)')
-        .eq('session_id', sessionId);
-
-      if (error) throw error;
-      return data as (VoteResponse & { members: Member | null })[];
-    },
+    queryFn: () => getApi().votes.listResponses(sessionId),
     enabled: !!sessionId,
   });
 }
 
-// Mutation: Create vote session
 export function useCreateVoteSession() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (data: CreateVoteSessionData) => {
-      const { data: session, error } = await supabase
-        .from('vote_sessions')
-        .insert({ ...data, is_active: true })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return session as VoteSession;
-    },
+    mutationFn: (data: CreateVoteSessionData) => getApi().votes.createSession(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: voteKeys.sessions() });
       queryClient.invalidateQueries({ queryKey: voteKeys.activeSessions() });
@@ -107,22 +51,10 @@ export function useCreateVoteSession() {
   });
 }
 
-// Mutation: Update vote session
 export function useUpdateVoteSession() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateVoteSessionData }) => {
-      const { data: session, error } = await supabase
-        .from('vote_sessions')
-        .update(data)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return session as VoteSession;
-    },
+    mutationFn: ({ id, data }: { id: string; data: UpdateVoteSessionData }) => getApi().votes.updateSession(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: voteKeys.session(variables.id) });
       queryClient.invalidateQueries({ queryKey: voteKeys.sessions() });
@@ -131,69 +63,20 @@ export function useUpdateVoteSession() {
   });
 }
 
-// Mutation: Vote (create or update response)
 export function useVote() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({
-      sessionId,
-      memberId,
-      status,
-    }: {
-      sessionId: string;
-      memberId: string;
-      status: 'attending' | 'absent';
-    }) => {
-      // Check if vote exists
-      const { data: existing } = await supabase
-        .from('vote_responses')
-        .select('*')
-        .eq('session_id', sessionId)
-        .eq('member_id', memberId)
-        .single();
-
-      if (existing) {
-        // Update existing vote
-        const { data, error } = await supabase
-          .from('vote_responses')
-          .update({ status })
-          .eq('id', existing.id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data as VoteResponse;
-      } else {
-        // Create new vote
-        const { data, error } = await supabase
-          .from('vote_responses')
-          .insert({ session_id: sessionId, member_id: memberId, status })
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data as VoteResponse;
-      }
-    },
+    mutationFn: (input: RespondInput) => getApi().votes.respond(input),
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: voteKeys.responsesBySession(variables.sessionId),
-      });
+      queryClient.invalidateQueries({ queryKey: voteKeys.responsesBySession(variables.sessionId) });
     },
   });
 }
 
-// Mutation: Delete vote session
 export function useDeleteVoteSession() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('vote_sessions').delete().eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => getApi().votes.removeSession(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: voteKeys.sessions() });
       queryClient.invalidateQueries({ queryKey: voteKeys.activeSessions() });
