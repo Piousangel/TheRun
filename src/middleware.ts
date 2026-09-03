@@ -33,6 +33,16 @@ export async function isAuthenticatedRequest(request: NextRequest, response: Nex
   return Boolean(data.user);
 }
 
+/**
+ * `isAuthenticatedRequest`의 supabase 분기는 갱신된 세션 쿠키를 `response`에 씌운다.
+ * 리다이렉트할 때 그 응답을 그냥 버리면 브라우저의 리프레시 토큰은 서버에서 이미 소비됐는데
+ * 새 토큰은 전달되지 않아 다음 요청에서 세션이 끊긴다. 그래서 리다이렉트 응답으로 쿠키를 옮긴다.
+ */
+function carryCookies(from: NextResponse, to: NextResponse): NextResponse {
+  from.cookies.getAll().forEach((cookie) => to.cookies.set(cookie));
+  return to;
+}
+
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
   const path = request.nextUrl.pathname;
@@ -43,14 +53,14 @@ export async function middleware(request: NextRequest) {
     redirectUrl.pathname = '/login';
     redirectUrl.search = '';
     redirectUrl.searchParams.set('next', path);
-    return NextResponse.redirect(redirectUrl);
+    return carryCookies(response, NextResponse.redirect(redirectUrl));
   }
 
   if (isAuthenticated && matches(path, authRoutes)) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = '/dashboard';
     redirectUrl.search = '';
-    return NextResponse.redirect(redirectUrl);
+    return carryCookies(response, NextResponse.redirect(redirectUrl));
   }
 
   return response;
