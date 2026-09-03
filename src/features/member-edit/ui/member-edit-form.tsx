@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useUpdateMember } from "@/entities/member/model/queries";
-import { uploadProfilePhoto } from "@/shared/api/supabase/storage";
+import { getApi } from "@/shared/api/client";
 import { memberEditSchema, type MemberEditFormData } from "../model/schema";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -46,7 +46,7 @@ export function MemberEditForm({ member, onSuccess }: MemberEditFormProps) {
 
     try {
       if (data.profile_photo) {
-        photoUrl = await uploadProfilePhoto(data.profile_photo, member.id);
+        photoUrl = await getApi().members.uploadPhoto(data.profile_photo, member.id);
       }
 
       updateMember(

@@ -3,9 +3,8 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
-import type { Provider } from "@supabase/supabase-js";
 import { toast } from "sonner";
-import { supabase } from "@/shared/api/supabase/config";
+import { getApi } from "@/shared/api/client";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -48,7 +47,7 @@ export function LoginPageContent({
   errorKey,
   nextPath,
 }: LoginPageContentProps) {
-  const [isSubmitting, setIsSubmitting] = useState<Provider | "naver" | null>(
+  const [isSubmitting, setIsSubmitting] = useState<"google" | "naver" | null>(
     null,
   );
   const [message, setMessage] = useState<string | null>(null);
@@ -70,16 +69,13 @@ export function LoginPageContent({
     const redirectTo = new URL("/auth/callback", window.location.origin);
     redirectTo.searchParams.set("next", nextPath);
 
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: redirectTo.toString(),
-        skipBrowserRedirect: true,
-      },
-    });
-
-    if (error) {
-      const normalizedMessage = normalizeAuthErrorMessage(error.message);
+    let data: { url: string | null };
+    try {
+      data = await getApi().auth.signInWithOAuth("google", redirectTo.toString());
+    } catch (error) {
+      const normalizedMessage = normalizeAuthErrorMessage(
+        error instanceof Error ? error.message : "로그인 중 문제가 발생했습니다.",
+      );
       setMessage(normalizedMessage);
       toast.error(normalizedMessage);
       setIsSubmitting(null);

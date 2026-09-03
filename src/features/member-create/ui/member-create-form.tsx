@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useCreateMember } from "@/entities/member/model/queries";
-import { uploadProfilePhoto } from "@/shared/api/supabase/storage";
+import { getApi } from "@/shared/api/client";
 import { memberCreateSchema, type MemberCreateFormData } from "../model/schema";
 import { Button } from "@/shared/ui/button";
 import { FormSection } from "@/shared/ui/form-section";
@@ -46,7 +46,7 @@ export function MemberCreateForm({ onSuccess }: MemberCreateFormProps) {
     try {
       if (data.profile_photo) {
         const tempId = crypto.randomUUID();
-        photoUrl = await uploadProfilePhoto(data.profile_photo, tempId);
+        photoUrl = await getApi().members.uploadPhoto(data.profile_photo, tempId);
       }
 
       createMember(

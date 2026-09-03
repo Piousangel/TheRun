@@ -1,5 +1,5 @@
 import type { User } from '@supabase/supabase-js';
-import { getSupabaseClient } from '@/shared/api/supabase/config';
+import { getSupabaseClient } from '@/shared/api/adapters/supabase/config';
 import type { ClubApi } from '@/shared/api/ports';
 import type { AuthUser } from '@/shared/api/ports/auth-repo';
 import type { VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
