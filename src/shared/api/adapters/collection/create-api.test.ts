@@ -26,4 +26,13 @@ describe('createCollectionApi', () => {
     await storage.clear();
     expect(await api.members.list()).toHaveLength(20);
   });
+
+  it('첫 작업이 update여도 시드 캐시가 오염되지 않는다(clear 후 원본 복원)', async () => {
+    const storage = new MemoryStorage();
+    const api = createCollectionApi({ storage, session: new MemorySessionStore(), now: () => NOW });
+    // 저장소가 비어 있는 상태에서 곧바로 update하면 예전 구현은 시드 배열을 직접 변형했다.
+    await api.members.update('m-01', { name: '오염된 이름' });
+    await storage.clear();
+    expect((await api.members.get('m-01'))?.name).toBe('김민준');
+  });
 });

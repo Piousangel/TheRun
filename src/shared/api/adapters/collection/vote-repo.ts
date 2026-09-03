@@ -1,5 +1,6 @@
 import type { Collection } from '@/shared/api/adapters/collection/collection';
 import { newId } from '@/shared/api/adapters/collection/member-repo';
+import { withSingleActiveMatchSession } from '@/shared/api/adapters/single-active-match';
 import type { VoteRepo, VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
 import type { Member } from '@/shared/types/member';
 import type { VoteResponse, VoteSession } from '@/shared/types/vote';
@@ -12,7 +13,7 @@ interface Deps {
 }
 
 export function createCollectionVoteRepo({ sessions, responses, members, now }: Deps): VoteRepo {
-  return {
+  return withSingleActiveMatchSession({
     async listSessions() {
       return (await sessions.all()).sort((a, b) => b.event_date.localeCompare(a.event_date));
     },
@@ -61,5 +62,5 @@ export function createCollectionVoteRepo({ sessions, responses, members, now }: 
       }
       return responses.insert({ id: newId(), session_id: sessionId, member_id: memberId, status, created_at: at, updated_at: at });
     },
-  };
+  });
 }

@@ -13,7 +13,9 @@ export class Collection<T extends { id: string }> {
     if (rows) return rows;
     const seeded = this.seed();
     await this.storage.write(this.name, seeded);
-    return seeded;
+    // seed()는 api 수명 동안 메모이즈된 배열을 돌려준다. 그대로 넘기면 호출자의 정렬·변형이
+    // 시드 캐시를 오염시켜 "데이터 초기화"가 원본을 복원하지 못한다.
+    return structuredClone(seeded);
   }
 
   async get(id: string): Promise<T | null> {
@@ -31,8 +33,7 @@ export class Collection<T extends { id: string }> {
     const index = rows.findIndex((row) => row.id === id);
     if (index === -1) throw new NotFoundError(this.name, id);
     const next = { ...rows[index], ...patch };
-    rows[index] = next;
-    await this.storage.write(this.name, rows);
+    await this.storage.write(this.name, rows.map((row, i) => (i === index ? next : row)));
     return next;
   }
 

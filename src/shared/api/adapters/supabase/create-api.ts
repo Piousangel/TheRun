@@ -1,6 +1,8 @@
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/shared/api/adapters/supabase/config';
+import { withSingleActiveMatchSession } from '@/shared/api/adapters/single-active-match';
 import type { ClubApi } from '@/shared/api/ports';
+import { ApiError, isSchemaMissingError } from '@/shared/api/ports/errors';
 import type { AuthUser } from '@/shared/api/ports/auth-repo';
 import type { VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
 import { normalizePhoneNumber } from '@/shared/lib/utils';
@@ -14,8 +16,9 @@ function toAuthUser(user: User | null | undefined): AuthUser | null {
   return user ? { id: user.id, email: user.email ?? null } : null;
 }
 
-function throwIf(error: { message: string } | null): void {
-  if (error) throw new Error(error.message);
+/** PostgrestError의 code를 버리지 않는다 — 호출부가 실패 원인을 구분해야 한다. */
+function throwIf(error: { message: string; code?: string } | null): void {
+  if (error) throw new ApiError(error.message, error.code);
 }
 
 export function createSupabaseApi(): ClubApi {
@@ -55,7 +58,7 @@ export function createSupabaseApi(): ClubApi {
       },
     },
 
-    votes: {
+    votes: withSingleActiveMatchSession({
       async listSessions() {
         const { data, error } = await supabase.from('vote_sessions').select('*').order('event_date', { ascending: false });
         throwIf(error);
@@ -99,7 +102,7 @@ export function createSupabaseApi(): ClubApi {
         throwIf(error);
         return data as VoteResponse;
       },
-    },
+    }),
 
     matches: {
       async list() {
@@ -133,20 +136,25 @@ export function createSupabaseApi(): ClubApi {
     },
 
     announcements: {
+      // 공지 마이그레이션이 배포되지 않은 프로젝트에서는 읽기가 빈 화면으로 폴백한다(쓰기는 그대로 실패).
       async list() {
         const { data, error } = await supabase.from('announcements').select('*').order('is_pinned', { ascending: false }).order('publish_at', { ascending: false });
+        if (isSchemaMissingError(error)) return [];
         throwIf(error);
         return (data ?? []) as Announcement[];
       },
       async get(id) {
         const { data, error } = await supabase.from('announcements').select('*').eq('id', id).maybeSingle();
+        if (isSchemaMissingError(error)) return null;
         throwIf(error);
         return (data as Announcement | null) ?? null;
       },
       async create(input) {
+        // 포트 계약: created_by = 현재 로그인 사용자 id.
+        const { data: session } = await supabase.auth.getUser();
         const { data, error } = await supabase
           .from('announcements')
-          .insert({ ...input, publish_at: input.publish_at ?? new Date().toISOString() })
+          .insert({ ...input, publish_at: input.publish_at ?? new Date().toISOString(), created_by: session.user?.id ?? null })
           .select('*')
           .single();
         throwIf(error);
@@ -163,6 +171,7 @@ export function createSupabaseApi(): ClubApi {
       },
       async listReads(userId) {
         const { data, error } = await supabase.from('announcement_reads').select('*').eq('user_id', userId);
+        if (isSchemaMissingError(error)) return [];
         throwIf(error);
         return (data ?? []) as AnnouncementRead[];
       },
@@ -205,7 +214,7 @@ export function createSupabaseApi(): ClubApi {
         if (error) {
           const { data: retried } = await supabase.from('app_profiles').select('*').eq('id', user.id).maybeSingle();
           if (retried) return retried as AppProfile;
-          throw new Error(error.message);
+          throw new ApiError(error.message, error.code);
         }
         return data as AppProfile;
       },

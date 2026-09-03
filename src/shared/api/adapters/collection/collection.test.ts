@@ -39,6 +39,22 @@ describe('Collection', () => {
     await expect(col.update('x', { name: 'B' })).rejects.toBeInstanceOf(NotFoundError);
   });
 
+  it('시드 배열 자체를 변형하지 않는다(update 후에도 원본 시드가 그대로)', async () => {
+    const seed: Row[] = [{ id: 'a', name: 'A' }];
+    const storage = new MemoryStorage();
+    const col = new Collection<Row>(storage, 'rows', () => seed);
+    await col.update('a', { name: 'B' });
+    expect(seed).toEqual([{ id: 'a', name: 'A' }]);
+  });
+
+  it('all()이 돌려준 배열을 호출자가 변형해도 저장소에 반영되지 않는다', async () => {
+    const { storage, col } = makeCollection([{ id: 'a', name: 'A' }]);
+    const rows = await col.all();
+    rows.sort(() => -1);
+    rows[0].name = 'MUTATED';
+    expect(await storage.read<Row>('rows')).toEqual([{ id: 'a', name: 'A' }]);
+  });
+
   it('replaceAll은 전체를 덮어쓴다', async () => {
     const { col } = makeCollection([{ id: 'a', name: 'A' }]);
     await col.replaceAll([{ id: 'z', name: 'Z' }]);

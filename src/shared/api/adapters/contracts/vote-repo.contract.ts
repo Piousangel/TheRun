@@ -43,6 +43,21 @@ export function runVoteRepoContract(makeRepo: () => Promise<VoteRepoFixture>) {
       expect(mine.members?.id).toBe(unrespondedMemberId);
     });
 
+    it("type='match' 세션을 만들면 이전 활성 match 세션이 모두 닫힌다(활성 경기 세션은 하나)", async () => {
+      const { repo } = await makeRepo();
+      const first = await repo.createSession({ title: '경기 A', type: 'match', event_date: '2030-01-01T00:00:00.000Z', deadline: '2029-12-31T00:00:00.000Z' });
+      const second = await repo.createSession({ title: '경기 B', type: 'match', event_date: '2030-01-08T00:00:00.000Z', deadline: '2030-01-07T00:00:00.000Z' });
+      const active = await repo.listActiveSessions();
+      expect(active.filter((s) => s.type === 'match').map((s) => s.id)).toEqual([second.id]);
+      expect((await repo.getSession(first.id))?.is_active).toBe(false);
+    });
+
+    it("type='match'가 아닌 세션 생성은 활성 match 세션을 닫지 않는다", async () => {
+      const { repo, activeSessionId } = await makeRepo();
+      await repo.createSession({ title: '회식', type: 'dining', event_date: '2030-01-01T00:00:00.000Z', deadline: '2029-12-31T00:00:00.000Z' });
+      expect((await repo.getSession(activeSessionId))?.is_active).toBe(true);
+    });
+
     it('removeSession은 그 세션의 응답도 지운다', async () => {
       const { repo, activeSessionId } = await makeRepo();
       await repo.removeSession(activeSessionId);
