@@ -15,6 +15,12 @@ export function isLocalAdapter(): boolean {
   return getDataAdapter() === 'local';
 }
 
+/**
+ * 이 모듈은 **클라이언트 전용**이다. 모듈 싱글턴이라 서버(Node) 프로세스에서 호출하면
+ * local 모드에서는 모든 요청이 같은 MemoryStorage를 공유하고, supabase 모드에서는 서버에서
+ * `createBrowserClient`가 만들어진다. 서버 컴포넌트·라우트 핸들러에서는 쓰지 않는다
+ * (서버에서 데이터가 필요해지면 요청 스코프 팩토리를 따로 만든다).
+ */
 let api: ClubApi | null = null;
 let localStorageRef: CollectionStorage | null = null;
 

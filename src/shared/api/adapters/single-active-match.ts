@@ -13,7 +13,8 @@ export function withSingleActiveMatchSession(repo: VoteRepo): VoteRepo {
     async createSession(data) {
       if (data.type === 'match') {
         const active = await repo.listActiveSessions();
-        // 순차로 닫는다. 두 어댑터 모두 read-modify-write라 동시에 갱신하면 나중 쓰기가 앞 쓰기를 지운다.
+        // 순차로 닫는다. collection 어댑터는 컬렉션별 쓰기 큐가 유실을 막아 주지만, supabase
+        // 어댑터에는 그런 직렬화가 없고 실패 지점을 예측 가능하게 두는 편이 낫다.
         for (const session of active.filter((s) => s.type === 'match')) {
           await repo.updateSession(session.id, { is_active: false });
         }

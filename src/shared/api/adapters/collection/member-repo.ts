@@ -2,8 +2,22 @@ import type { Collection } from '@/shared/api/adapters/collection/collection';
 import type { MemberRepo } from '@/shared/api/ports/member-repo';
 import type { Member } from '@/shared/types/member';
 
+/** 128비트 난수를 hex로. getRandomValues는 보안 컨텍스트가 아니어도 쓸 수 있다. */
+function randomHex(): string {
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i += 1) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
 export function newId(): string {
-  return crypto.randomUUID();
+  // crypto.randomUUID는 보안 컨텍스트(https·localhost)에서만 존재한다. 폰에서 LAN IP로
+  // 데모를 여는 흔한 경로(http://192.168.x.x:3000)에서는 undefined라 모든 로컬 쓰기가 죽는다.
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  return `${Date.now().toString(36)}-${randomHex()}`;
 }
 
 function fileToDataUrl(file: File): Promise<string> {
