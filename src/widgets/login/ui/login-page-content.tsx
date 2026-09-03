@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { getApi } from "@/shared/api/client";
+import { DemoLoginButtons } from "@/features/dev-session/ui/demo-login-buttons";
+import { getApi, isLocalAdapter } from "@/shared/api/client";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -107,6 +108,7 @@ export function LoginPageContent({
 
   return (
     <div className="space-y-5">
+      {isLocalAdapter() && <DemoLoginButtons nextPath={nextPath} />}
       <section className="overflow-hidden rounded-[1.75rem] border border-primary/15 bg-[linear-gradient(155deg,rgba(200,168,88,0.12),rgba(255,255,255,0.98))] p-5 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary">Google 우선 연결</Badge>
