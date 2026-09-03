@@ -3,6 +3,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { getApi, resetLocalData } from '@/shared/api/client';
 import { DEMO_ACCOUNTS, type DemoAccountKey } from '@/shared/api/ports/auth-repo';
 import { cn } from '@/shared/lib/utils';
@@ -22,6 +23,9 @@ export function DevRoleSwitcher() {
       queryClient.clear();
       router.push(nextPath);
       router.refresh();
+    } catch (error) {
+      // 시드에 없는 데모 계정 등으로 실제 throw가 난다. 조용히 삼키면 버튼이 먹통으로 보인다.
+      toast.error(error instanceof Error ? error.message : '데모 세션 전환에 실패했습니다.');
     } finally {
       setBusy(false);
     }
