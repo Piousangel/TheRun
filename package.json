@@ -12,8 +12,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "e2e": "playwright test",
-    "db:apply-masked-phone-migration": "tsx scripts/apply-masked-phone-migration.ts supabase/migrations/20260312_mask_member_numbers_and_enable_self_member_updates.sql",
-    "db:promote-social-admins": "tsx scripts/apply-masked-phone-migration.ts supabase/migrations/20260313_promote_all_social_users_to_admin.sql"
+    "db:apply-masked-phone-migration": "tsx scripts/apply-masked-phone-migration.ts supabase/migrations/20260312_mask_member_numbers_and_enable_self_member_updates.sql"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
