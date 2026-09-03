@@ -26,7 +26,9 @@ export default defineConfig({
   },
   projects: [
     { name: 'setup', testMatch: /_setup\/.*\.setup\.ts/ },
-    { name: 'mobile', testMatch: /.*\.spec\.ts/, dependencies: ['setup'], use: { ...devices['iPhone 13'] } },
+    // 라우트 스윕은 어댑터가 데이터를 내주는지만 보므로 뷰포트와 무관하다. 양쪽에서 돌리면
+    // e2e 시간이 두 배로 늘어 desktop에서만 돌린다. 모바일 반응형은 local-adapter 스모크가 덮는다.
+    { name: 'mobile', testMatch: /.*\.spec\.ts/, testIgnore: /route-sweep\.spec\.ts/, dependencies: ['setup'], use: { ...devices['iPhone 13'] } },
     { name: 'desktop', testMatch: /.*\.spec\.ts/, dependencies: ['setup'], use: { ...devices['Desktop Chrome'] } },
   ],
 });
