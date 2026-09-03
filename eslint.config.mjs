@@ -40,6 +40,9 @@ const config = [
   // getApi() 포트가 다루는 영역이 아니고, Next 라우팅상 app/ 아래에만 존재할 수 있어 어댑터를 직접 쓴다.
   // 그래서 adapterBan만 풀고 나머지 경계는 그대로 건다. Phase 3에서 Supabase 재연결 여부가 정해지면 정리한다.
   { files: ['src/app/auth/**/route.ts'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan] }] } },
+  // Sentry 런타임 설정 파일(sentry.server.config.ts, sentry.edge.config.ts)이 레포 루트에 있어야 해서
+  // src/instrumentation.ts에서 상대 경로 import가 불가피하다. relativeImportBan만 빼고 나머지 제약은 유지한다.
+  { files: ['src/instrumentation.ts'], rules: { 'no-restricted-imports': ['error', { patterns: [adapterBan] }] } },
 ];
 
 export default config;
