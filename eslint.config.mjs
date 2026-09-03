@@ -30,7 +30,6 @@ const config = [
     },
   },
   { files: ['src/shared/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('entities', 'features', 'widgets', 'app')] }] } },
-  { files: ['src/shared/api/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('entities', 'features', 'widgets', 'app')] }] } },
   { files: ['src/entities/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, adapterBan, ...upward('features', 'widgets', 'app')] }] } },
   { files: ['src/features/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, adapterBan, ...upward('widgets', 'app')] }] } },
   { files: ['src/widgets/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, adapterBan, ...upward('app')] }] } },
