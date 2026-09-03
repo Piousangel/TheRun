@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/shared/api/supabase/config';
-import type { Match, CreateMatchData, UpdateMatchData } from '@/shared/types/match';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { getApi } from '@/shared/api/client';
+import type { CreateMatchData, Match, UpdateMatchData } from '@/shared/types/match';
 
 export const matchKeys = {
   all: ['matches'] as const,
@@ -10,87 +10,36 @@ export const matchKeys = {
   detail: (id: string) => [...matchKeys.details(), id] as const,
 };
 
-// Query: Get all matches
 export function useMatches() {
-  return useQuery({
-    queryKey: matchKeys.lists(),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('matches')
-        .select('*')
-        .order('date', { ascending: false });
-
-      if (error) throw error;
-      return data as Match[];
-    },
-  });
+  return useQuery({ queryKey: matchKeys.lists(), queryFn: () => getApi().matches.list() });
 }
 
-// Query: Get single match
 export function useMatch(id: string) {
   return useQuery({
     queryKey: matchKeys.detail(id),
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('matches')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (error) throw error;
-      return data as Match;
+    queryFn: async (): Promise<Match> => {
+      const match = await getApi().matches.get(id);
+      if (!match) throw new Error('경기를 찾을 수 없습니다.');
+      return match;
     },
     enabled: !!id,
   });
 }
 
-// Mutation: Create match
 export function useCreateMatch() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (data: CreateMatchData) => {
-      const matchData = {
-        ...data,
-        status: data.status || 'pending',
-        start_time: data.start_time || null,
-        end_time: data.end_time || null,
-        duration: data.duration || null,
-      };
-
-      const { data: match, error } = await supabase
-        .from('matches')
-        .insert(matchData)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return match as Match;
-    },
+    mutationFn: (data: CreateMatchData) => getApi().matches.create(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
     },
   });
 }
 
-// Mutation: Update match
 export function useUpdateMatch() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: UpdateMatchData }) => {
-      const { data: matches, error } = await supabase
-        .from('matches')
-        .update(data)
-        .eq('id', id)
-        .select();
-
-      if (error) throw error;
-      if (!matches || matches.length === 0) {
-        throw new Error('No match found or updated');
-      }
-      return matches[0] as Match;
-    },
+    mutationFn: ({ id, data }: { id: string; data: UpdateMatchData }) => getApi().matches.update(id, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: matchKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
@@ -98,16 +47,10 @@ export function useUpdateMatch() {
   });
 }
 
-// Mutation: Delete match
 export function useDeleteMatch() {
   const queryClient = useQueryClient();
-
   return useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from('matches').delete().eq('id', id);
-
-      if (error) throw error;
-    },
+    mutationFn: (id: string) => getApi().matches.remove(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: matchKeys.lists() });
     },
