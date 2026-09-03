@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type ReactNode } from "react";
 import { format, isPast } from "date-fns";
 import { ko } from "date-fns/locale";
 import {
@@ -14,14 +14,13 @@ import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import { useVoteResponses } from "@/entities/vote/model/queries";
 import { useMembers } from "@/entities/member/model/queries";
-import { VoteDeleteButton } from "@/features/vote-delete/ui/vote-delete-button";
-import { useAuth } from "@/providers/auth-provider";
 import { ArrowRight, Calendar, Clock, Users, UserX } from "lucide-react";
 import type { VoteSession } from "@/shared/types/vote";
 
 interface VoteCardProps {
   session: VoteSession;
   onVoteClick: () => void;
+  actions?: ReactNode;
 }
 
 const voteTypeIcons = {
@@ -38,8 +37,7 @@ const voteTypeLabels = {
   other: "기타",
 };
 
-export function VoteCard({ session, onVoteClick }: VoteCardProps) {
-  const { isAdmin } = useAuth();
+export function VoteCard({ session, onVoteClick, actions }: VoteCardProps) {
   const { data: responses } = useVoteResponses(session.id);
   const { data: members } = useMembers();
 
@@ -78,12 +76,7 @@ export function VoteCard({ session, onVoteClick }: VoteCardProps) {
               </CardDescription>
             )}
           </div>
-          {isAdmin && (
-            <VoteDeleteButton
-              sessionId={session.id}
-              sessionTitle={session.title}
-            />
-          )}
+          {actions}
         </div>
       </CardHeader>
 

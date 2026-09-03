@@ -21,7 +21,7 @@ import {
   useUnlinkMemberProfile,
 } from "@/entities/auth/model/queries";
 import { useAuth } from "@/providers/auth-provider";
-import { supabase } from "@/shared/api/supabase/config";
+import { getApi } from "@/shared/api/client";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
 import {
@@ -74,7 +74,7 @@ export function MyPageContent() {
     () => claimableMembers ?? members ?? [],
     [claimableMembers, members],
   );
-  const isLegacyClaimFlow = claimableMembers === null;
+  const isLegacyClaimFlow = false;
   const selectedMember = useMemo(
     () =>
       availableMembers.find((availableMember) => availableMember.id === selectedMemberId) ??
@@ -89,7 +89,7 @@ export function MyPageContent() {
   }, [selectedMember, selectedMemberId]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await getApi().auth.signOut();
   };
 
   const handleLink = async (event: React.FormEvent<HTMLFormElement>) => {

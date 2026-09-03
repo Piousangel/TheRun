@@ -11,7 +11,7 @@ import { TheRunLogo } from "@/shared/ui/the-run-logo";
 import {
   MobileLandingCarousel,
   type MobileLandingSlide,
-} from "./mobile-landing-carousel";
+} from "@/widgets/home/ui/mobile-landing-carousel";
 
 const splashDurationMs = 2000;
 

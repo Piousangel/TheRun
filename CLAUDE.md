@@ -4,25 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-The Run is a mobile-first futsal club management system built with Next.js 15 + React 19. The codebase uses FSD (Feature-Sliced Design) architecture with TanStack Query for server state, Zustand for client state, and Supabase as the backend.
+The Run is a mobile-first futsal club management system built with Next.js 15 + React 19. The codebase uses FSD (Feature-Sliced Design) architecture with TanStack Query for server state, Zustand for client state, and a port/adapter data layer (local IndexedDB by default, Supabase optional — see "Data Access" below).
+
+**Product decisions override the approved spec.** `docs/product-decisions.md` records owner decisions made after the spec was approved; on conflict, that document wins. Two that anyone touching this code must know: **team splits persist to the server** (D-04, reverses spec §4 #4 — a confirmed split becomes a `status: 'pending'` Match), and **the member phone number is being removed from the domain** (D-03 — it's still in the code today, but treat it as scheduled for deletion, not something to build on).
 
 ## Development Commands
 
 ```bash
-# Install dependencies
-npm install
-
-# Development server (localhost:3000)
-npm run dev
-
-# Production build
-npm run build
-
-# Start production server
-npm start
-
-# Lint
-npm lint
+pnpm dev          # Development server (localhost:3000)
+pnpm build        # Production build
+pnpm start        # Start production server
+pnpm lint         # ESLint (enforces FSD boundaries + @/ aliases)
+pnpm type-check   # tsc --noEmit
+pnpm test         # vitest (unit/hooks/adapter contracts)
+pnpm e2e          # Playwright (setup → mobile: iPhone 13/webkit + desktop: Desktop Chrome)
 ```
 
 ## Architecture: Feature-Sliced Design (FSD)
@@ -142,12 +137,14 @@ export default async function Page({ params }: PageProps) {
 }
 ```
 
-### 5. Supabase Integration
+### 5. Data Access (ports/adapters)
 
-- Client singleton: `/src/shared/api/supabase/config.ts`
-- Storage helpers: `/src/shared/api/supabase/storage.ts`
-- All queries use Row Level Security (RLS) with "Allow all" policy
-- File uploads handled separately before mutations
+- 모든 데이터 접근은 `getApi()` (`src/shared/api/client.ts`) 하나로 들어간다. 포트: `src/shared/api/ports/`. 어댑터: `src/shared/api/adapters/collection/`(IndexedDB/메모리 + 시드), `src/shared/api/adapters/supabase/`.
+- `entities/*/model/queries.ts`는 `getApi().<domain>.<method>()`만 호출한다. 위젯/피처에서 어댑터나 Supabase를 직접 import하면 ESLint error.
+- 출석(attendance)은 별도 도메인이 아니라 `type: 'match'` 투표다. `entities/attendance`는 매핑 계층이며 Phase 3에서 삭제 예정.
+- 인증 사용자 타입은 `AuthUser { id, email }` (`@/shared/api/ports/auth-repo`). Supabase `User`를 직접 쓰지 않는다.
+- 로컬 모드 세션: localStorage `therun:session` + 쿠키 `therun-session`. 미들웨어는 쿠키만 본다. 로컬 세션의 읽기 원천은 쿠키로 통일돼 있고 localStorage는 미러링만 한다.
+- 테스트에서는 `setupTestApi()` (`src/shared/lib/test/query-wrapper.tsx`)로 메모리 어댑터를 꽂는다. 어댑터 계약 테스트는 `src/shared/api/adapters/contracts/`.
 
 ## Domain Models
 
@@ -308,13 +305,23 @@ CREATE POLICY "Allow all" ON {entity} FOR ALL USING (true);
 
 Key tables: `members`, `matches`, `attendance_sessions`, `attendance_votes`, `vote_sessions`
 
-Storage bucket: `member-photos` (public access)
+Storage bucket: `member-photos` — **public read로 만들지 않는다**, 인증된 사용자만 읽을 수 있는 정책으로 만든다(재연결 차단 항목, `docs/supabase-reconnect.md` §0 참고)
 
 ## Environment Variables
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://[project].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+# 데이터 어댑터: local(기본, IndexedDB + 시드) | supabase
+NEXT_PUBLIC_DATA_ADAPTER=local
+
+# Supabase (NEXT_PUBLIC_DATA_ADAPTER=supabase일 때만 사용)
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Sentry (비우면 비활성)
+NEXT_PUBLIC_SENTRY_DSN=
+
+# Optional: direct Postgres connection string for one-off migration scripts
+# SUPABASE_DB_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[PROJECT-REF].supabase.co:5432/postgres
 ```
 
 ## Localization
@@ -356,3 +363,5 @@ Currently Korean-first with i18n infrastructure:
 4. **File Uploads:** Upload to storage BEFORE creating database record
 5. **Match Timer:** Use database timestamps, not local state, for persistence
 6. **FSD Dependencies:** Never import from higher layers (e.g., features importing from widgets)
+7. **Adapter access:** getApi() 밖에서 어댑터를 import하지 말 것. 새 데이터 기능은 포트에 메서드를 추가하고 두 어댑터 + 계약 테스트를 함께 갱신할 것.
+8. **Middleware location:** 미들웨어는 반드시 `src/middleware.ts`에 둘 것. `src/` 레이아웃을 쓰는 Next.js 프로젝트는 레포 루트의 `middleware.ts`를 로드하지 않는다 — 이 프로젝트에서 실제로 이 결함이 있었고, 그 결과 보호 라우트가 무방비로 노출됐었다.

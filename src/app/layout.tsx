@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { DevRoleSwitcher } from '@/features/dev-session/ui/dev-role-switcher';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
+import { isLocalAdapter } from '@/shared/api/client';
 import { MobileNav } from '@/shared/components/mobile-nav';
 import { AppChrome } from '@/shared/ui/app-chrome';
 import { Toaster } from 'sonner';
-import './globals.css';
+import '@/app/globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL('http://localhost:3000'),
@@ -38,6 +40,7 @@ export default function RootLayout({
               <div className="pb-16 xl:pb-0">{children}</div>
             </AppChrome>
             <MobileNav />
+            {isLocalAdapter() && <DevRoleSwitcher />}
             <Toaster richColors position="top-center" />
           </AuthProvider>
         </QueryProvider>

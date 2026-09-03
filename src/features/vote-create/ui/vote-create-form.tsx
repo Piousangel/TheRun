@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useCreateVoteSession } from "@/entities/vote/model/queries";
-import { voteCreateSchema, type VoteCreateFormData } from "../model/schema";
+import { voteCreateSchema, type VoteCreateFormData } from "@/features/vote-create/model/schema";
 import { Button } from "@/shared/ui/button";
 import { FormSection } from "@/shared/ui/form-section";
 import { Input } from "@/shared/ui/input";

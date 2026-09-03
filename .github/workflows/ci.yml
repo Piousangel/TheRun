@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_DATA_ADAPTER: local
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm type-check
+      - run: pnpm test
+      # 플랜 완료 기준 4번: supabase 어댑터로도 빌드가 성공해야 한다. 잡 전체 env가 local이라
+      # 이 스텝에서만 덮어써 supabase 분기(어댑터·미들웨어)가 실제로 컴파일되는지 검증한다.
+      # 이 산출물은 다음 스텝이 덮어쓴다 — e2e는 local 어댑터로 굳은 .next가 필요해서 local
+      # 빌드를 마지막에 둔다(NEXT_PUBLIC_*는 빌드 타임에 인라인되므로 순서가 중요하다).
+      - name: Build (supabase adapter)
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_DATA_ADAPTER: supabase
+      # e2e(playwright webServer)가 `next start`로 띄우는 산출물. 잡 전체 env(local)로 빌드해
+      # 위 supabase 빌드의 .next를 덮어쓴다 — 빌드를 두 번 더 하는 게 아니라 원래 있던 두 번의
+      # 빌드 순서만 바꾼 것이다.
+      - run: pnpm build
+      # mobile 프로젝트(iPhone 13)는 webkit 엔진이 기본이라 chromium만 설치하면 e2e가 깨진다.
+      - run: pnpm exec playwright install --with-deps chromium webkit
+      - run: pnpm e2e
+        env:
+          CI: true
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7

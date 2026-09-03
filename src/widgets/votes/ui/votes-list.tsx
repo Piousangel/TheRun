@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useActiveVoteSessions } from "@/entities/vote/model/queries";
 import { VoteCard } from "@/entities/vote/ui/vote-card";
 import { VoteCreateForm } from "@/features/vote-create/ui/vote-create-form";
+import { VoteDeleteButton } from "@/features/vote-delete/ui/vote-delete-button";
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/shared/ui/button";
 import {
@@ -138,6 +139,11 @@ export function VotesList() {
                     key={session.id}
                     session={session}
                     onVoteClick={() => handleVoteClick(session.id)}
+                    actions={
+                      isAdmin ? (
+                        <VoteDeleteButton sessionId={session.id} sessionTitle={session.title} />
+                      ) : undefined
+                    }
                   />
                 ))}
               </div>
@@ -169,6 +175,11 @@ export function VotesList() {
                     key={session.id}
                     session={session}
                     onVoteClick={() => handleVoteClick(session.id)}
+                    actions={
+                      isAdmin ? (
+                        <VoteDeleteButton sessionId={session.id} sessionTitle={session.title} />
+                      ) : undefined
+                    }
                   />
                 ))}
               </div>

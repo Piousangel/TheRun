@@ -34,7 +34,9 @@ if (checkPsql.status !== 0) {
 
 const result = spawnSync(
   "psql",
-  ["-v", "ON_ERROR_STOP=1", databaseUrl, "-f", migrationPath],
+  // -1 runs the whole file in one transaction. Without it psql autocommits each
+  // statement, so a file that fails partway leaves the earlier statements applied.
+  ["-1", "-v", "ON_ERROR_STOP=1", databaseUrl, "-f", migrationPath],
   {
     stdio: "inherit",
   },

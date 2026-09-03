@@ -6,7 +6,7 @@ import { useMembers } from '@/entities/member/model/queries';
 import { useActiveVoteSessions, useVoteResponses } from '@/entities/vote/model/queries';
 import { useTeamSplitStore } from '@/features/team-split-manual/model/store';
 import { calculateTeamStats } from '@/features/team-split-auto/model/algorithm';
-import { MemberContextMenu } from './member-context-menu';
+import { MemberContextMenu } from '@/features/team-split-manual/ui/member-context-menu';
 import { MemberAvatar } from '@/entities/member/ui/member-avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card';
 import { Button } from '@/shared/ui/button';
