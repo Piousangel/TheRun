@@ -42,4 +42,20 @@ describe('attendance queries (mapped onto match votes)', () => {
     expect(old?.is_active).toBe(false);
     expect(result.current.current.data?.match_date).toBe('2026-09-19T07:00:00.000Z');
   });
+
+  it('활성 경기 투표가 둘이어도 새 출석 세션을 만들면 전부 닫힌다', async () => {
+    const { wrapper, api } = setupTestApi();
+    // 지난 주 경기 투표를 되살려 활성 match 세션을 둘로 만든다(동시 쓰기 유실 재현).
+    await api.votes.updateSession('vs-last-week', { is_active: true });
+    expect((await api.votes.listActiveSessions()).filter((s) => s.type === 'match')).toHaveLength(2);
+
+    const { result } = renderHook(() => useCreateAttendanceSession(), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ match_date: '2026-09-19T07:00:00.000Z', deadline: '2026-09-18T14:59:00.000Z' });
+    });
+
+    expect((await api.votes.getSession('vs-this-week'))?.is_active).toBe(false);
+    expect((await api.votes.getSession('vs-last-week'))?.is_active).toBe(false);
+    expect((await api.votes.listActiveSessions()).filter((s) => s.type === 'match')).toHaveLength(1);
+  });
 });

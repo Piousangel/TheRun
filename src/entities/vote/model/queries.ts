@@ -1,16 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { invalidateVoteAndAttendance } from '@/entities/vote/model/invalidate';
+import { voteKeys } from '@/entities/vote/model/keys';
 import { getApi } from '@/shared/api/client';
 import type { RespondInput } from '@/shared/api/ports/vote-repo';
 import type { CreateVoteSessionData, UpdateVoteSessionData, VoteSession } from '@/shared/types/vote';
 
-export const voteKeys = {
-  all: ['votes'] as const,
-  sessions: () => [...voteKeys.all, 'sessions'] as const,
-  session: (id: string) => [...voteKeys.sessions(), id] as const,
-  responses: () => [...voteKeys.all, 'responses'] as const,
-  responsesBySession: (sessionId: string) => [...voteKeys.responses(), sessionId] as const,
-  activeSessions: () => [...voteKeys.all, 'active-sessions'] as const,
-};
+/** 키 팩토리는 순환 import를 피하려고 `./keys`에 두고 기존 경로에서 그대로 다시 내보낸다. */
+export { voteKeys };
 
 export function useVoteSessions() {
   return useQuery({ queryKey: voteKeys.sessions(), queryFn: () => getApi().votes.listSessions() });
@@ -44,10 +40,7 @@ export function useCreateVoteSession() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateVoteSessionData) => getApi().votes.createSession(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: voteKeys.sessions() });
-      queryClient.invalidateQueries({ queryKey: voteKeys.activeSessions() });
-    },
+    onSuccess: () => invalidateVoteAndAttendance(queryClient),
   });
 }
 
@@ -55,11 +48,7 @@ export function useUpdateVoteSession() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateVoteSessionData }) => getApi().votes.updateSession(id, data),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: voteKeys.session(variables.id) });
-      queryClient.invalidateQueries({ queryKey: voteKeys.sessions() });
-      queryClient.invalidateQueries({ queryKey: voteKeys.activeSessions() });
-    },
+    onSuccess: () => invalidateVoteAndAttendance(queryClient),
   });
 }
 
@@ -67,9 +56,7 @@ export function useVote() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: RespondInput) => getApi().votes.respond(input),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: voteKeys.responsesBySession(variables.sessionId) });
-    },
+    onSuccess: () => invalidateVoteAndAttendance(queryClient),
   });
 }
 
@@ -77,9 +64,6 @@ export function useDeleteVoteSession() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => getApi().votes.removeSession(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: voteKeys.sessions() });
-      queryClient.invalidateQueries({ queryKey: voteKeys.activeSessions() });
-    },
+    onSuccess: () => invalidateVoteAndAttendance(queryClient),
   });
 }
