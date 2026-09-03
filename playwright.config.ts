@@ -18,7 +18,14 @@ export default defineConfig({
     trace: 'retain-on-failure',
   },
   webServer: {
-    command: 'pnpm dev',
+    // CI는 `pnpm dev`가 아니라 빌드된 앱(`next start`)을 상대로 돈다. dev 서버는 라우트마다
+    // 온디맨드로 컴파일하는데, ROUTES_TO_WARM이 9개 라우트를 도는 auth.setup.ts 워밍 루프가
+    // GitHub 러너의 cold 컴파일 비용까지 60초 setup 타임아웃 안에 다 먹으면서 실패했다
+    // (member.json 1.1m/1.0m 두 번 다 타임아웃, 이미 컴파일이 끝나 있던 admin.json은 45.8s에
+    // 통과). CI 워크플로가 e2e 전에 이미 local 어댑터로 `pnpm build`를 해두므로 그 산출물을
+    // `next start`로 띄우기만 하면 온디맨드 컴파일이 사라진다. 로컬에서는 지금처럼 `pnpm dev`
+    // (또는 이미 떠 있는 서버 재사용)가 더 편해서 그대로 둔다.
+    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     env: { NEXT_PUBLIC_DATA_ADAPTER: 'local' },
