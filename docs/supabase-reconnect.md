@@ -53,6 +53,7 @@ select role, count(*) from app_profiles group by 1;
 
 - 어댑터는 현행 RPC 계약만 지원한다: `link_my_member(target_member_id)`, `unlink_my_member()`, `get_claimable_members()`, `set_app_profile_role(target_profile_id, next_role)`, `update_my_member_profile(input_name, input_phone)`.
 - `src/shared/api/adapters/contracts/*.contract.ts`를 Supabase 어댑터로 돌려 계약을 검증한다. 테스트 픽스처는 서비스 롤 키로 테스트 사용자 생성·정리를 해야 한다(작성 필요). 차단 항목 #6(권한 축 추가)도 이 계약 테스트 확장 작업의 일부다.
+- **픽스처 작성자가 가장 먼저 볼 곳(구체 예시):** `announcements.remove` / `votes.removeSession`은 collection 어댑터에서 자식 행(`announcement_reads`, `vote_responses`)을 코드로 직접 지우지만, supabase 어댑터는 부모 행만 지우고 FK `on delete cascade`에 의존한다. 마이그레이션에 캐스케이드가 없으면 계약 위반인데 CI는 collection 어댑터로만 돌아서 아무도 모른다 — 고아 자식 행이 남는지부터 확인한다.
 - 로컬에서 먼저 검증하려면 Docker + `supabase start`로 로컬 스택을 띄우고 위 마이그레이션을 적용한다.
 
 ## 3. 전환

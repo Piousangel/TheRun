@@ -29,12 +29,19 @@ const config = [
       ],
     },
   },
-  { files: ['src/shared/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('entities', 'features', 'widgets', 'app')] }] } },
+  { files: ['src/shared/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, adapterBan, ...upward('entities', 'features', 'widgets', 'app')] }] } },
+  // 어댑터를 조립하는 곳은 여기뿐이다. adapterBan만 풀고 상향 금지·상대 경로 금지는 유지한다.
+  { files: ['src/shared/api/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('entities', 'features', 'widgets', 'app')] }] } },
   { files: ['src/entities/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, adapterBan, ...upward('features', 'widgets', 'app')] }] } },
   { files: ['src/features/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, adapterBan, ...upward('widgets', 'app')] }] } },
   { files: ['src/widgets/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, adapterBan, ...upward('app')] }] } },
-  // 테스트 헬퍼는 어댑터를 직접 꽂아야 한다.
-  { files: ['src/**/*.test.{ts,tsx}', 'src/shared/lib/test/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan] }] } },
+  // 테스트와 테스트 헬퍼는 메모리 어댑터를 직접 꽂아야 한다. adapterBan만 풀고
+  // 상대 경로 금지와 FSD 상향 금지는 레이어별로 그대로 건다(아래 블록들이 레이어 규칙을 다시 얹는다).
+  { files: ['src/**/*.test.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan] }] } },
+  { files: ['src/shared/**/*.test.{ts,tsx}', 'src/shared/lib/test/**/*.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('entities', 'features', 'widgets', 'app')] }] } },
+  { files: ['src/entities/**/*.test.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('features', 'widgets', 'app')] }] } },
+  { files: ['src/features/**/*.test.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('widgets', 'app')] }] } },
+  { files: ['src/widgets/**/*.test.{ts,tsx}'], rules: { 'no-restricted-imports': ['error', { patterns: [relativeImportBan, ...upward('app')] }] } },
   // auth 라우트 두 곳(callback/confirm)은 Supabase OAuth 코드 교환·이메일 확인 트랜스포트 엔드포인트다.
   // getApi() 포트가 다루는 영역이 아니고, Next 라우팅상 app/ 아래에만 존재할 수 있어 어댑터를 직접 쓴다.
   // 그래서 adapterBan만 풀고 나머지 경계는 그대로 건다. Phase 3에서 Supabase 재연결 여부가 정해지면 정리한다.

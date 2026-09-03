@@ -32,6 +32,12 @@ jobs:
       - run: pnpm type-check
       - run: pnpm test
       - run: pnpm build
+      # 플랜 완료 기준 4번: supabase 어댑터로도 빌드가 성공해야 한다. 잡 전체 env가 local이라
+      # 이 스텝에서만 덮어써 supabase 분기(어댑터·미들웨어)가 실제로 컴파일되는지 검증한다.
+      - name: Build (supabase adapter)
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_DATA_ADAPTER: supabase
       # mobile 프로젝트(iPhone 13)는 webkit 엔진이 기본이라 chromium만 설치하면 e2e가 깨진다.
       - run: pnpm exec playwright install --with-deps chromium webkit
       - run: pnpm e2e
