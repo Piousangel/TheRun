@@ -54,3 +54,11 @@ jobs:
           name: playwright-report
           path: playwright-report
           retention-days: 7
+      # 스펙 A-5 "아티팩트 보관": 셸 시각 검증 캡처(test-results/**.png)는 성공해도 남긴다.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-captures
+          path: test-results
+          retention-days: 7
+          if-no-files-found: ignore
