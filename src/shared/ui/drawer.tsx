@@ -34,7 +34,7 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[120] mt-24 flex max-h-[94dvh] flex-col rounded-t-[20px] border-t border-border bg-background",
+        "fixed inset-x-0 bottom-0 z-[120] mt-24 flex max-h-[94dvh] flex-col rounded-t-[20px] border-t border-border bg-background md:mx-auto md:max-w-[560px] md:border-x",
         className,
       )}
       {...props}
@@ -43,7 +43,9 @@ const DrawerContent = React.forwardRef<
       <div className="relative flex-1 overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4">
         {children}
       </div>
-      <DrawerPrimitive.Close className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-ink-muted hover:bg-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      {/* 제목 줄과 세로 중심을 맞춘다: 핸들(mt-3 + h-1.5 = 18px) + 본문 pt-4(16px) + 제목 줄 높이 28px의 절반(14px)
+          = 48px가 제목 중심, 닫기 버튼(44px) 중심이 거기 오도록 top = 48 - 22 = 26px. */}
+      <DrawerPrimitive.Close className="absolute right-3 top-[26px] flex h-11 w-11 items-center justify-center rounded-full text-ink-muted hover:bg-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <X className="h-4 w-4" />
         <span className="sr-only">닫기</span>
       </DrawerPrimitive.Close>
@@ -74,7 +76,7 @@ const DrawerTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
-    className={cn("text-xl font-semibold tracking-tight", className)}
+    className={cn("text-[19px] font-bold leading-7", className)}
     {...props}
   />
 ));
