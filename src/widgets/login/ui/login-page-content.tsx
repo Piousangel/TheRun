@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { DemoLoginButtons } from "@/features/dev-session/ui/demo-login-buttons";
@@ -235,12 +234,6 @@ export function LoginPageContent({
             <p>- 서비스 도메인과 redirect URI 일치 확인</p>
           </CardContent>
         </Card>
-      </div>
-
-      <div className="text-center text-sm text-muted-foreground">
-        <Link href="/" className="underline underline-offset-4">
-          홈으로 돌아가기
-        </Link>
       </div>
     </div>
   );
