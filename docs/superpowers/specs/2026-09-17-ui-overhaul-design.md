@@ -31,14 +31,15 @@
 |---|---|---|
 | 배경 | `--bg` / `--bg-sunken` / `--bg-sunken-strong` | `#FFFFFF` / `#F8F9FA` / `#F1F3F5` |
 | 테두리 | `--border` / `--border-strong` | `#E9ECEF` / `#DEE2E6` |
-| 텍스트 | `--fg` / `--fg-muted` / `--fg-dim` / `--fg-faint` | `#212529` / `#495057` / `#868E96` / `#ADB5BD` |
+| 텍스트 | `--fg` / `--fg-muted` / `--fg-dim` / `--fg-faint` | `#212529` / `#495057` / `#687078` / `#ADB5BD` |
+| | | `--fg-dim`은 백오피스의 `#868E96`(흰 배경 대비 3.32:1)을 **4.5:1 이상**이 되도록 어둡게 조정한 값. `--fg-faint`는 대비 미달이므로 **텍스트에 쓰지 않는다**(장식 아이콘·비활성 테두리 전용) |
 | 브랜드 | `--brand` (버튼 면) | `#C8A858` — 위 글자는 `--fg`(검정) |
 | | `--brand-dark` (텍스트·활성 탭·링크) | `#8A6D1F` (흰 배경 대비 ≥ 4.5:1) |
 | | `--brand-soft` (활성 배경) | `#FBF6E9` |
 | 신호 red | fg / bg | `#B91C1C` / `#FFF5F5` |
 | 신호 amber | | `#B45309` / `#FEF3C7` |
 | 신호 blue | | `#1F6FB8` / `#E8F1FA` |
-| 신호 green | | `#00876A` / `#E6F5F2` |
+| 신호 green | | `#00755B` / `#E6F5F2` (백오피스 `#00876A`는 이 배경에서 4.00:1이라 어둡게 조정) |
 | 신호 gray | | `#475569` / `#F1F5F9` |
 
 shadcn 변수(`--primary`, `--muted` 등)는 위 토큰을 참조하도록 매핑해 기존 `Button`/`Input` 등이 자동으로 새 규격을 따르게 한다. `--primary-foreground`는 검정.
@@ -49,7 +50,7 @@ shadcn 변수(`--primary`, `--muted` 등)는 위 토큰을 참조하도록 매�
 |---|---|
 | 반경 | 리스트 카드 14 / 행 카드 12 / 배지 10 / 버튼·입력 10 / 시트 상단 20 |
 | 폰트 | Pretendard Variable(`next/font/local` 또는 CDN 셀프호스트). 숫자(점수·시각·날짜·인원)는 `tabular-nums` |
-| 타입 | 헤더 제목 17/700 · 섹션 제목 19/700 · 카드 1행 15/600 · 보조 13 `--fg-muted` · 메타 12 `--fg-dim` · 그룹 라벨 12/700 `--fg-faint` |
+| 타입 | 헤더 제목 17/700 · 섹션 제목 19/700 · 카드 1행 15/600 · 보조 13 `--fg-muted` · 메타 12 `--fg-dim` · 그룹 라벨 12/700 `--fg-dim` |
 | 간격 | 페이지 좌우 16 · 섹션 간 24 · 카드 간 8 · 카드 내부 16 |
 | 터치 | 최소 44×44 |
 
@@ -57,13 +58,13 @@ shadcn 변수(`--primary`, `--muted` 등)는 위 토큰을 참조하도록 매�
 
 ### 모바일 (`< md`, 768px 미만)
 ```
-<div class="flex h-dvh flex-col overflow-hidden">
-  <MobileTopBar/>            // 조건부
-  <main class="min-h-0 flex-1 overflow-y-auto"
-        style="padding-bottom: calc(56px + env(safe-area-inset-bottom))">
+<div class="min-h-dvh bg-[--bg]">
+  <MobileTopBar/>            // 조건부, sticky top
+  <main style="padding-bottom: calc(56px + env(safe-area-inset-bottom))">
   <MobileTabBar/>            // fixed bottom, 56px + safe-area
 </div>
 ```
+**스크롤 모델(구현 계획 단계에서 조정):** 백오피스는 `h-dvh` + `<main>` 내부 스크롤이지만, TheRun은 **문서(window) 스크롤을 유지**한다. 기존 화면들의 sticky/fixed 요소·전술보드 좌표 계산·Playwright 스크롤이 전부 window 기준이라, 스크롤 컨테이너를 바꾸면 단계 1에서 옛 화면이 대량으로 깨진다. 채팅 입력처럼 `h-dvh`가 필요한 화면이 생기면 그 화면만 전용 레이아웃을 쓴다.
 - **탭바**: `grid-cols-5`, 각 칸 `min-h-[56px]`, 아이콘 22 + 라벨 11px. 활성 = `--brand-dark` + 700, 비활성 = `--fg-muted` + 500. 배경 흰색, 상단 1px 테두리. 활성 pill·그림자 없음.
 - **탭 구성(역할 무관 동일)**: 홈 `/dashboard` · 투표 `/votes` · 경기 `/matches` · 출석 `/attendance` · 더보기 `/more`
 - **더보기 `/more`** (시트가 아닌 페이지): 프로필 카드(이름·역할 배지) → 그룹 리스트
