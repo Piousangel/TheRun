@@ -6,10 +6,6 @@ import { STORAGE_DIR } from '../../playwright.config';
  * "같은 화면이 Supabase 없이 뜬다"가 이 브랜치의 존재 이유다. 스모크 3케이스는 5개 라우트만
  * 덮으므로, 모든 `page.tsx` 라우트를 관리자 세션으로 한 번씩 열어 에러 배너가 없고 화면이
  * 실제로 렌더됐는지 확인한다.
- *
- * 이 스펙은 desktop 프로젝트에서만 돈다(playwright.config.ts의 mobile testIgnore).
- * 검증 대상이 "어댑터가 데이터를 내주는가"라 뷰포트와 무관하고, 양쪽에서 돌리면 e2e 시간이
- * 두 배로 는다. 모바일 반응형은 기존 local-adapter 스모크가 계속 덮는다.
  */
 
 /** 위젯들이 쿼리 실패 때 띄우는 문구. 하나라도 DOM에 있으면 시드로 렌더되지 않은 것이다. */

@@ -3,6 +3,9 @@ import path from 'node:path';
 
 export const STORAGE_DIR = path.join(__dirname, 'e2e/.auth');
 
+/** 이 머신의 3000번에는 다른 프로젝트 서버가 떠 있을 수 있다. 로컬에서는 E2E_PORT=3100 pnpm e2e 처럼 쓴다. */
+const PORT = Number(process.env.E2E_PORT ?? 3000);
+
 export default defineConfig({
   testDir: './e2e',
   timeout: 60_000,
@@ -12,7 +15,7 @@ export default defineConfig({
   workers: 1,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: `http://localhost:${PORT}`,
     locale: 'ko-KR',
     screenshot: 'only-on-failure',
     trace: 'retain-on-failure',
@@ -25,17 +28,15 @@ export default defineConfig({
     // 통과). CI 워크플로가 e2e 전에 이미 local 어댑터로 `pnpm build`를 해두므로 그 산출물을
     // `next start`로 띄우기만 하면 온디맨드 컴파일이 사라진다. 로컬에서는 지금처럼 `pnpm dev`
     // (또는 이미 떠 있는 서버 재사용)가 더 편해서 그대로 둔다.
-    command: process.env.CI ? 'pnpm start' : 'pnpm dev',
-    url: 'http://localhost:3000',
+    command: process.env.CI ? `pnpm start --port ${PORT}` : `pnpm dev --port ${PORT}`,
+    url: `http://localhost:${PORT}`,
     reuseExistingServer: !process.env.CI,
     env: { NEXT_PUBLIC_DATA_ADAPTER: 'local' },
     timeout: 120_000,
   },
   projects: [
     { name: 'setup', testMatch: /_setup\/.*\.setup\.ts/ },
-    // 라우트 스윕은 어댑터가 데이터를 내주는지만 보므로 뷰포트와 무관하다. 양쪽에서 돌리면
-    // e2e 시간이 두 배로 늘어 desktop에서만 돌린다. 모바일 반응형은 local-adapter 스모크가 덮는다.
-    { name: 'mobile', testMatch: /.*\.spec\.ts/, testIgnore: /route-sweep\.spec\.ts/, dependencies: ['setup'], use: { ...devices['iPhone 13'] } },
+    { name: 'mobile', testMatch: /.*\.spec\.ts/, dependencies: ['setup'], use: { ...devices['iPhone 13'] } },
     { name: 'desktop', testMatch: /.*\.spec\.ts/, dependencies: ['setup'], use: { ...devices['Desktop Chrome'] } },
   ],
 });
