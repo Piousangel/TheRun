@@ -2,7 +2,6 @@ import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
 
 const config: Config = {
-  darkMode: ['class'],
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -48,6 +47,17 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        sunken: { DEFAULT: 'var(--bg-sunken)', strong: 'var(--bg-sunken-strong)' },
+        line: { strong: 'var(--border-strong)' },
+        ink: { DEFAULT: 'var(--fg)', muted: 'var(--fg-muted)', dim: 'var(--fg-dim)', faint: 'var(--fg-faint)' },
+        brand: { DEFAULT: 'var(--brand)', dark: 'var(--brand-dark)', soft: 'var(--brand-soft)' },
+        signal: {
+          red: { fg: 'var(--signal-red-fg)', bg: 'var(--signal-red-bg)' },
+          amber: { fg: 'var(--signal-amber-fg)', bg: 'var(--signal-amber-bg)' },
+          blue: { fg: 'var(--signal-blue-fg)', bg: 'var(--signal-blue-bg)' },
+          green: { fg: 'var(--signal-green-fg)', bg: 'var(--signal-green-bg)' },
+          gray: { fg: 'var(--signal-gray-fg)', bg: 'var(--signal-gray-bg)' },
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -60,6 +70,9 @@ const config: Config = {
         md: '768px',
         lg: '1024px',
         xl: '1280px',
+      },
+      fontFamily: {
+        sans: ['var(--font-sans)', 'system-ui', '-apple-system', 'Apple SD Gothic Neo', 'sans-serif'],
       },
     },
   },

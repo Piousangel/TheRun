@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { pretendard } from '@/app/fonts';
 import { DevRoleSwitcher } from '@/features/dev-session/ui/dev-role-switcher';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
@@ -32,7 +33,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={pretendard.variable}>
       <body>
         <QueryProvider>
           <AuthProvider>
