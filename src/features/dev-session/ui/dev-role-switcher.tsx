@@ -49,7 +49,7 @@ export function DevRoleSwitcher() {
         <button
           type="button"
           aria-label="데모 메뉴 열기"
-          className="fixed right-3 z-50 flex h-8 items-center rounded-full bg-signal-amber-bg px-3 text-xs font-bold text-signal-amber-fg bottom-[calc(56px+12px+env(safe-area-inset-bottom))] md:bottom-4"
+          className="fixed right-3 z-50 flex h-11 items-center rounded-full bg-signal-amber-bg px-4 text-xs font-bold text-signal-amber-fg bottom-[calc(56px+12px+env(safe-area-inset-bottom))] md:bottom-4"
         >
           DEMO
         </button>

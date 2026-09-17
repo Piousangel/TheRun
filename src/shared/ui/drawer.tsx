@@ -56,7 +56,7 @@ function DrawerHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("space-y-2 text-left", className)} {...props} />;
+  return <div className={cn("space-y-2 pr-12 text-left", className)} {...props} />;
 }
 
 function DrawerFooter({
