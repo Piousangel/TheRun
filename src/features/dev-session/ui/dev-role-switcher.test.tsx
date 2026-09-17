@@ -11,6 +11,10 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push, refresh }) }));
 const toastError = vi.fn();
 vi.mock('sonner', () => ({ toast: { error: (...args: unknown[]) => toastError(...args) } }));
 
+async function openSheet() {
+  await userEvent.click(screen.getByRole('button', { name: '데모 메뉴 열기' }));
+}
+
 describe('DevRoleSwitcher', () => {
   afterEach(() => {
     __setApiForTests(null);
@@ -19,10 +23,18 @@ describe('DevRoleSwitcher', () => {
     toastError.mockClear();
   });
 
+  it('처음에는 칩만 보이고 계정 버튼은 숨어 있다', () => {
+    const { wrapper } = setupTestApi();
+    render(<DevRoleSwitcher />, { wrapper });
+    expect(screen.getByRole('button', { name: '데모 메뉴 열기' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '관리자' })).toBeNull();
+  });
+
   it('계정 버튼을 누르면 데모 로그인 후 /dashboard로 이동한다', async () => {
     const { api, wrapper } = setupTestApi();
     render(<DevRoleSwitcher />, { wrapper });
-    await userEvent.click(screen.getByRole('button', { name: '관리자' }));
+    await openSheet();
+    await userEvent.click(await screen.findByRole('button', { name: '관리자' }));
     expect((await api.auth.getUser())?.id).toBe('u-admin');
     expect(push).toHaveBeenCalledWith('/dashboard');
   });
@@ -31,7 +43,20 @@ describe('DevRoleSwitcher', () => {
     const { api, wrapper } = setupTestApi();
     await api.auth.signInAsDemo('member');
     render(<DevRoleSwitcher />, { wrapper });
-    await userEvent.click(screen.getByRole('button', { name: '로그아웃' }));
+    await openSheet();
+    await userEvent.click(await screen.findByRole('button', { name: '로그아웃' }));
+    expect(await api.auth.getUser()).toBeNull();
+    expect(push).toHaveBeenCalledWith('/login');
+  });
+
+  it('데이터 초기화는 확인 단계를 거친다', async () => {
+    const { api, wrapper } = setupTestApi();
+    await api.auth.signInAsDemo('member');
+    render(<DevRoleSwitcher />, { wrapper });
+    await openSheet();
+    await userEvent.click(await screen.findByRole('button', { name: '데이터 초기화' }));
+    expect(await api.auth.getUser()).not.toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: '초기화 실행' }));
     expect(await api.auth.getUser()).toBeNull();
     expect(push).toHaveBeenCalledWith('/login');
   });
@@ -40,9 +65,9 @@ describe('DevRoleSwitcher', () => {
     const { api, wrapper } = setupTestApi();
     api.auth.signInAsDemo = vi.fn().mockRejectedValue(new Error('데모 계정 u-superadmin이(가) 시드에 없습니다.'));
     render(<DevRoleSwitcher />, { wrapper });
-    await userEvent.click(screen.getByRole('button', { name: '슈퍼관리자' }));
+    await openSheet();
+    await userEvent.click(await screen.findByRole('button', { name: '슈퍼관리자' }));
     expect(toastError).toHaveBeenCalledWith('데모 계정 u-superadmin이(가) 시드에 없습니다.');
     expect(push).not.toHaveBeenCalled();
-    expect(screen.getByRole('button', { name: '슈퍼관리자' })).not.toBeDisabled();
   });
 });
