@@ -63,7 +63,7 @@ export function ClubGuidePageContent() {
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-3 rounded-full border border-white/12 bg-white/8 px-3 py-2 backdrop-blur-xl">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10">
-                <TheRunLogo className="h-6 w-6" tone="light" />
+                <TheRunLogo className="h-6 w-6" tone="light" glow />
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-primary/75">
