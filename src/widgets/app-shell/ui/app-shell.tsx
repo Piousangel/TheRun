@@ -26,9 +26,9 @@ export function AppShell({ children }: { children: ReactNode }) {
         <MobileTopBar />
         <DesktopTopBar />
         {kind === 'root' && <div aria-hidden className="md:hidden" style={{ height: 'env(safe-area-inset-top)' }} />}
-        {/* 탭바 콘텐츠 높이는 56px지만 border-t가 1px을 더해 실제 렌더 높이는 57px이다.
-            56px만 비우면 서브픽셀 레이아웃에서 마지막 콘텐츠가 탭바 아래로 들어갈 수 있다. */}
-        <main className="pb-[calc(57px+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
+        {/* 탭바 콘텐츠 높이(--tabbar-h)에 border-t 1px이 더해진다. 1px을 빼면
+            서브픽셀 레이아웃에서 마지막 콘텐츠가 탭바 아래로 들어갈 수 있다. */}
+        <main className="pb-[calc(var(--tabbar-h)+1px+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
       <MobileTabBar />
     </div>

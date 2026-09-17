@@ -23,7 +23,7 @@ export function MobileTabBar() {
             href={href}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex min-h-[56px] flex-col items-center justify-center gap-1 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+              'flex min-h-[var(--tabbar-h)] flex-col items-center justify-center gap-1 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
               isActive ? 'font-bold text-brand-dark' : 'font-medium text-ink-muted',
             )}
           >

@@ -48,6 +48,7 @@
     --input: 210 14% 89%;              /* --border-strong */
     --ring: 44 63% 33%;                /* --brand-dark */
     --radius: 0.625rem;                /* 10px: 버튼·입력 */
+    --tabbar-h: 56px;                  /* 모바일 탭바 콘텐츠 높이(border-t·safe-area 제외). 탭바와 main 하단 패딩이 함께 쓴다 */
   }
 }
 
