@@ -3,7 +3,7 @@ import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 export default function AnnouncementsPage() {
   return (
-    <AppPageLayout maxWidth="5xl">
+    <AppPageLayout>
         <AnnouncementsList />
     </AppPageLayout>
   );

@@ -1,11 +1,10 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { pretendard } from '@/app/fonts';
 import { DevRoleSwitcher } from '@/features/dev-session/ui/dev-role-switcher';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { isLocalAdapter } from '@/shared/api/client';
-import { MobileNav } from '@/shared/components/mobile-nav';
-import { AppChrome } from '@/shared/ui/app-chrome';
+import { AppShell } from '@/widgets/app-shell/ui/app-shell';
 import { Toaster } from 'sonner';
 import '@/app/globals.css';
 
@@ -27,6 +26,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#FFFFFF',
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -37,10 +43,7 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <AuthProvider>
-            <AppChrome>
-              <div className="pb-16 xl:pb-0">{children}</div>
-            </AppChrome>
-            <MobileNav />
+            <AppShell>{children}</AppShell>
             {isLocalAdapter() && <DevRoleSwitcher />}
             <Toaster richColors position="top-center" />
           </AuthProvider>

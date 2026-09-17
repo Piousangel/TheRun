@@ -15,7 +15,7 @@ export default async function StrategyPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
 
   return (
-    <AppPageLayout maxWidth="7xl">
+    <AppPageLayout>
       <StrategyPageContent
         initialTeam={resolvedSearchParams?.team}
         initialSource={resolvedSearchParams?.from}

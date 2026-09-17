@@ -3,7 +3,7 @@ import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 export default function VotesPage() {
   return (
-    <AppPageLayout maxWidth="7xl">
+    <AppPageLayout>
         <VotesList />
     </AppPageLayout>
   );
