@@ -34,12 +34,15 @@ async function expectNoErrorBanner(page: Page) {
 test.describe('라우트 스윕 — 관리자 세션으로 전 라우트가 시드로 렌더된다', () => {
   test.use({ storageState: path.join(STORAGE_DIR, 'admin.json') });
 
-  test('정적 라우트 10곳', async ({ page }) => {
+  test('정적 라우트 10곳', async ({ page }, testInfo) => {
     for (const route of STATIC_ROUTES) {
       await test.step(route.path, async () => {
         await page.goto(route.path);
         await expect(page.locator('main')).toBeVisible();
-        if (route.heading) {
+        if (route.path === '/more' && testInfo.project.name === 'desktop') {
+          // /more의 h1은 데스크톱에서 md:hidden이다. 같은 제목을 데스크톱 상단바가 보여준다.
+          await expect(page.locator('header:visible').getByText('더보기', { exact: true })).toBeVisible();
+        } else if (route.heading) {
           await expect(page.getByRole('heading', { level: 1, name: route.heading })).toBeVisible();
         }
         await expectNoErrorBanner(page);
