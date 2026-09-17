@@ -23,11 +23,11 @@ export function MobileTabBar() {
             href={href}
             aria-current={isActive ? 'page' : undefined}
             className={cn(
-              'flex min-h-[56px] flex-col items-center justify-center gap-1 text-[11px]',
+              'flex min-h-[56px] flex-col items-center justify-center gap-1 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
               isActive ? 'font-bold text-brand-dark' : 'font-medium text-ink-muted',
             )}
           >
-            <Icon size={22} aria-hidden />
+            <Icon size={22} strokeWidth={isActive ? 2.4 : 2} aria-hidden />
             <span>{label}</span>
           </Link>
         );

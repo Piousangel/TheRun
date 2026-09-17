@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { DevRoleSwitcher } from '@/features/dev-session/ui/dev-role-switcher';
+import { DemoSheet } from '@/features/dev-session/ui/demo-sheet';
 import { __setApiForTests } from '@/shared/api/client';
 import { setupTestApi } from '@/shared/lib/test/query-wrapper';
 
@@ -11,11 +11,20 @@ vi.mock('next/navigation', () => ({ useRouter: () => ({ push, refresh }) }));
 const toastError = vi.fn();
 vi.mock('sonner', () => ({ toast: { error: (...args: unknown[]) => toastError(...args) } }));
 
-async function openSheet() {
-  await userEvent.click(screen.getByRole('button', { name: '데모 메뉴 열기' }));
+function renderSheet(wrapper: ReturnType<typeof setupTestApi>['wrapper']) {
+  return render(
+    <DemoSheet>
+      <button type="button">데모 트리거</button>
+    </DemoSheet>,
+    { wrapper },
+  );
 }
 
-describe('DevRoleSwitcher', () => {
+async function openSheet() {
+  await userEvent.click(screen.getByRole('button', { name: '데모 트리거' }));
+}
+
+describe('DemoSheet', () => {
   afterEach(() => {
     __setApiForTests(null);
     push.mockClear();
@@ -23,16 +32,24 @@ describe('DevRoleSwitcher', () => {
     toastError.mockClear();
   });
 
-  it('처음에는 칩만 보이고 계정 버튼은 숨어 있다', () => {
+  it('처음에는 트리거만 보이고 계정 버튼은 숨어 있다', () => {
     const { wrapper } = setupTestApi();
-    render(<DevRoleSwitcher />, { wrapper });
-    expect(screen.getByRole('button', { name: '데모 메뉴 열기' })).toBeInTheDocument();
+    renderSheet(wrapper);
+    expect(screen.getByRole('button', { name: '데모 트리거' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '관리자' })).toBeNull();
+  });
+
+  it('트리거를 누르면 시트가 열린다', async () => {
+    const { wrapper } = setupTestApi();
+    renderSheet(wrapper);
+    await openSheet();
+    expect(await screen.findByRole('heading', { name: '데모 모드' })).toBeInTheDocument();
+    expect(screen.getByText('화면 미리보기입니다. 입력한 내용은 이 기기에만 남고 다른 사람에게 보이지 않습니다.')).toBeInTheDocument();
   });
 
   it('계정 버튼을 누르면 데모 로그인 후 /dashboard로 이동한다', async () => {
     const { api, wrapper } = setupTestApi();
-    render(<DevRoleSwitcher />, { wrapper });
+    renderSheet(wrapper);
     await openSheet();
     await userEvent.click(await screen.findByRole('button', { name: '관리자' }));
     expect((await api.auth.getUser())?.id).toBe('u-admin');
@@ -42,7 +59,7 @@ describe('DevRoleSwitcher', () => {
   it('로그아웃 버튼은 세션을 지우고 /login으로 보낸다', async () => {
     const { api, wrapper } = setupTestApi();
     await api.auth.signInAsDemo('member');
-    render(<DevRoleSwitcher />, { wrapper });
+    renderSheet(wrapper);
     await openSheet();
     await userEvent.click(await screen.findByRole('button', { name: '로그아웃' }));
     expect(await api.auth.getUser()).toBeNull();
@@ -52,7 +69,7 @@ describe('DevRoleSwitcher', () => {
   it('데이터 초기화는 확인 단계를 거친다', async () => {
     const { api, wrapper } = setupTestApi();
     await api.auth.signInAsDemo('member');
-    render(<DevRoleSwitcher />, { wrapper });
+    renderSheet(wrapper);
     await openSheet();
     await userEvent.click(await screen.findByRole('button', { name: '데이터 초기화' }));
     expect(await api.auth.getUser()).not.toBeNull();
@@ -61,13 +78,15 @@ describe('DevRoleSwitcher', () => {
     expect(push).toHaveBeenCalledWith('/login');
   });
 
-  it('데모 계정 전환이 실패하면 토스트로 알리고 이동하지 않는다', async () => {
+  it('데모 계정 전환이 실패하면 토스트로 알리고 이동하지 않으며 버튼이 다시 활성화된다', async () => {
     const { api, wrapper } = setupTestApi();
     api.auth.signInAsDemo = vi.fn().mockRejectedValue(new Error('데모 계정 u-superadmin이(가) 시드에 없습니다.'));
-    render(<DevRoleSwitcher />, { wrapper });
+    renderSheet(wrapper);
     await openSheet();
-    await userEvent.click(await screen.findByRole('button', { name: '슈퍼관리자' }));
+    const button = await screen.findByRole('button', { name: '슈퍼관리자' });
+    await userEvent.click(button);
     expect(toastError).toHaveBeenCalledWith('데모 계정 u-superadmin이(가) 시드에 없습니다.');
     expect(push).not.toHaveBeenCalled();
+    expect(screen.getByRole('button', { name: '슈퍼관리자' })).toBeEnabled();
   });
 });

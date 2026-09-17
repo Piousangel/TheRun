@@ -1,22 +1,34 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import { MobileTabBar } from '@/widgets/app-shell/ui/mobile-tab-bar';
 import { MobileTopBar } from '@/widgets/app-shell/ui/mobile-top-bar';
 import { usePageHeaderStore } from '@/shared/lib/page-header/store';
+import { __setApiForTests } from '@/shared/api/client';
+import { setupTestApi } from '@/shared/lib/test/query-wrapper';
 
 const nav = vi.hoisted(() => ({ pathname: '/dashboard' }));
-vi.mock('next/navigation', () => ({ usePathname: () => nav.pathname }));
+vi.mock('next/navigation', () => ({
+  usePathname: () => nav.pathname,
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
+}));
+
+const adapter = vi.hoisted(() => ({ local: true }));
+vi.mock('@/shared/api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api/client')>()),
+  isLocalAdapter: () => adapter.local,
+}));
 
 const auth = vi.hoisted(() => ({ member: { name: '이서준' } as { name: string } | null }));
 vi.mock('@/providers/auth-provider', () => ({ useAuth: () => ({ member: auth.member }) }));
 
 afterEach(() => {
+  // 이 afterEach는 RTL의 자동 cleanup()보다 먼저 돈다(훅은 역순 실행). 마운트된 헤더가 남은 채로
+  // pathname을 '/dashboard'로 되돌리고 오버라이드를 지우면 홈 변형(DEMO 시트 포함)으로 다시 렌더되므로
+  // 먼저 명시적으로 언마운트한다.
+  cleanup();
+  usePageHeaderStore.getState().clearOverride('test');
+  __setApiForTests(null);
   nav.pathname = '/dashboard';
-  // clearOverride()는 직전 테스트에서 렌더된 컴포넌트가 RTL의 자동 cleanup()보다
-  // 먼저 이 afterEach에서 실행되어 아직 마운트/구독된 상태일 수 있다. act()로 감싸
-  // 그 상태 갱신을 테스트 밖 경고 없이 처리한다.
-  act(() => {
-    usePageHeaderStore.getState().clearOverride('test');
-  });
+  adapter.local = true;
 });
 
 describe('MobileTabBar', () => {
@@ -41,8 +53,24 @@ describe('MobileTabBar', () => {
 });
 
 describe('MobileTopBar', () => {
-  it('홈에서는 멤버 이름을 보여준다', () => {
-    render(<MobileTopBar />);
+  it('홈에서는 멤버 이름을 /me 링크로 보여준다', () => {
+    const { wrapper } = setupTestApi();
+    render(<MobileTopBar />, { wrapper });
+    expect(screen.getByText('이서준님')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '이서준님' })).toHaveAttribute('href', '/me');
+  });
+
+  it('로컬 어댑터면 홈 헤더에 DEMO 트리거가 있다', () => {
+    const { wrapper } = setupTestApi();
+    render(<MobileTopBar />, { wrapper });
+    expect(screen.getByRole('button', { name: '데모 메뉴 열기' })).toHaveTextContent('DEMO');
+  });
+
+  it('로컬 어댑터가 아니면 DEMO 트리거가 없다', () => {
+    adapter.local = false;
+    const { wrapper } = setupTestApi();
+    render(<MobileTopBar />, { wrapper });
+    expect(screen.queryByRole('button', { name: '데모 메뉴 열기' })).toBeNull();
     expect(screen.getByText('이서준님')).toBeInTheDocument();
   });
 

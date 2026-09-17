@@ -17,7 +17,7 @@ export function DesktopTopBar() {
   return (
     <header className="sticky top-0 z-20 hidden h-[52px] items-center gap-2 border-b border-border bg-background px-6 md:flex">
       {backHref && (
-        <Link href={backHref} aria-label="뒤로" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted hover:bg-sunken">
+        <Link href={backHref} aria-label="뒤로" className="-ml-2 flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted outline-none hover:bg-sunken focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
           <ChevronLeft size={20} aria-hidden />
         </Link>
       )}

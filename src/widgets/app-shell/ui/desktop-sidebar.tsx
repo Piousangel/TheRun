@@ -2,14 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import { FlaskConical, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
 import { ROLE_LABELS } from '@/entities/auth/model/labels';
 import { useSignOut } from '@/entities/auth/model/queries';
+import { DemoSheet } from '@/features/dev-session/ui/demo-sheet';
 import { useAuth } from '@/providers/auth-provider';
+import { isLocalAdapter } from '@/shared/api/client';
 import { NAV_GROUPS, isNavItemActive, visibleGroups } from '@/shared/config/navigation';
 import { cn } from '@/shared/lib/utils';
 import { TheRunLogo } from '@/shared/ui/the-run-logo';
+
+const FOCUS_RING = 'outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring';
 
 export function DesktopSidebar() {
   const pathname = usePathname();
@@ -48,7 +52,8 @@ export function DesktopSidebar() {
                       aria-current={isActive ? 'page' : undefined}
                       className={cn(
                         'flex h-11 items-center gap-2.5 rounded-lg px-3 text-[14px]',
-                        isActive ? 'bg-brand-soft font-semibold text-brand-dark' : 'text-ink-muted hover:bg-sunken',
+                        FOCUS_RING,
+                        isActive ? 'bg-brand-soft font-semibold text-brand-dark' : 'text-ink-muted hover:bg-sunken-strong hover:text-ink',
                       )}
                     >
                       <Icon size={18} aria-hidden />
@@ -62,7 +67,24 @@ export function DesktopSidebar() {
         ))}
       </nav>
 
-      <div className="flex items-center gap-2 border-t border-border px-4 py-3">
+      {isLocalAdapter() && (
+        <div className="border-t border-border px-3 pt-2">
+          <DemoSheet>
+            <button
+              type="button"
+              className={cn(
+                'flex h-11 w-full items-center gap-2.5 rounded-lg px-3 text-[14px] font-semibold text-signal-amber-fg hover:bg-sunken-strong hover:text-ink',
+                FOCUS_RING,
+              )}
+            >
+              <FlaskConical size={18} aria-hidden />
+              데모 모드
+            </button>
+          </DemoSheet>
+        </div>
+      )}
+
+      <div className={cn('flex items-center gap-2 px-4 py-3', !isLocalAdapter() && 'border-t border-border')}>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-ink">{member?.name ?? '이름 없음'}</p>
           {profile && <p className="text-xs text-ink-dim">{ROLE_LABELS[profile.role]}</p>}
@@ -72,7 +94,10 @@ export function DesktopSidebar() {
           onClick={handleSignOut}
           disabled={signOut.isPending}
           aria-label="로그아웃"
-          className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted hover:bg-sunken disabled:opacity-50"
+          className={cn(
+            'flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted hover:bg-sunken-strong hover:text-ink disabled:opacity-50',
+            FOCUS_RING,
+          )}
         >
           <LogOut size={18} aria-hidden />
         </button>

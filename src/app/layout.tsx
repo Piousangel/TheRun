@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { pretendard } from '@/app/fonts';
-import { DevRoleSwitcher } from '@/features/dev-session/ui/dev-role-switcher';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
-import { isLocalAdapter } from '@/shared/api/client';
 import { AppShell } from '@/widgets/app-shell/ui/app-shell';
 import { Toaster } from 'sonner';
 import '@/app/globals.css';
@@ -44,7 +42,6 @@ export default function RootLayout({
         <QueryProvider>
           <AuthProvider>
             <AppShell>{children}</AppShell>
-            {isLocalAdapter() && <DevRoleSwitcher />}
             <Toaster richColors position="top-center" />
           </AuthProvider>
         </QueryProvider>

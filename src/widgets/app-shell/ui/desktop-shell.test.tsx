@@ -19,11 +19,18 @@ const auth = vi.hoisted(() => ({
 }));
 vi.mock('@/providers/auth-provider', () => ({ useAuth: () => auth }));
 
+const adapter = vi.hoisted(() => ({ local: true }));
+vi.mock('@/shared/api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api/client')>()),
+  isLocalAdapter: () => adapter.local,
+}));
+
 const toastError = vi.fn();
 vi.mock('sonner', () => ({ toast: { error: (...args: unknown[]) => toastError(...args) } }));
 
 afterEach(() => {
   __setApiForTests(null);
+  adapter.local = true;
   nav.pathname = '/dashboard';
   nav.push.mockClear();
   auth.isAdmin = false;
@@ -50,7 +57,21 @@ describe('DesktopSidebar', () => {
     const { wrapper } = setupTestApi();
     render(<DesktopSidebar />, { wrapper });
     expect(screen.getByRole('link', { name: '멤버' })).toHaveAttribute('aria-current', 'page');
-    expect(screen.getByText('운영진')).toBeInTheDocument();
+    expect(screen.getByText('관리자')).toBeInTheDocument();
+  });
+
+  it('로컬 어댑터면 푸터에 데모 모드 행이 있고 누르면 데모 시트가 열린다', async () => {
+    const { wrapper } = setupTestApi();
+    render(<DesktopSidebar />, { wrapper });
+    await userEvent.click(screen.getByRole('button', { name: '데모 모드' }));
+    expect(await screen.findByRole('heading', { name: '데모 모드' })).toBeInTheDocument();
+  });
+
+  it('로컬 어댑터가 아니면 데모 모드 행이 없다', () => {
+    adapter.local = false;
+    const { wrapper } = setupTestApi();
+    render(<DesktopSidebar />, { wrapper });
+    expect(screen.queryByRole('button', { name: '데모 모드' })).toBeNull();
   });
 
   it('로그아웃하면 세션을 지우고 /login으로 보낸다', async () => {

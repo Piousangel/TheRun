@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -12,10 +13,12 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle, Dr
 const ACCOUNT_KEYS: DemoAccountKey[] = ['member', 'admin', 'superadmin', 'unlinked'];
 
 /**
- * 로컬 어댑터 전용. 우하단 작은 칩 → 시트에서 데모 계정 전환·로그아웃·데이터 초기화.
- * 모바일에서는 탭바(56px) 위 12px에 띄워 탭과 겹치지 않게 한다. Supabase 모드에서는 렌더하지 않는다.
+ * 로컬 어댑터 전용 데모 시트: 데모 계정 전환·로그아웃·데이터 초기화.
+ * 트리거는 children으로 받는다(모바일 홈 헤더 DEMO 배지, /more 계정 그룹 행, 데스크톱 사이드바 행).
+ * 콘텐츠 위에 떠 있는 요소를 두지 않기 위해 자체 floating 칩은 없다.
+ * 호출하는 쪽이 isLocalAdapter()일 때만 렌더한다.
  */
-export function DevRoleSwitcher() {
+export function DemoSheet({ children }: { children: ReactNode }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -45,15 +48,7 @@ export function DevRoleSwitcher() {
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
-      <DrawerTrigger asChild>
-        <button
-          type="button"
-          aria-label="데모 메뉴 열기"
-          className="fixed right-3 z-50 flex h-11 items-center rounded-full bg-signal-amber-bg px-4 text-xs font-bold text-signal-amber-fg bottom-[calc(56px+12px+env(safe-area-inset-bottom))] md:bottom-4"
-        >
-          DEMO
-        </button>
-      </DrawerTrigger>
+      <DrawerTrigger asChild>{children}</DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>데모 모드</DrawerTitle>

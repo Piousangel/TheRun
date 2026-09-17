@@ -9,19 +9,27 @@ vi.mock('next/navigation', () => ({ useRouter: () => router }));
 
 const auth = vi.hoisted(() => ({
   isAdmin: false,
-  member: { name: '이서준' },
+  member: { name: '이서준' } as { name: string } | null,
   profile: { role: 'member' as 'member' | 'admin' | 'superadmin' },
 }));
 vi.mock('@/providers/auth-provider', () => ({ useAuth: () => auth }));
 
 const toastError = vi.fn();
+const adapter = vi.hoisted(() => ({ local: true }));
+vi.mock('@/shared/api/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/shared/api/client')>()),
+  isLocalAdapter: () => adapter.local,
+}));
+
 vi.mock('sonner', () => ({ toast: { error: (...args: unknown[]) => toastError(...args) } }));
 
 afterEach(() => {
   __setApiForTests(null);
+  adapter.local = true;
   router.push.mockClear();
   auth.isAdmin = false;
   auth.profile = { role: 'member' };
+  auth.member = { name: '이서준' };
   toastError.mockClear();
 });
 
@@ -34,6 +42,35 @@ describe('MorePageContent', () => {
     expect(screen.getByRole('link', { name: '공지' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '내 정보' })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '멤버' })).toBeNull();
+  });
+
+  it('역할을 배지로 보여주고, 멤버가 연결돼 있으면 카드는 링크가 아니다', () => {
+    const { wrapper } = setupTestApi();
+    render(<MorePageContent />, { wrapper });
+    expect(screen.getByText('멤버')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /이서준/ })).toBeNull();
+  });
+
+  it('멤버가 연결되지 않았으면 안내 문구와 함께 카드가 /me로 연결된다', () => {
+    auth.member = null;
+    const { wrapper } = setupTestApi();
+    render(<MorePageContent />, { wrapper });
+    const card = screen.getByRole('link', { name: /멤버 연결이 필요합니다/ });
+    expect(card).toHaveAttribute('href', '/me');
+  });
+
+  it('로컬 어댑터면 계정 그룹에 데모 모드 행이 있고 누르면 데모 시트가 열린다', async () => {
+    const { wrapper } = setupTestApi();
+    render(<MorePageContent />, { wrapper });
+    await userEvent.click(screen.getByRole('button', { name: '데모 모드' }));
+    expect(await screen.findByRole('heading', { name: '데모 모드' })).toBeInTheDocument();
+  });
+
+  it('로컬 어댑터가 아니면 데모 모드 행이 없다', () => {
+    adapter.local = false;
+    const { wrapper } = setupTestApi();
+    render(<MorePageContent />, { wrapper });
+    expect(screen.queryByRole('button', { name: '데모 모드' })).toBeNull();
   });
 
   it('관리자에게는 운영 메뉴가 보인다', () => {
