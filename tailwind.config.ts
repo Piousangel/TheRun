@@ -72,7 +72,7 @@ const config: Config = {
         xl: '1280px',
       },
       fontFamily: {
-        sans: ['var(--font-sans)', 'system-ui', '-apple-system', 'Apple SD Gothic Neo', 'sans-serif'],
+        sans: ['Pretendard Variable', 'Pretendard', 'system-ui', '-apple-system', 'Apple SD Gothic Neo', 'sans-serif'],
       },
     },
   },

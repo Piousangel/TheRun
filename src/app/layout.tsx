@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from 'next';
-import { pretendard } from '@/app/fonts';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
 import { AppShell } from '@/widgets/app-shell/ui/app-shell';
 import { Toaster } from 'sonner';
+// 한국어 본문 폰트. unicode-range로 쪼갠 서브셋(92개) 중 화면에 쓰인 글자 범위만 받는다.
+// 단일 가변 폰트(약 2MB)를 모든 라우트에서 preload하던 next/font/local 방식을 대체한다.
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import '@/app/globals.css';
 
 export const metadata: Metadata = {
@@ -37,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className={pretendard.variable}>
+    <html lang="ko">
       <body>
         <QueryProvider>
           <AuthProvider>
