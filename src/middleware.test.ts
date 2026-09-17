@@ -46,9 +46,15 @@ describe('middleware (local adapter)', () => {
     expect(res.headers.get('location')).toBe('http://localhost/dashboard');
   });
 
-  it('공개 라우트는 쿠키 없이 통과한다', async () => {
+  it('루트(/)는 쿠키 없이 통과한다(페이지가 /dashboard로 보낸다)', async () => {
     expect((await middleware(request('/'))).status).toBe(200);
-    expect((await middleware(request('/club-guide'))).status).toBe(200);
+  });
+
+  it('/more와 /club-guide는 로그인이 필요하다', async () => {
+    for (const path of ['/more', '/club-guide']) {
+      const res = await middleware(request(path));
+      expect(res.headers.get('location')).toBe(`http://localhost/login?next=${encodeURIComponent(path)}`);
+    }
   });
 });
 
