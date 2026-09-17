@@ -39,7 +39,8 @@ const DrawerContent = React.forwardRef<
       )}
       {...props}
     >
-      <div className="mx-auto mt-3 h-1.5 w-10 rounded-full bg-sunken-strong" />
+      {/* shrink-0: 내용이 max-h를 넘으면 flex가 핸들 높이를 줄여 제목이 올라가고 닫기 버튼과 중심이 어긋났다. */}
+      <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-sunken-strong" />
       <div className="relative flex-1 overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4">
         {children}
       </div>
