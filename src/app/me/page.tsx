@@ -3,7 +3,7 @@ import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 export default function MePage() {
   return (
-    <AppPageLayout maxWidth="4xl">
+    <AppPageLayout width="narrow">
         <MyPageContent />
     </AppPageLayout>
   );

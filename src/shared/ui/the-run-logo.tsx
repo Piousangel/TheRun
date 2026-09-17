@@ -4,11 +4,14 @@ import { cn } from "@/shared/lib/utils";
 interface TheRunLogoProps {
   className?: string;
   tone?: "brand" | "light" | "dark";
+  /** 옛 로그인·안내 화면의 어두운 히어로에서만 쓰는 drop-shadow. 셸(헤더·사이드바)에서는 끈다. */
+  glow?: boolean;
 }
 
 export function TheRunLogo({
   className,
   tone = "brand",
+  glow = false,
 }: TheRunLogoProps) {
   const gradientId = useId();
   const fillId = `${gradientId}-fill`;
@@ -26,8 +29,9 @@ export function TheRunLogo({
       : tone === "dark"
         ? "#111114"
         : `url(#${fillId})`;
-  const glowClass =
-    tone === "brand"
+  const glowClass = !glow
+    ? undefined
+    : tone === "brand"
       ? "drop-shadow-[0_12px_24px_rgba(200,168,88,0.28)]"
       : tone === "light"
         ? "drop-shadow-[0_10px_20px_rgba(255,255,255,0.18)]"

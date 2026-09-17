@@ -26,7 +26,7 @@ export function AuthShell({
           <div>
             <div className="flex items-center gap-4 rounded-[1.5rem] border border-white/10 bg-white/[0.05] px-4 py-4 backdrop-blur-xl">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] border border-primary/20 bg-[linear-gradient(160deg,rgba(212,175,84,0.18),rgba(255,255,255,0.08))]">
-                <TheRunLogo className="h-9 w-9" tone="light" />
+                <TheRunLogo className="h-9 w-9" tone="light" glow />
               </div>
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-[0.34em] text-primary/80">

@@ -1,11 +1,11 @@
-import type { Metadata } from 'next';
-import { DevRoleSwitcher } from '@/features/dev-session/ui/dev-role-switcher';
+import type { Metadata, Viewport } from 'next';
 import { AuthProvider } from '@/providers/auth-provider';
 import { QueryProvider } from '@/providers/query-provider';
-import { isLocalAdapter } from '@/shared/api/client';
-import { MobileNav } from '@/shared/components/mobile-nav';
-import { AppChrome } from '@/shared/ui/app-chrome';
+import { AppShell } from '@/widgets/app-shell/ui/app-shell';
 import { Toaster } from 'sonner';
+// 한국어 본문 폰트. unicode-range로 쪼갠 서브셋(92개) 중 화면에 쓰인 글자 범위만 받는다.
+// 단일 가변 폰트(약 2MB)를 모든 라우트에서 preload하던 next/font/local 방식을 대체한다.
+import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
 import '@/app/globals.css';
 
 export const metadata: Metadata = {
@@ -26,6 +26,13 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#FFFFFF',
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -36,11 +43,7 @@ export default function RootLayout({
       <body>
         <QueryProvider>
           <AuthProvider>
-            <AppChrome>
-              <div className="pb-16 xl:pb-0">{children}</div>
-            </AppChrome>
-            <MobileNav />
-            {isLocalAdapter() && <DevRoleSwitcher />}
+            <AppShell>{children}</AppShell>
             <Toaster richColors position="top-center" />
           </AuthProvider>
         </QueryProvider>

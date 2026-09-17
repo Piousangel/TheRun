@@ -4,65 +4,51 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;           /* White */
-    --foreground: 0 0% 0%;             /* Black */
+    /* 새 토큰 — 값은 docs/superpowers/specs/2026-09-17-ui-overhaul-design.md A-1. contrast.test.ts가 이 hex를 읽어 대비를 검증한다. */
+    --bg: #FFFFFF;
+    --bg-sunken: #F8F9FA;
+    --bg-sunken-strong: #F1F3F5;
+    --border-strong: #DEE2E6;
+    --fg: #212529;
+    --fg-muted: #495057;
+    --fg-dim: #687078;
+    --fg-faint: #ADB5BD; /* 텍스트 금지: 장식 아이콘·비활성 테두리 전용 */
+    --brand: #C8A858;
+    --brand-dark: #8A6D1F;
+    --brand-soft: #FBF6E9;
+    --signal-red-fg: #B91C1C;
+    --signal-red-bg: #FFF5F5;
+    --signal-amber-fg: #B45309;
+    --signal-amber-bg: #FEF3C7;
+    --signal-blue-fg: #1F6FB8;
+    --signal-blue-bg: #E8F1FA;
+    --signal-green-fg: #00755B;
+    --signal-green-bg: #E6F5F2;
+    --signal-gray-fg: #475569;
+    --signal-gray-bg: #F1F5F9;
 
+    /* shadcn 호환 채널 — 위 토큰과 같은 색 */
+    --background: 0 0% 100%;           /* --bg */
+    --foreground: 210 11% 15%;         /* --fg */
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
-
+    --card-foreground: 210 11% 15%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
-
-    --primary: 43 74% 49%;             /* Deep Gold #C8A858 */
-    --primary-foreground: 0 0% 100%;   /* White on gold */
-
-    --secondary: 0 0% 10%;             /* Near black */
-    --secondary-foreground: 0 0% 100%; /* White on black */
-
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 40%;
-
-    --accent: 43 74% 60%;              /* Light gold accent */
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 84% 60%;
+    --popover-foreground: 210 11% 15%;
+    --primary: 43 50% 56%;             /* --brand */
+    --primary-foreground: 210 11% 15%; /* 금색 버튼 위 글자는 검정 */
+    --secondary: 210 17% 95%;          /* --bg-sunken-strong */
+    --secondary-foreground: 210 11% 15%;
+    --muted: 210 17% 98%;              /* --bg-sunken */
+    --muted-foreground: 210 9% 31%;    /* --fg-muted */
+    --accent: 43 69% 95%;              /* --brand-soft */
+    --accent-foreground: 44 63% 33%;   /* --brand-dark */
+    --destructive: 0 74% 42%;          /* --signal-red-fg */
     --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 43 74% 49%;                /* Deep gold focus ring */
-
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 5%;
-    --foreground: 0 0% 100%;
-
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 100%;
-
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 100%;
-
-    --primary: 45 100% 51%;
-    --primary-foreground: 0 0% 0%;
-
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 100%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 60%;
-
-    --accent: 45 90% 60%;
-    --accent-foreground: 0 0% 0%;
-
-    --destructive: 0 84% 40%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 45 100% 51%;
+    --border: 210 16% 93%;             /* #E9ECEF */
+    --input: 210 14% 89%;              /* --border-strong */
+    --ring: 44 63% 33%;                /* --brand-dark */
+    --radius: 0.625rem;                /* 10px: 버튼·입력 */
+    --tabbar-h: 56px;                  /* 모바일 탭바 콘텐츠 높이(border-t·safe-area 제외). 탭바와 main 하단 패딩이 함께 쓴다 */
   }
 }
 
@@ -71,12 +57,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Pretendard Variable', Pretendard, system-ui, -apple-system, 'Apple SD Gothic Neo', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "ss01" 1;
   }
 }
 
 @layer utilities {
+  /* 단계 2(공용 컴포넌트)에서 화면 재작성과 함께 제거한다 — 새 코드에서 쓰지 말 것 */
   .editorial-hero {
     background-image: linear-gradient(180deg, rgb(9 9 11) 0%, rgb(24 24 27) 52%, rgb(245 245 244) 100%);
   }
@@ -132,37 +120,5 @@
   .section-surface {
     border: 1px solid hsl(var(--border));
     background: linear-gradient(160deg, rgba(200, 168, 88, 0.1), rgba(255, 255, 255, 0.95));
-  }
-
-  .landing-noise::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.12;
-    mix-blend-mode: soft-light;
-    background-image:
-      radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.12), transparent 18%),
-      radial-gradient(circle at 80% 10%, rgba(255, 255, 255, 0.08), transparent 20%),
-      radial-gradient(circle at 50% 80%, rgba(255, 255, 255, 0.08), transparent 22%);
-  }
-
-  .landing-chip {
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-    background: rgba(255, 255, 255, 0.06);
-    padding: 0.6rem 0.95rem;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-  }
-
-  .landing-logo-shell::after {
-    content: '';
-    position: absolute;
-    inset: 10px;
-    border-radius: 1.4rem;
-    background: linear-gradient(145deg, rgba(200, 168, 88, 0.18), rgba(255, 255, 255, 0.02));
-    opacity: 0.85;
-    pointer-events: none;
   }
 }

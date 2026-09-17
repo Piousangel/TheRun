@@ -3,7 +3,7 @@ import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 export default function AttendancePage() {
   return (
-    <AppPageLayout maxWidth="4xl">
+    <AppPageLayout width="narrow">
         <AttendanceWidget />
     </AppPageLayout>
   );

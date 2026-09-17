@@ -17,7 +17,7 @@ const DrawerOverlay = React.forwardRef<
     <DrawerPrimitive.Overlay
       ref={ref}
       className={cn(
-        "fixed inset-0 z-[110] bg-[linear-gradient(180deg,rgba(7,7,7,0.82),rgba(7,7,7,0.68))] backdrop-blur-md",
+        "fixed inset-0 z-[110] bg-black/40",
         className,
       )}
       {...props}
@@ -34,19 +34,21 @@ const DrawerContent = React.forwardRef<
     <DrawerPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[120] mt-24 flex max-h-[85vh] flex-col rounded-t-[2rem] border border-primary/20 bg-[linear-gradient(180deg,rgba(255,251,241,0.98),rgba(255,255,255,0.995))] shadow-[0_-28px_90px_rgba(0,0,0,0.34)] ring-1 ring-black/5",
+        "fixed inset-x-0 bottom-0 z-[120] mt-24 flex max-h-[94dvh] flex-col rounded-t-[20px] border-t border-border bg-background md:mx-auto md:max-w-[560px] md:border-x",
         className,
       )}
       {...props}
     >
-      <div className="mx-auto mt-3 h-1.5 w-12 rounded-full bg-muted-foreground/20" />
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(200,168,88,0.18),rgba(255,255,255,0))]" />
-      <div className="relative flex-1 overflow-y-auto px-5 pb-[calc(env(safe-area-inset-bottom)+1.5rem)] pt-5">
+      {/* shrink-0: 내용이 max-h를 넘으면 flex가 핸들 높이를 줄여 제목이 올라가고 닫기 버튼과 중심이 어긋났다. */}
+      <div className="mx-auto mt-3 h-1.5 w-10 shrink-0 rounded-full bg-sunken-strong" />
+      <div className="relative flex-1 overflow-y-auto px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4">
         {children}
       </div>
-      <DrawerPrimitive.Close className="absolute right-4 top-4 rounded-full border border-border/60 bg-background/92 p-2 opacity-90 shadow-sm transition-all hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
+      {/* 제목 줄과 세로 중심을 맞춘다: 핸들(mt-3 + h-1.5 = 18px) + 본문 pt-4(16px) + 제목 줄 높이 28px의 절반(14px)
+          = 48px가 제목 중심, 닫기 버튼(44px) 중심이 거기 오도록 top = 48 - 22 = 26px. */}
+      <DrawerPrimitive.Close className="absolute right-3 top-[26px] flex h-11 w-11 items-center justify-center rounded-full text-ink-muted hover:bg-sunken focus:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
+        <span className="sr-only">닫기</span>
       </DrawerPrimitive.Close>
     </DrawerPrimitive.Content>
   </DrawerPortal>
@@ -57,7 +59,7 @@ function DrawerHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("space-y-2 text-left", className)} {...props} />;
+  return <div className={cn("space-y-2 pr-12 text-left", className)} {...props} />;
 }
 
 function DrawerFooter({
@@ -75,7 +77,7 @@ const DrawerTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Title
     ref={ref}
-    className={cn("text-xl font-semibold tracking-tight", className)}
+    className={cn("text-[19px] font-bold leading-7", className)}
     {...props}
   />
 ));

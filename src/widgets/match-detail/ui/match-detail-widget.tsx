@@ -13,6 +13,7 @@ import { SubstitutionDialog } from "@/features/match-record/ui/substitution-dial
 import { MatchStatistics } from "@/features/match-record/ui/match-statistics";
 import { MVPSelectionDialog } from "@/features/match-record/ui/mvp-selection-dialog";
 import { useAuth } from "@/providers/auth-provider";
+import { usePageHeader } from "@/shared/lib/page-header/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Button } from "@/shared/ui/button";
 import { Badge } from "@/shared/ui/badge";
@@ -51,6 +52,9 @@ export function MatchDetailWidget({ matchId }: MatchDetailWidgetProps) {
   const { data: match, isLoading } = useMatch(matchId);
   const { data: members } = useMembers();
   const { mutate: updateMatch } = useUpdateMatch();
+  usePageHeader({
+    title: match ? format(new Date(match.date), "M월 d일 (EEE) 경기", { locale: ko }) : undefined,
+  });
 
   // Timer state
   const [timeInSeconds, setTimeInSeconds] = useState(10 * 60);

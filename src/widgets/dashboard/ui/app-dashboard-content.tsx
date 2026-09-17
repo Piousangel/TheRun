@@ -189,7 +189,7 @@ export function AppDashboardContent() {
       ];
 
   return (
-    <main className="min-h-screen pb-24">
+    <div>
       <section className="editorial-hero relative overflow-hidden border-b border-border/70 text-white">
         <div className="editorial-glow-gold absolute left-0 top-0 h-64 w-64 rounded-full" />
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 lg:px-10">
@@ -985,6 +985,6 @@ export function AppDashboardContent() {
           </CardContent>
         </Card>
       </section>
-    </main>
+    </div>
   );
 }

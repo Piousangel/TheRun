@@ -8,6 +8,7 @@ import { MemberStatsRadar } from "@/entities/member/ui/member-stats-radar";
 import { MemberEditForm } from "@/features/member-edit/ui/member-edit-form";
 import { MemberDeleteButton } from "@/features/member-delete/ui/member-delete-button";
 import { useAuth } from "@/providers/auth-provider";
+import { usePageHeader } from "@/shared/lib/page-header/store";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
@@ -33,6 +34,7 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
   const { data: member, isLoading, error } = useMember(memberId);
   const { isAdmin } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
+  usePageHeader({ title: member?.name });
 
   const handleEditSuccess = () => {
     setIsEditOpen(false);
@@ -108,12 +110,6 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
           }
           actions={
             <>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/members">
-                  <ArrowLeft className="mr-2 h-4 w-4" />
-                  목록으로
-                </Link>
-              </Button>
               {isAdmin ? (
                 <>
                   <Button size="sm" onClick={() => setIsEditOpen(true)}>

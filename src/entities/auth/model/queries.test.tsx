@@ -1,5 +1,5 @@
 import { act, renderHook, waitFor } from '@testing-library/react';
-import { useAuthProfile, useClaimableMembers, useLinkMemberProfile, useUnlinkMemberProfile } from '@/entities/auth/model/queries';
+import { useAuthProfile, useClaimableMembers, useLinkMemberProfile, useSignOut, useUnlinkMemberProfile } from '@/entities/auth/model/queries';
 import { __setApiForTests } from '@/shared/api/client';
 import { setupTestApi } from '@/shared/lib/test/query-wrapper';
 
@@ -37,5 +37,20 @@ describe('auth queries', () => {
     const { wrapper } = setupTestApi();
     const { result } = renderHook(() => useAuthProfile(null), { wrapper });
     expect(result.current.fetchStatus).toBe('idle');
+  });
+});
+
+describe('useSignOut', () => {
+  afterEach(() => __setApiForTests(null));
+
+  it('세션을 지우고 쿼리 캐시를 비운다', async () => {
+    const { api, client, wrapper } = setupTestApi();
+    await api.auth.signInAsDemo('member');
+    client.setQueryData(['members', 'list'], [{ id: 'm-01' }]);
+    expect(client.getQueryCache().getAll()).toHaveLength(1);
+    const { result } = renderHook(() => useSignOut(), { wrapper });
+    await act(() => result.current.mutateAsync());
+    expect(await api.auth.getUser()).toBeNull();
+    expect(client.getQueryCache().getAll()).toHaveLength(0);
   });
 });

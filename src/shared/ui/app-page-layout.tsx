@@ -3,24 +3,19 @@ import { cn } from '@/shared/lib/utils';
 
 interface AppPageLayoutProps {
   children: ReactNode;
-  maxWidth?: 'md' | 'lg' | 'xl' | '2xl' | '4xl' | '5xl' | '7xl';
+  /** content: 목록·대시보드(1120px) / narrow: 폼·문서(768px) */
+  width?: 'content' | 'narrow';
   className?: string;
 }
 
-const maxWidthClassMap: Record<NonNullable<AppPageLayoutProps['maxWidth']>, string> = {
-  md: 'max-w-md',
-  lg: 'max-w-lg',
-  xl: 'max-w-xl',
-  '2xl': 'max-w-2xl',
-  '4xl': 'max-w-4xl',
-  '5xl': 'max-w-5xl',
-  '7xl': 'max-w-7xl',
-};
-
-export function AppPageLayout({ children, maxWidth = '7xl', className }: AppPageLayoutProps) {
+/**
+ * 셸 <main> 안에서 페이지 여백과 최대 너비만 잡는다. <main>은 AppShell이 가진다.
+ * 데스크톱에서는 상단바 제목 아래로 왼쪽 정렬한다(가운데 정렬하면 제목과 본문 시작선이 어긋난다).
+ */
+export function AppPageLayout({ children, width = 'content', className }: AppPageLayoutProps) {
   return (
-    <main className={cn('min-h-screen p-4 sm:p-8', className)}>
-      <div className={cn('mx-auto', maxWidthClassMap[maxWidth])}>{children}</div>
-    </main>
+    <div className={cn('px-4 py-4 md:px-6 md:py-6', className)}>
+      <div className={cn('mx-auto md:mx-0', width === 'content' ? 'max-w-[1120px]' : 'max-w-3xl')}>{children}</div>
+    </div>
   );
 }

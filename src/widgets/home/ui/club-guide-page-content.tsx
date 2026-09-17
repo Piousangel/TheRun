@@ -56,14 +56,14 @@ const adminRoles = [
 
 export function ClubGuidePageContent() {
   return (
-    <main className="min-h-screen bg-gradient-to-b from-stone-50 to-white pb-24">
+    <div className="bg-gradient-to-b from-stone-50 to-white">
       <section className="editorial-hero relative overflow-hidden border-b border-border/70 text-white">
         <div className="editorial-glow-gold absolute left-0 top-0 h-64 w-64 rounded-full" />
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-8 lg:px-10">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-3 rounded-full border border-white/12 bg-white/8 px-3 py-2 backdrop-blur-xl">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/12 bg-white/10">
-                <TheRunLogo className="h-6 w-6" tone="light" />
+                <TheRunLogo className="h-6 w-6" tone="light" glow />
               </div>
               <div>
                 <p className="text-[10px] uppercase tracking-[0.3em] text-primary/75">
@@ -239,6 +239,6 @@ export function ClubGuidePageContent() {
           </CardContent>
         </Card>
       </section>
-    </main>
+    </div>
   );
 }
