@@ -12,7 +12,7 @@ export default async function MatchDetailPage({ params }: MatchDetailPageProps) 
   const { id } = await params;
 
   return (
-    <AppPageLayout width="narrow">
+    <AppPageLayout>
       <div className="space-y-6">
         <BackButton fallbackPath="/matches" />
         <MatchDetailWidget matchId={id} />

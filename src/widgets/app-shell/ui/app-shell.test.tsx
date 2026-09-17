@@ -29,6 +29,14 @@ describe('AppShell', () => {
     const { wrapper } = setupTestApi();
     render(<AppShell><p>로그인 폼</p></AppShell>, { wrapper });
     expect(screen.queryByRole('navigation')).toBeNull();
+    expect(screen.queryByRole('main')).toBeNull();
     expect(screen.getByText('로그인 폼')).toBeInTheDocument();
+  });
+
+  it('앱 화면에서는 main이 정확히 하나만 렌더된다', () => {
+    nav.pathname = '/votes';
+    const { wrapper } = setupTestApi();
+    render(<AppShell><p>투표 목록</p></AppShell>, { wrapper });
+    expect(screen.getAllByRole('main')).toHaveLength(1);
   });
 });
