@@ -93,3 +93,13 @@ export function useUnlinkMemberProfile(userId: string | null) {
     },
   });
 }
+
+export function useSignOut() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => getApi().auth.signOut(),
+    onSuccess: () => {
+      queryClient.clear();
+    },
+  });
+}
