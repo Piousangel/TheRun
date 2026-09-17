@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { MobileTabBar } from '@/widgets/app-shell/ui/mobile-tab-bar';
 import { MobileTopBar } from '@/widgets/app-shell/ui/mobile-top-bar';
 import { usePageHeaderStore } from '@/shared/lib/page-header/store';
@@ -11,7 +11,12 @@ vi.mock('@/providers/auth-provider', () => ({ useAuth: () => ({ member: auth.mem
 
 afterEach(() => {
   nav.pathname = '/dashboard';
-  usePageHeaderStore.getState().clearOverride();
+  // clearOverride()는 직전 테스트에서 렌더된 컴포넌트가 RTL의 자동 cleanup()보다
+  // 먼저 이 afterEach에서 실행되어 아직 마운트/구독된 상태일 수 있다. act()로 감싸
+  // 그 상태 갱신을 테스트 밖 경고 없이 처리한다.
+  act(() => {
+    usePageHeaderStore.getState().clearOverride();
+  });
 });
 
 describe('MobileTabBar', () => {
@@ -56,9 +61,12 @@ describe('MobileTopBar', () => {
 
   it('페이지 오버라이드가 제목과 뒤로가기 대상을 덮는다', () => {
     nav.pathname = '/votes/v-1';
-    usePageHeaderStore.getState().setOverride({ title: '9월 19일 정기 경기', subtitle: '마감 D-2' });
+    act(() => {
+      usePageHeaderStore.getState().setOverride({ title: '9월 19일 정기 경기', subtitle: '마감 D-2', backHref: '/votes?tab=closed' });
+    });
     render(<MobileTopBar />);
     expect(screen.getByText('9월 19일 정기 경기')).toBeInTheDocument();
     expect(screen.getByText('마감 D-2')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '뒤로' })).toHaveAttribute('href', '/votes?tab=closed');
   });
 });
