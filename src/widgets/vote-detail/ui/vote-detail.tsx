@@ -12,6 +12,7 @@ import { VoteResponseButton } from "@/features/vote-response/ui/vote-response-bu
 import { VoteDeleteButton } from "@/features/vote-delete/ui/vote-delete-button";
 import { MemberAvatar } from "@/entities/member/ui/member-avatar";
 import { useAuth } from "@/providers/auth-provider";
+import { usePageHeader } from "@/shared/lib/page-header/store";
 import { Card, CardContent } from "@/shared/ui/card";
 import { Badge } from "@/shared/ui/badge";
 import { PageHero } from "@/shared/ui/page-hero";
@@ -53,6 +54,7 @@ export function VoteDetail({ sessionId }: VoteDetailProps) {
   const { data: responses, isLoading: responsesLoading } =
     useVoteResponses(sessionId);
   const { data: members } = useMembers();
+  usePageHeader({ title: session?.title });
 
   const isExpired = session ? isPast(new Date(session.deadline)) : false;
   const currentMemberVote = currentMember

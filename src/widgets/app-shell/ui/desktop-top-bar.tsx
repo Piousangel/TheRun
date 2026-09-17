@@ -11,6 +11,7 @@ export function DesktopTopBar() {
   const override = usePageHeaderStore((state) => state.override);
   const meta = resolveRouteMeta(pathname);
   const title = override?.title ?? meta.title;
+  const subtitle = override?.subtitle;
   const backHref = meta.kind === 'deep' ? (override?.backHref ?? meta.backHref) : null;
 
   return (
@@ -20,7 +21,10 @@ export function DesktopTopBar() {
           <ChevronLeft size={20} aria-hidden />
         </Link>
       )}
-      <p className="truncate text-[15px] font-bold text-ink">{title}</p>
+      <div className="flex min-w-0 items-baseline gap-2">
+        <p className="truncate text-[15px] font-bold text-ink">{title}</p>
+        {subtitle && <p className="truncate text-xs text-ink-dim">{subtitle}</p>}
+      </div>
     </header>
   );
 }

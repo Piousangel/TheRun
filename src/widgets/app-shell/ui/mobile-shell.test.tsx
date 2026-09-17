@@ -15,7 +15,7 @@ afterEach(() => {
   // 먼저 이 afterEach에서 실행되어 아직 마운트/구독된 상태일 수 있다. act()로 감싸
   // 그 상태 갱신을 테스트 밖 경고 없이 처리한다.
   act(() => {
-    usePageHeaderStore.getState().clearOverride();
+    usePageHeaderStore.getState().clearOverride('test');
   });
 });
 
@@ -62,7 +62,7 @@ describe('MobileTopBar', () => {
   it('페이지 오버라이드가 제목과 뒤로가기 대상을 덮는다', () => {
     nav.pathname = '/votes/v-1';
     act(() => {
-      usePageHeaderStore.getState().setOverride({ title: '9월 19일 정기 경기', subtitle: '마감 D-2', backHref: '/votes?tab=closed' });
+      usePageHeaderStore.getState().setOverride('test', { title: '9월 19일 정기 경기', subtitle: '마감 D-2', backHref: '/votes?tab=closed' });
     });
     render(<MobileTopBar />);
     expect(screen.getByText('9월 19일 정기 경기')).toBeInTheDocument();

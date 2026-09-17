@@ -1,5 +1,4 @@
 import { MatchDetailWidget } from '@/widgets/match-detail/ui/match-detail-widget';
-import { BackButton } from '@/shared/components/back-button';
 import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 interface MatchDetailPageProps {
@@ -14,7 +13,6 @@ export default async function MatchDetailPage({ params }: MatchDetailPageProps) 
   return (
     <AppPageLayout>
       <div className="space-y-6">
-        <BackButton fallbackPath="/matches" />
         <MatchDetailWidget matchId={id} />
       </div>
     </AppPageLayout>

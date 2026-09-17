@@ -1,5 +1,4 @@
 import { VoteDetail } from '@/widgets/vote-detail/ui/vote-detail';
-import { BackButton } from '@/shared/components/back-button';
 import { AppPageLayout } from '@/shared/ui/app-page-layout';
 
 interface VoteDetailPageProps {
@@ -14,7 +13,6 @@ export default async function VoteDetailPage({ params }: VoteDetailPageProps) {
   return (
     <AppPageLayout width="narrow">
       <div className="space-y-4">
-        <BackButton fallbackPath="/votes" />
         <VoteDetail sessionId={id} />
       </div>
     </AppPageLayout>

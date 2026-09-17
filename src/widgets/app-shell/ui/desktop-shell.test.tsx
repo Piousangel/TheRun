@@ -1,8 +1,9 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DesktopSidebar } from '@/widgets/app-shell/ui/desktop-sidebar';
 import { DesktopTopBar } from '@/widgets/app-shell/ui/desktop-top-bar';
 import { __setApiForTests } from '@/shared/api/client';
+import { usePageHeaderStore } from '@/shared/lib/page-header/store';
 import { setupTestApi } from '@/shared/lib/test/query-wrapper';
 
 const nav = vi.hoisted(() => ({ pathname: '/dashboard', push: vi.fn(), refresh: vi.fn() }));
@@ -28,6 +29,9 @@ afterEach(() => {
   auth.isAdmin = false;
   auth.profile = { role: 'member' };
   toastError.mockClear();
+  act(() => {
+    usePageHeaderStore.getState().clearOverride('test');
+  });
 });
 
 describe('DesktopSidebar', () => {
@@ -75,6 +79,16 @@ describe('DesktopTopBar', () => {
     render(<DesktopTopBar />);
     expect(screen.getByText('투표')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '뒤로' })).toBeNull();
+  });
+
+  it('페이지 오버라이드의 제목과 부제를 보여준다', () => {
+    nav.pathname = '/votes/v-1';
+    act(() => {
+      usePageHeaderStore.getState().setOverride('test', { title: '9월 19일 정기 경기', subtitle: '마감 D-2' });
+    });
+    render(<DesktopTopBar />);
+    expect(screen.getByText('9월 19일 정기 경기')).toBeInTheDocument();
+    expect(screen.getByText('마감 D-2')).toBeInTheDocument();
   });
 
   it('상세 화면은 뒤로가기 포함', () => {
