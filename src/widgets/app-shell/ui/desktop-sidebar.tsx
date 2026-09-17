@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut } from 'lucide-react';
+import { toast } from 'sonner';
 import { ROLE_LABELS } from '@/entities/auth/model/labels';
 import { useSignOut } from '@/entities/auth/model/queries';
 import { useAuth } from '@/providers/auth-provider';
@@ -17,9 +18,13 @@ export function DesktopSidebar() {
   const signOut = useSignOut();
 
   const handleSignOut = async () => {
-    await signOut.mutateAsync();
-    router.push('/login');
-    router.refresh();
+    try {
+      await signOut.mutateAsync();
+      router.push('/login');
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : '로그아웃에 실패했습니다.');
+    }
   };
 
   return (
@@ -42,7 +47,7 @@ export function DesktopSidebar() {
                       href={href}
                       aria-current={isActive ? 'page' : undefined}
                       className={cn(
-                        'flex h-9 items-center gap-2.5 rounded-lg px-3 text-[14px]',
+                        'flex h-11 items-center gap-2.5 rounded-lg px-3 text-[14px]',
                         isActive ? 'bg-brand-soft font-semibold text-brand-dark' : 'text-ink-muted hover:bg-sunken',
                       )}
                     >
@@ -67,7 +72,7 @@ export function DesktopSidebar() {
           onClick={handleSignOut}
           disabled={signOut.isPending}
           aria-label="로그아웃"
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-muted hover:bg-sunken disabled:opacity-50"
+          className="flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted hover:bg-sunken disabled:opacity-50"
         >
           <LogOut size={18} aria-hidden />
         </button>

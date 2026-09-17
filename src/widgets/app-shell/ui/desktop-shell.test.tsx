@@ -18,12 +18,16 @@ const auth = vi.hoisted(() => ({
 }));
 vi.mock('@/providers/auth-provider', () => ({ useAuth: () => auth }));
 
+const toastError = vi.fn();
+vi.mock('sonner', () => ({ toast: { error: (...args: unknown[]) => toastError(...args) } }));
+
 afterEach(() => {
   __setApiForTests(null);
   nav.pathname = '/dashboard';
   nav.push.mockClear();
   auth.isAdmin = false;
   auth.profile = { role: 'member' };
+  toastError.mockClear();
 });
 
 describe('DesktopSidebar', () => {
@@ -52,6 +56,16 @@ describe('DesktopSidebar', () => {
     await userEvent.click(screen.getByRole('button', { name: '로그아웃' }));
     expect(await api.auth.getUser()).toBeNull();
     expect(nav.push).toHaveBeenCalledWith('/login');
+  });
+
+  it('로그아웃이 실패하면 토스트로 알리고 이동하지 않는다', async () => {
+    const { api, wrapper } = setupTestApi();
+    await api.auth.signInAsDemo('member');
+    api.auth.signOut = vi.fn().mockRejectedValue(new Error('네트워크 오류'));
+    render(<DesktopSidebar />, { wrapper });
+    await userEvent.click(screen.getByRole('button', { name: '로그아웃' }));
+    expect(toastError).toHaveBeenCalledWith('네트워크 오류');
+    expect(nav.push).not.toHaveBeenCalled();
   });
 });
 
