@@ -43,11 +43,14 @@ describe('auth queries', () => {
 describe('useSignOut', () => {
   afterEach(() => __setApiForTests(null));
 
-  it('세션을 지운다', async () => {
-    const { api, wrapper } = setupTestApi();
+  it('세션을 지우고 쿼리 캐시를 비운다', async () => {
+    const { api, client, wrapper } = setupTestApi();
     await api.auth.signInAsDemo('member');
+    client.setQueryData(['members', 'list'], [{ id: 'm-01' }]);
+    expect(client.getQueryCache().getAll()).toHaveLength(1);
     const { result } = renderHook(() => useSignOut(), { wrapper });
     await act(() => result.current.mutateAsync());
     expect(await api.auth.getUser()).toBeNull();
+    expect(client.getQueryCache().getAll()).toHaveLength(0);
   });
 });
