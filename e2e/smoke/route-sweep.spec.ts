@@ -17,10 +17,9 @@ const ERROR_BANNER = /문제가 생겼습니다|오류가 발생했습니다|불
 
 /**
  * 라우트별 h1. 이 제목이 보이면 그 화면이 실제로 그려진 것이다.
- * 랜딩(`/`)은 자동 전환 캐러셀이라 h1이 계속 바뀐다 — 앵커 없이 main 렌더만 확인한다.
  */
 const STATIC_ROUTES: ReadonlyArray<{ path: string; heading?: string | RegExp }> = [
-  { path: '/' },
+  { path: '/more', heading: '더보기' },
   { path: '/club-guide', heading: 'The Run 운영 가이드' },
   { path: '/dashboard', heading: /이번 주/ },
   { path: '/attendance', heading: '출석 응답 보드' },
@@ -82,9 +81,12 @@ test.describe('라우트 스윕 — 관리자 세션으로 전 라우트가 시�
     });
   });
 
-  test('리다이렉트 라우트 3곳', async ({ page }) => {
+  test('리다이렉트 라우트 4곳', async ({ page }) => {
     // 서버 리다이렉트라 goto가 목적지 도착 전에 "다른 내비게이션에 가로채였다"로 끝날 수 있다.
     // commit까지만 기다리고 최종 URL은 toHaveURL로 폴링한다.
+    await page.goto('/', { waitUntil: 'commit' });
+    await expect(page).toHaveURL(/\/dashboard$/);
+
     await page.goto('/team-division', { waitUntil: 'commit' });
     await expect(page).toHaveURL(/\/strategy$/);
 
