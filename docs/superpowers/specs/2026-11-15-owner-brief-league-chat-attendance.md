@@ -46,14 +46,14 @@
 ### 2.2 데이터 모양
 ```
 Season        { id, name('2026 상반기'), starts_on, ends_on, status: draft|active|done, quarters_per_match=3, quarter_minutes=10, players_per_side=6,
-                points: { win: 3, draw: 1, loss: 0 }, tiebreakers: ['goal_diff','goals_for','head_to_head'] }
+                points: { win: 3, draw: 1, loss: 0 }, tiebreakers: ['goal_diff','goals_for','head_to_head'], mvp_method: 'member_vote'|'admin_pick'|'champion_vote' }
 MiniGame      { id, season_id, matchday_id?, name('승부차기'), description, points: [1st, 2nd?, 3rd?] }   -- 종목·점수 시즌별 설정
 MiniGameResult{ minigame_id, team_id, rank, recorded_by, at }
 LeagueTeam    { id, season_id, name, color, captain_member_id }
 TeamRoster    { team_id, member_id, joined_at }            -- 시즌 중 이적·용병 대비 기간 보관
-Matchday      { id, season_id, week(1..4), date, venue }    -- 출석 체크의 단위이기도 함
+Matchday      { id, season_id, week(1..N), date, venue, max_fixtures=3 }    -- 출석 체크의 단위이기도 함
 Fixture       { id, matchday_id, order, home_team_id, away_team_id, status: scheduled|live|final }
-Appearance    { fixture_id, quarter(1..3), team_id, member_id, position? }   -- "이 쿼터에 뛰었다"
+Appearance    { fixture_id, quarter(1..3), team_id, member_id?, guest_name?, loan_from_team_id?, position? }   -- "이 쿼터에 뛰었다" (임대·게스트 포함)
 Availability  { season_id, member_id, weeks: int[] }          -- 드래프트 전 참석 가능 주차
 Draft         { season_id, order: team_id[], status, pick_no } / DraftPick { draft_id, pick_no, team_id, member_id, picked_by, at }
 AuditLog      { id, entity, entity_id, action: create|update|delete, before, after, actor_id, at }  -- 기록 변경 이력
@@ -198,10 +198,18 @@ UI 개편 단계 2~5(launch.md A)는 이 기능들의 화면 셸이다. 새 화�
 - 속도: 더런 루틴을 하루 3회(06·13·20시)로 늘린다. 계획은 `docs/team/launch.md` '11월 스프린트'.
 - 로그인은 11월에 Google+Kakao, Naver는 12월.
 
-## 9. 열린 질문 (답 오기 전에는 가정대로 진행)
-1. 리그 팀 수는 항상 3팀인가, 팀당 인원(20명 → 약 7명, 6:6이라 교체 1명)은 어떤가. **가정: 3팀 고정, 앱은 N팀 지원.**
-2. 어떤 주에 팀 인원이 6명보다 적으면 어떻게 하나(다른 팀에서 빌리기 / 게스트). **가정: 게스트 기록 가능(이름만, 개인 기록은 집계 제외).**
-3. 아이디·비밀번호 로그인을 남길까. **가정: 남기지 않는다. 소셜 계정이 없는 회원은 운영진이 대리 기록한다.**
-4. 운영진(관리자) 명단과 현재 회원 명단(이름) — 첫 데이터 입력에 필요하다.
-5. 무승부 점수와 미니게임 2·3위 점수. **가정: 무 1점, 미니게임은 1위만 1점(시즌 설정에서 바꿀 수 있음).**
-6. MVP 투표 여부. **가정: 시즌 종료 후 회원 투표(기존 투표 재사용).**
+## 9. 오너 답 (11-15 2차)
+1. **팀 수는 3팀이 기본이고 4팀이 될 수도 있다. 팀 수와 상관없이 확장 가능하게 만든다.**
+   - 일정 생성기는 팀 수 N, 경기일 수(기본 4), **경기일당 경기 수**(기본 3)를 입력받아 라운드로빈 대진을 고르게 나눈다.
+   - 4팀이면 6대진이다. 경기일당 3경기를 넘기지 않게 주차에 나누고, 쉬는 팀이 한쪽에 몰리지 않게 한다.
+   - 대진과 순서는 운영진이 생성 후 드래그로 고칠 수 있다.
+2. **6명이 안 되는 경우 다른 팀에서 데려온다.**
+   - 경기 단위 **임대 출전**을 둔다(Appearance에 `loan_from_team_id`). 개인 기록은 선수 본인에게 쌓이고, 경기 결과는 출전한 팀 기준이다.
+   - 경기 시작 전 '인원 확인' 화면에서 부족 인원을 보여주고, 그 경기에 쉬는 팀 선수부터 추천한다.
+   - 게스트(비회원) 출전도 이름만으로 허용한다. 게스트의 개인 기록은 집계하지 않는다.
+3. **승점: 승 3 · 무 1 · 패 0, 미니게임은 우승만 1점.** 시즌 설정의 기본값이다.
+4. **MVP는 방식이 미정이다** → 시즌 설정에서 고른다: 회원 투표 / 운영진 선정 / 우승팀 내부 투표. 투표 방식은 기존 투표 기능을 재사용한다.
+5. **로그인은 소셜만 쓴다(구글·카카오·네이버).** 아이디·비밀번호는 만들지 않는다. 11월은 구글+카카오, 네이버는 12월이다. 둘 다 없는 회원이 확인되면 네이버를 앞당긴다.
+
+## 10. 남은 질문
+- 운영진·회원 명단(이름): 첫 데이터 입력에 필요하다.
