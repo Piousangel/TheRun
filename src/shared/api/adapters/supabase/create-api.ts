@@ -1,7 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/shared/api/adapters/supabase/config';
 import { withSingleActiveMatchSession } from '@/shared/api/adapters/single-active-match';
-import type { ClubApi } from '@/shared/api/ports';
+import type { ClubApi, LeagueRepo } from '@/shared/api/ports';
 import { ApiError, isSchemaMissingError } from '@/shared/api/ports/errors';
 import type { AuthUser } from '@/shared/api/ports/auth-repo';
 import type { VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
@@ -11,6 +11,17 @@ import type { AppProfile } from '@/shared/types/auth';
 import type { Match } from '@/shared/types/match';
 import type { Member } from '@/shared/types/member';
 import type { VoteResponse, VoteSession } from '@/shared/types/vote';
+
+function createUnavailableLeagueRepo(): LeagueRepo {
+  const fail = async (): Promise<never> => {
+    throw new ApiError('리그 기능은 Supabase 스키마 적용 후에 사용할 수 있습니다.', 'LEAGUE_NOT_MIGRATED');
+  };
+  return {
+    listSeasons: fail, getSeason: fail, createSeason: fail, updateSeason: fail, removeSeason: fail,
+    listTeams: fail, createTeam: fail, updateTeam: fail, removeTeam: fail,
+    listMatchdays: fail, listFixtures: fail, generateSchedule: fail, setFixtureStatus: fail,
+  };
+}
 
 function toAuthUser(user: User | null | undefined): AuthUser | null {
   return user ? { id: user.id, email: user.email ?? null } : null;
@@ -185,6 +196,9 @@ export function createSupabaseApi(): ClubApi {
         return data as AnnouncementRead;
       },
     },
+
+    // 리그 스키마 마이그레이션(S0)이 적용되기 전까지는 호출하면 명확히 실패한다.
+    league: createUnavailableLeagueRepo(),
 
     auth: {
       async getUser() {
