@@ -35,9 +35,20 @@
 - 팀 수는 3팀이 기본이지만 N팀(라운드로빈)을 지원한다. 팀이 4팀이면 한 경기일에 2경기씩 진행할 수 있다.
 - 순위: 승 3점, 무 1점, 패 0점. 동점이면 득실차 → 다득점 → 승자승 순으로 가른다.
 
+### 2.1-1 승점 규칙과 미니게임 (오너 추가 요구 11-15)
+- 경기 승리 3점이 기본이다. 리그 4주 동안 **미니게임**(예: 승부차기, 크로스바 맞히기)도 하고, 우승 팀이 **승점 1점**을 받는다.
+- **둘 다 시즌마다 커스터마이징한다.**
+  - 경기 승·무·패 점수
+  - 미니게임 종목(이름·설명), 종목별 우승 점수, 2·3위 점수(선택), 경기일
+- 순위표에 '경기 승점'과 '미니게임 승점'을 따로 보이고 합계로 정렬한다. 동점 규칙도 시즌 설정에서 순서를 고를 수 있게 한다(기본: 득실차 → 다득점 → 승자승).
+- 미니게임 결과 입력도 경기 기록과 같은 권한·감사 기록 규칙을 따른다.
+
 ### 2.2 데이터 모양
 ```
-Season        { id, name('2026 상반기'), starts_on, ends_on, status: draft|active|done, quarters_per_match=3, quarter_minutes=10, players_per_side=6 }
+Season        { id, name('2026 상반기'), starts_on, ends_on, status: draft|active|done, quarters_per_match=3, quarter_minutes=10, players_per_side=6,
+                points: { win: 3, draw: 1, loss: 0 }, tiebreakers: ['goal_diff','goals_for','head_to_head'] }
+MiniGame      { id, season_id, matchday_id?, name('승부차기'), description, points: [1st, 2nd?, 3rd?] }   -- 종목·점수 시즌별 설정
+MiniGameResult{ minigame_id, team_id, rank, recorded_by, at }
 LeagueTeam    { id, season_id, name, color, captain_member_id }
 TeamRoster    { team_id, member_id, joined_at }            -- 시즌 중 이적·용병 대비 기간 보관
 Matchday      { id, season_id, week(1..4), date, venue }    -- 출석 체크의 단위이기도 함
@@ -192,5 +203,5 @@ UI 개편 단계 2~5(launch.md A)는 이 기능들의 화면 셸이다. 새 화�
 2. 어떤 주에 팀 인원이 6명보다 적으면 어떻게 하나(다른 팀에서 빌리기 / 게스트). **가정: 게스트 기록 가능(이름만, 개인 기록은 집계 제외).**
 3. 아이디·비밀번호 로그인을 남길까. **가정: 남기지 않는다. 소셜 계정이 없는 회원은 운영진이 대리 기록한다.**
 4. 운영진(관리자) 명단과 현재 회원 명단(이름) — 첫 데이터 입력에 필요하다.
-5. 승점·동점 규칙. **가정: 승 3·무 1·패 0, 득실차 → 다득점 → 승자승.**
+5. 무승부 점수와 미니게임 2·3위 점수. **가정: 무 1점, 미니게임은 1위만 1점(시즌 설정에서 바꿀 수 있음).**
 6. MVP 투표 여부. **가정: 시즌 종료 후 회원 투표(기존 투표 재사용).**
