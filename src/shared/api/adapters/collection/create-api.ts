@@ -1,6 +1,7 @@
 import { createCollectionAnnouncementRepo } from '@/shared/api/adapters/collection/announcement-repo';
 import { createCollectionAuthRepo } from '@/shared/api/adapters/collection/auth-repo';
 import { Collection } from '@/shared/api/adapters/collection/collection';
+import { createCollectionLeagueRepo } from '@/shared/api/adapters/collection/league-repo';
 import { createCollectionMatchRepo } from '@/shared/api/adapters/collection/match-repo';
 import { createCollectionMemberRepo } from '@/shared/api/adapters/collection/member-repo';
 import { buildSeed } from '@/shared/api/adapters/collection/seed';
@@ -28,11 +29,20 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
   const announcements = new Collection(storage, 'announcements', () => seed().announcements);
   const reads = new Collection(storage, 'announcement_reads', () => seed().announcementReads);
 
+  const league = createCollectionLeagueRepo({
+    seasons: new Collection(storage, 'league_seasons', () => []),
+    teams: new Collection(storage, 'league_teams', () => []),
+    matchdays: new Collection(storage, 'league_matchdays', () => []),
+    fixtures: new Collection(storage, 'league_fixtures', () => []),
+    now,
+  });
+
   return {
     members: createCollectionMemberRepo(members, now),
     votes: createCollectionVoteRepo({ sessions: voteSessions, responses: voteResponses, members, now }),
     matches: createCollectionMatchRepo(matches, now),
     announcements: createCollectionAnnouncementRepo({ announcements, reads, currentUserId: () => session.get(), now }),
     auth: createCollectionAuthRepo({ users, profiles, members, session, now }),
+    league,
   };
 }
