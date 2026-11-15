@@ -8,6 +8,10 @@ The Run is a mobile-first futsal club management system built with Next.js 15 + 
 
 **Product decisions override the approved spec.** `docs/product-decisions.md` records owner decisions made after the spec was approved; on conflict, that document wins. Two that anyone touching this code must know: **team splits persist to the server** (D-04, reverses spec §4 #4 — a confirmed split becomes a `status: 'pending'` Match), and **the member phone number is being removed from the domain** (D-03 — it's still in the code today, but treat it as scheduled for deletion, not something to build on).
 
+## 매일 아침 팀 운영
+
+06:00 KST 클라우드 루틴(더런 팀)이 회의 → 리뷰 → 반영(PR·CI 통과 시 머지) → 메일 보고를 한다. **아침 팀은 회의 전에 [docs/team/OPERATING.md](./docs/team/OPERATING.md)와 [docs/team/launch.md](./docs/team/launch.md)를 반드시 읽고 따른다.**
+
 ## Development Commands
 
 ```bash
