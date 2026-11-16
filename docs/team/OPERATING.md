@@ -10,6 +10,7 @@
 ## 1. 회의 전에 읽을 것
 - CLAUDE.md, `docs/product-decisions.md`, [launch.md](./launch.md), [direction.md](./direction.md), `docs/daily/backlog.md`, `docs/daily/log.md`, 최근 회의록 3개, 최근 회고 1개
 - 진행 중 스펙·계획: `docs/superpowers/specs/`, `docs/superpowers/plans/`
+- 채팅·푸시·오프라인 작업 전에는 `docs/reference/lessons-realtime-push.md`(이전 실무 교훈 + 참고 오픈소스)를 먼저 읽는다
 
 ## 2. 역할 (회의록 docs/team/meetings/YYYY-MM-DD.md)
 맨 위에 **어제 회고**를 쓴다: 어제 반영이 실제로 어땠나(CI·배포·화면 확인), 잘된 점, 부족한 점, 다음에 다르게 할 것 각 1줄.
