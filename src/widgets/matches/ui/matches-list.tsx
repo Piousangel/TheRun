@@ -9,9 +9,9 @@ import { MatchScheduleCard } from "@/features/match-schedule/ui/match-schedule-c
 import { useAuth } from "@/providers/auth-provider";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent } from "@/shared/ui/card";
-import { LoadingState } from "@/shared/ui/loading-spinner";
+import { CardSkeleton } from "@/shared/ui/card-skeleton";
+import { ErrorState } from "@/shared/ui/empty-state";
 import { PageHero } from "@/shared/ui/page-hero";
-import { StatePanel } from "@/shared/ui/state-panel";
 import { StatTile } from "@/shared/ui/stat-tile";
 import { Badge } from "@/shared/ui/badge";
 import { Trophy, Users } from "lucide-react";
@@ -19,7 +19,7 @@ import { Trophy, Users } from "lucide-react";
 export function MatchesList() {
   const router = useRouter();
   const { isAdmin } = useAuth();
-  const { data: matches, isLoading, error } = useMatches();
+  const { data: matches, isLoading, error, refetch } = useMatches();
   const { data: voteSessions, isLoading: isLoadingVotes } =
     useActiveVoteSessions();
   const { isTeamSelectionComplete, selectedVoteSessionId, teams, teamCount } =
@@ -27,19 +27,16 @@ export function MatchesList() {
 
   if (isLoading || isLoadingVotes) {
     return (
-      <div className="min-h-[400px]">
-        <LoadingState />
-      </div>
+      <CardSkeleton className="md:grid md:grid-cols-2 lg:grid-cols-3" />
     );
   }
 
   if (error) {
     return (
-      <StatePanel
-        icon={<Trophy className="h-6 w-6" />}
-        title="경기 허브를 불러오는 중 문제가 생겼습니다"
-        description={`경기 목록이나 활성 투표 데이터를 읽는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요. (${error.message})`}
-        tone="warning"
+      <ErrorState
+        title="경기를 불러오지 못했어요"
+        description={`잠시 후 다시 시도해주세요. (${error.message})`}
+        onRetry={() => refetch()}
       />
     );
   }

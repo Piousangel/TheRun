@@ -16,9 +16,9 @@ import {
   DrawerTitle,
 } from "@/shared/ui/drawer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
-import { LoadingState } from "@/shared/ui/loading-spinner";
+import { CardSkeleton } from "@/shared/ui/card-skeleton";
+import { EmptyState, ErrorState } from "@/shared/ui/empty-state";
 import { PageHero } from "@/shared/ui/page-hero";
-import { StatePanel } from "@/shared/ui/state-panel";
 import { StatTile } from "@/shared/ui/stat-tile";
 import { Badge } from "@/shared/ui/badge";
 import { CalendarClock, Plus, Vote as VoteIcon } from "lucide-react";
@@ -26,7 +26,7 @@ import { CalendarClock, Plus, Vote as VoteIcon } from "lucide-react";
 export function VotesList() {
   const router = useRouter();
   const { isAdmin } = useAuth();
-  const { data: sessions, isLoading, error } = useActiveVoteSessions();
+  const { data: sessions, isLoading, error, refetch } = useActiveVoteSessions();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   const handleCreateSuccess = () => {
@@ -39,19 +39,16 @@ export function VotesList() {
 
   if (isLoading) {
     return (
-      <div className="min-h-[400px]">
-        <LoadingState />
-      </div>
+      <CardSkeleton className="md:grid md:grid-cols-2 lg:grid-cols-3" />
     );
   }
 
   if (error) {
     return (
-      <StatePanel
-        icon={<VoteIcon className="h-6 w-6" />}
-        title="투표 운영 보드를 불러오는 중 문제가 생겼습니다"
-        description={`잠시 후 다시 시도해주세요. 세션 데이터를 읽는 중 오류가 발생했습니다. (${error.message})`}
-        tone="warning"
+      <ErrorState
+        title="투표를 불러오지 못했어요"
+        description={`잠시 후 다시 시도해주세요. (${error.message})`}
+        onRetry={() => refetch()}
       />
     );
   }
@@ -116,8 +113,8 @@ export function VotesList() {
 
           <TabsContent value="match" className="mt-6">
             {matchVotes.length === 0 ? (
-              <StatePanel
-                icon={<VoteIcon className="h-6 w-6" />}
+              <EmptyState
+                icon={VoteIcon}
                 title="열려 있는 경기 투표가 없습니다"
                 description={
                   isAdmin
@@ -152,8 +149,8 @@ export function VotesList() {
 
           <TabsContent value="other" className="mt-6">
             {otherVotes.length === 0 ? (
-              <StatePanel
-                icon={<CalendarClock className="h-6 w-6" />}
+              <EmptyState
+                icon={CalendarClock}
                 title="진행 중인 기타 투표가 없습니다"
                 description={
                   isAdmin
