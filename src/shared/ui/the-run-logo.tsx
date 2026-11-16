@@ -28,7 +28,7 @@ export function TheRunLogo({ className, tone = "brand", glow = false }: TheRunLo
       : tone === "dark"
         ? "drop-shadow-[0_10px_20px_rgba(15,23,42,0.12)]"
         : "drop-shadow-[0_12px_24px_rgba(200,168,88,0.28)]";
-  const { stem, bowl, leg, legWidth, viewBox } = THE_RUN_MARK;
+  const { rects, bowl, ball, leg, legWidth, viewBox } = THE_RUN_MARK;
 
   return (
     <svg
@@ -38,8 +38,11 @@ export function TheRunLogo({ className, tone = "brand", glow = false }: TheRunLo
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect x={stem.x} y={stem.y} width={stem.width} height={stem.height} rx={stem.rx} fill={color} />
+      {rects.map((r) => (
+        <rect key={`${r.x}-${r.y}`} x={r.x} y={r.y} width={r.width} height={r.height} rx={r.rx} fill={color} />
+      ))}
       <path d={bowl} fill={color} fillRule="evenodd" />
+      <path d={ball} fill={color} fillRule="evenodd" />
       <path d={leg} stroke={color} strokeWidth={legWidth} strokeLinecap="round" />
     </svg>
   );

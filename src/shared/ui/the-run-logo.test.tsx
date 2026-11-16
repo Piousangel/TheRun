@@ -40,3 +40,11 @@ describe('TheRunBadge', () => {
     expect(container.querySelector('rect')?.getAttribute('fill')).toBe('#C8A858');
   });
 });
+
+describe('TR 모노그램(2026-11-16 2차)', () => {
+  it('T 가로대와 R 줄기 두 개의 막대, 볼과 축구공 두 개의 evenodd 경로', () => {
+    const { container } = render(<TheRunLogo />);
+    expect(container.querySelectorAll('rect')).toHaveLength(2);
+    expect(container.querySelectorAll('path[fill-rule="evenodd"]')).toHaveLength(2);
+  });
+});
