@@ -1,0 +1,13 @@
+import { THE_RUN_COLORS, THE_RUN_MARK } from "@/shared/ui/the-run-mark";
+
+/** 아이콘·OG 공용 마크(단색). ImageResponse(Satori)용이라 마스크 없이 evenodd만 쓴다. */
+export function TheRunMarkSvg({ px, color = THE_RUN_COLORS.gold }: { px: number; color?: string }) {
+  const { stem, bowl, leg, legWidth, viewBox } = THE_RUN_MARK;
+  return (
+    <svg width={px} height={px} viewBox={viewBox} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x={stem.x} y={stem.y} width={stem.width} height={stem.height} rx={stem.rx} fill={color} />
+      <path d={bowl} fill={color} fillRule="evenodd" />
+      <path d={leg} stroke={color} strokeWidth={legWidth} strokeLinecap="round" />
+    </svg>
+  );
+}

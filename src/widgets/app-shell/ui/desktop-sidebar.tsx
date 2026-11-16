@@ -11,7 +11,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { isLocalAdapter } from '@/shared/api/client';
 import { NAV_GROUPS, isNavItemActive, visibleGroups } from '@/shared/config/navigation';
 import { cn } from '@/shared/lib/utils';
-import { TheRunLogo } from '@/shared/ui/the-run-logo';
+import { TheRunBadge } from '@/shared/ui/the-run-logo';
 
 const FOCUS_RING = 'outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring';
 
@@ -34,7 +34,7 @@ export function DesktopSidebar() {
   return (
     <aside className="fixed inset-y-0 left-0 z-30 hidden w-[232px] flex-col border-r border-border bg-background md:flex">
       <Link href="/dashboard" className="flex h-[52px] shrink-0 items-center gap-2 px-[18px]">
-        <TheRunLogo className="h-7 w-7" />
+        <TheRunBadge />
         <span className="text-[15px] font-bold text-ink">The Run</span>
       </Link>
 
