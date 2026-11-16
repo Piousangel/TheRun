@@ -1,7 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/shared/api/adapters/supabase/config';
 import { withSingleActiveMatchSession } from '@/shared/api/adapters/single-active-match';
-import type { ClubApi, LeagueRepo } from '@/shared/api/ports';
+import type { AuditRepo, CheckinRepo, ClubApi, LeagueRepo } from '@/shared/api/ports';
 import { ApiError, isSchemaMissingError } from '@/shared/api/ports/errors';
 import type { AuthUser } from '@/shared/api/ports/auth-repo';
 import type { VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
@@ -21,6 +21,20 @@ function createUnavailableLeagueRepo(): LeagueRepo {
     listTeams: fail, createTeam: fail, updateTeam: fail, removeTeam: fail,
     listMatchdays: fail, listFixtures: fail, generateSchedule: fail, setFixtureStatus: fail,
   };
+}
+
+function createUnavailableCheckinRepo(): CheckinRepo {
+  const fail = async (): Promise<never> => {
+    throw new ApiError('출석 체크인은 Supabase 스키마 적용 후에 사용할 수 있습니다.', 'CHECKIN_NOT_MIGRATED');
+  };
+  return { listByDate: fail, listByMember: fail, checkIn: fail, confirm: fail };
+}
+
+function createUnavailableAuditRepo(): AuditRepo {
+  const fail = async (): Promise<never> => {
+    throw new ApiError('감사 기록은 Supabase 스키마 적용 후에 사용할 수 있습니다.', 'AUDIT_NOT_MIGRATED');
+  };
+  return { record: fail, listFor: fail };
 }
 
 function toAuthUser(user: User | null | undefined): AuthUser | null {
@@ -199,6 +213,8 @@ export function createSupabaseApi(): ClubApi {
 
     // 리그 스키마 마이그레이션(S0)이 적용되기 전까지는 호출하면 명확히 실패한다.
     league: createUnavailableLeagueRepo(),
+    checkins: createUnavailableCheckinRepo(),
+    audit: createUnavailableAuditRepo(),
 
     auth: {
       async getUser() {

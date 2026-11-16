@@ -1,5 +1,7 @@
 import { createCollectionAnnouncementRepo } from '@/shared/api/adapters/collection/announcement-repo';
+import { createCollectionAuditRepo } from '@/shared/api/adapters/collection/audit-repo';
 import { createCollectionAuthRepo } from '@/shared/api/adapters/collection/auth-repo';
+import { createCollectionCheckinRepo } from '@/shared/api/adapters/collection/checkin-repo';
 import { Collection } from '@/shared/api/adapters/collection/collection';
 import { createCollectionLeagueRepo } from '@/shared/api/adapters/collection/league-repo';
 import { createCollectionMatchRepo } from '@/shared/api/adapters/collection/match-repo';
@@ -37,6 +39,9 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
     now,
   });
 
+  const audit = createCollectionAuditRepo(new Collection(storage, 'audit_logs', () => []), now);
+  const checkins = createCollectionCheckinRepo({ checkins: new Collection(storage, 'checkins', () => []), audit, now });
+
   return {
     members: createCollectionMemberRepo(members, now),
     votes: createCollectionVoteRepo({ sessions: voteSessions, responses: voteResponses, members, now }),
@@ -44,5 +49,7 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
     announcements: createCollectionAnnouncementRepo({ announcements, reads, currentUserId: () => session.get(), now }),
     auth: createCollectionAuthRepo({ users, profiles, members, session, now }),
     league,
+    checkins,
+    audit,
   };
 }
