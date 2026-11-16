@@ -8,7 +8,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { isLocalAdapter } from '@/shared/api/client';
 import { resolveRouteMeta } from '@/shared/config/navigation';
 import { usePageHeaderStore } from '@/shared/lib/page-header/store';
-import { TheRunLogo } from '@/shared/ui/the-run-logo';
+import { TheRunBadge } from '@/shared/ui/the-run-logo';
 
 export function MobileTopBar() {
   const pathname = usePathname();
@@ -29,7 +29,7 @@ export function MobileTopBar() {
     >
       {meta.kind === 'home' ? (
         <>
-          <TheRunLogo className="ml-1 h-7 w-7" />
+          <TheRunBadge className="ml-1" />
           <span className="text-[17px] font-bold text-ink">The Run</span>
           {isLocalAdapter() && (
             <DemoSheet>
