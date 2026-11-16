@@ -1,5 +1,4 @@
 import { ImageResponse } from "next/og";
-import { THE_RUN_COLORS } from "@/shared/ui/the-run-mark";
 import { TheRunMarkSvg } from "@/shared/ui/the-run-mark-svg";
 
 export const size = {
@@ -21,10 +20,10 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: THE_RUN_COLORS.ink,
+          background: "#111114",
         }}
       >
-        <TheRunMarkSvg px={340} />
+        <TheRunMarkSvg px={512} />
       </div>
     ),
     size,
