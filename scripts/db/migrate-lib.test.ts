@@ -1,3 +1,5 @@
+import { readdirSync, readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { findForbidden, selectPending } from './migrate-lib';
 
@@ -35,5 +37,16 @@ describe('findForbidden', () => {
   });
   it('주석·문자열 속 단어는 무시한다', () => {
     expect(findForbidden("-- drop table x\n/* truncate y */ select 'delete from z';")).toEqual([]);
+  });
+});
+
+describe('저장소의 자동 적용 대상 마이그레이션', () => {
+  it('금지 구문이 하나도 없다', () => {
+    const dir = path.resolve(process.cwd(), 'supabase/migrations');
+    const pending = selectPending(readdirSync(dir), []);
+    expect(pending.length).toBeGreaterThan(0);
+    for (const f of pending) {
+      expect(findForbidden(readFileSync(path.join(dir, f), 'utf8')), f).toEqual([]);
+    }
   });
 });
