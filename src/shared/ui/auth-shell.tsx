@@ -45,37 +45,17 @@ export function AuthShell({
             </p>
           </div>
 
-          <div className="mt-8 space-y-4 lg:mt-0">
+          <div className="mt-8 hidden space-y-4 lg:mt-0 lg:block">
             <div className="rounded-[1.5rem] border border-white/10 bg-white/[0.06] p-4 backdrop-blur-xl">
               <p className="text-[11px] uppercase tracking-[0.28em] text-white/48">
-                Brand rhythm
+                This week
               </p>
               <p className="mt-3 text-lg font-semibold text-white">
-                Runner mark first, weekly flow second.
+                투표 → 팀 나누기 → 경기 기록 → 공지
               </p>
               <p className="mt-2 text-sm leading-6 text-white/62">
-                첫 화면의 러닝 에너지와 운영 제품의 신뢰감을 같은 톤으로
-                이어서, 로그인 이후에도 브랜드 인상이 흐트러지지 않게 정리합니다.
+                로그인하면 우리 클럽의 주간 루프가 내 이름으로 이어집니다.
               </p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-              {[
-                { label: "Fast entry", value: "Google first" },
-                { label: "Trust", value: "Account-linked flow" },
-                { label: "Mode", value: "Member or admin" },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-[1.25rem] border border-white/8 bg-black/18 px-4 py-4"
-                >
-                  <p className="text-[11px] uppercase tracking-[0.24em] text-white/46">
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-sm font-medium text-white/90">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
             </div>
           </div>
         </section>

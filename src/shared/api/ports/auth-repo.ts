@@ -6,6 +6,8 @@ export interface AuthUser {
   email: string | null;
 }
 
+export type OAuthProvider = 'google' | 'kakao';
+
 export type DemoAccountKey = 'member' | 'admin' | 'superadmin' | 'unlinked';
 
 export const DEMO_ACCOUNTS: Record<DemoAccountKey, { id: string; email: string; label: string }> = {
@@ -20,7 +22,7 @@ export interface AuthRepo {
   /** 반환값은 unsubscribe */
   onAuthStateChange(listener: (user: AuthUser | null) => void): () => void;
   /** OAuth 리다이렉트 URL을 돌려준다. 로컬 어댑터는 url: null */
-  signInWithOAuth(provider: 'google', redirectTo: string): Promise<{ url: string | null }>;
+  signInWithOAuth(provider: OAuthProvider, redirectTo: string): Promise<{ url: string | null }>;
   /** 로컬 어댑터 전용. supabase 어댑터는 Error를 던진다 */
   signInAsDemo(account: DemoAccountKey): Promise<AuthUser>;
   signOut(): Promise<void>;

@@ -31,5 +31,6 @@ describe('createCollectionAuthRepo.signInWithOAuth', () => {
       now: () => NOW,
     });
     expect(await repo.signInWithOAuth('google', 'http://localhost/auth/callback')).toEqual({ url: null });
+    expect(await repo.signInWithOAuth('kakao', 'http://localhost/auth/callback')).toEqual({ url: null });
   });
 });
