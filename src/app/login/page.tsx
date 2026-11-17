@@ -15,8 +15,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <AuthShell
       eyebrow="The Run Access"
-      title="소셜 로그인"
-      description="Google 중심으로 빠르게 로그인하고, 이후 내 멤버를 연결해 앱 흐름으로 들어가게 만듭니다."
+      title="더런 로그인"
+      description="Google·카카오로 로그인하고, 내 멤버를 연결해 투표·출석·경기 기록을 시작하세요."
     >
         <LoginPageContent errorKey={error ?? null} nextPath={safeInternalPath(next)} />
     </AuthShell>

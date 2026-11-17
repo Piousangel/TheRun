@@ -19,3 +19,12 @@ export function NaverLogo(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+export function KakaoLogo(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
+      <rect width="24" height="24" rx="6" fill="#FEE500" />
+      <path fill="#191919" d="M12 5.5c-3.87 0-7 2.4-7 5.37 0 1.92 1.3 3.6 3.26 4.55l-.83 3.05c-.07.25.21.45.42.3l3.64-2.4c.17.01.34.02.51.02 3.87 0 7-2.4 7-5.52S15.87 5.5 12 5.5Z" />
+    </svg>
+  );
+}

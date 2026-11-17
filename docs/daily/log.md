@@ -8,3 +8,4 @@
 | 2026-11-17 | 공용 컴포넌트 8종(SectionHeader·ListCard/Row·StatusBadge·Empty/ErrorState·CardSkeleton·SegmentedControl) + 투표·경기 목록 로딩/오류/빈 상태 적용 — 스프린트 기반 완료 | 06시 PR |
 | 2026-11-17 | 마이그레이션 적용 워크플로 + 금지 구문 가드 + keepalive·주간 백업 워크플로 — S0 선행 | 13시 PR |
 | 2026-11-17 | S0 스키마 초안 1(리그·체크인·감사 6테이블, RLS 기본 거부) + 마이그레이션 금지 구문 전수 테스트 | 20시 PR |
+| 2026-11-18 | 로그인 화면 개편: Google·카카오 버튼, 관리자 설정 카드 제거, 모바일 한 화면 — S0 로그인 1/3 | 06시 PR |

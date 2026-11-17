@@ -40,3 +40,15 @@ test.describe('로컬 어댑터 스모크 — 관리자', () => {
     await expect(page.getByText('홍유준').first()).toBeVisible();
   });
 });
+
+test.describe('로그인 화면', () => {
+  test('Google·카카오 버튼이 보이고 관리자 설정 안내는 노출되지 않는다', async ({ browser }) => {
+    const context = await browser.newContext({ storageState: undefined });
+    const page = await context.newPage();
+    await page.goto('/login');
+    await expect(page.getByRole('button', { name: /Google로 계속하기/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /카카오로 계속하기/ })).toBeVisible();
+    await expect(page.getByText('관리자 설정 체크')).toHaveCount(0);
+    await context.close();
+  });
+});
