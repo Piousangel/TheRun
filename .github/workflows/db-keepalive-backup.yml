@@ -1,0 +1,36 @@
+name: DB Keepalive & Backup
+
+# 무활동 일시정지 방지(주 2회 SELECT) + 주간 pg_dump 아티팩트.
+on:
+  schedule:
+    - cron: '0 0 * * 1,4'   # 월·목 09:00 KST — keepalive
+    - cron: '0 18 * * 0'    # 일 03:00 KST — 백업
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    if: github.event_name != 'schedule' || github.event.schedule == '0 0 * * 1,4'
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "SUPABASE_DB_URL 시크릿이 없다"; exit 1; fi
+          psql -X -v ON_ERROR_STOP=1 "$SUPABASE_DB_URL" -c 'select 1'
+
+  backup:
+    if: github.event_name != 'schedule' || github.event.schedule == '0 18 * * 0'
+    runs-on: ubuntu-latest
+    steps:
+      - name: pg_dump
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "SUPABASE_DB_URL 시크릿이 없다"; exit 1; fi
+          sudo apt-get install -y -q postgresql-client >/dev/null
+          pg_dump --no-owner --no-privileges --schema=public "$SUPABASE_DB_URL" | gzip > backup.sql.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backup.sql.gz
+          retention-days: 30
