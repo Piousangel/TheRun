@@ -35,8 +35,8 @@
 - [ ] 차단 #4 `get_claimable_members()` 봉인
 - [ ] 차단 #5 `member-photos` 비공개화
 - [ ] 차단 #6 계약 테스트에 권한 축 추가
-- [ ] keepalive(주 2회 SELECT) + 주간 백업(pg_dump 아티팩트) 워크플로
-- [ ] 마이그레이션 적용 워크플로: main 머지 시 `supabase/migrations`의 새 파일을 한 트랜잭션(`psql -1`)으로 적용. 적용 기록 테이블을 두고, 실패하면 중단하고 알린다
+- [x] keepalive(주 2회 SELECT) + 주간 백업(pg_dump 아티팩트) 워크플로 (11/17 13시 PR, 첫 실행은 시크릿 연결 확인 필요)
+- [x] (11/17 13시 PR) 마이그레이션 적용 워크플로: main 머지 시 `supabase/migrations`의 새 파일을 한 트랜잭션(`psql -1`)으로 적용. 적용 기록 테이블을 두고, 실패하면 중단하고 알린다
 - [ ] D-03 전화번호를 도메인에서 제거
 
 ## C. 오너 브리프 기능 (D-10~D-13, `docs/superpowers/specs/2026-11-15-owner-brief-league-chat-attendance.md` 7장)

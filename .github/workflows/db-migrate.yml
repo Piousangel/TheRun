@@ -1,0 +1,39 @@
+name: DB Migrate
+
+# main에 새 마이그레이션이 머지되면 운영 DB에 적용한다(OPERATING.md 5장).
+# 14자리 타임스탬프 파일만 대상이다. 금지 구문이 있으면 아무것도 적용하지 않고 실패한다.
+on:
+  push:
+    branches: [main]
+    paths: ['supabase/migrations/**', 'scripts/db/**', '.github/workflows/db-migrate.yml']
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'DB에 연결하지 않고 대상·금지 구문만 검사'
+        type: boolean
+        default: true
+
+concurrency:
+  group: db-migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 검사(dry-run)
+        run: pnpm exec tsx scripts/db/migrate.ts --dry-run
+      - name: 적용
+        if: github.event_name == 'push' || inputs.dry_run == false
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "SUPABASE_DB_URL 시크릿이 없다 — 적용 건너뜀(실패 처리)"; exit 1; fi
+          pnpm exec tsx scripts/db/migrate.ts
