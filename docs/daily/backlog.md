@@ -10,6 +10,8 @@
 4. 팀 편성 서버 저장 + 전술 보드 배선(D-01+D-04)
 
 ## 소형
-1. `global-error.tsx` 추가(Sentry 권고, Phase 2)
 2. `animate-pulse` ESLint 규칙 범위 조정(선택 링·드롭 타깃 오탐)
 3. LAUNCH_BLOCKERS.md 정리: Google 로그인 항목은 D-08로 무효
+4. 마이그레이션 로컬 psql 검증(`scripts/db/pg-check`)을 CI Postgres 서비스로 자동화
+5. 레거시 도메인(투표·경기·공지) 스키마를 새 마이그레이션으로 이관(supabase 전환 전 필수)
+6. 첫 슈퍼관리자 지정 절차(사람 확인 필요, 역할 변경 가드와 충돌 — 오너 확인)
