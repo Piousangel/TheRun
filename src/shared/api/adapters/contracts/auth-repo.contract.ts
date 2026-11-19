@@ -1,4 +1,4 @@
-import type { AuthRepo } from '@/shared/api/ports/auth-repo';
+import { INVITE_CODE_INVALID_MESSAGE, type AuthRepo } from '@/shared/api/ports/auth-repo';
 
 export interface AuthRepoFixture {
   repo: AuthRepo;
@@ -68,6 +68,60 @@ export function runAuthRepoContract(makeRepo: () => Promise<AuthRepoFixture>) {
       expect(promoted.role).toBe('admin');
       const profiles = await repo.listProfiles();
       expect(profiles[0].role).toBe('superadmin');
+    });
+
+    describe('초대 코드', () => {
+      it('발급 권한: 멤버·비로그인은 불가, 운영진은 가능', async () => {
+        const { repo, freeMemberId } = await makeRepo();
+        await repo.signOut();
+        await expect(repo.issueInviteCode(freeMemberId)).rejects.toThrow('로그인이 필요합니다.');
+        await repo.signInAsDemo('member');
+        await expect(repo.issueInviteCode(freeMemberId)).rejects.toThrow('운영진만');
+        await repo.signInAsDemo('admin');
+        const issued = await repo.issueInviteCode(freeMemberId);
+        expect(issued.code).toMatch(/^RUN-[A-Z0-9]{4}-[A-Z0-9]{4}$/);
+        expect(Number.isNaN(new Date(issued.expiresAt).getTime())).toBe(false);
+      });
+
+      it('이미 계정이 연결된 멤버·없는 멤버에는 발급할 수 없다', async () => {
+        const { repo, takenMemberId } = await makeRepo();
+        await repo.signInAsDemo('admin');
+        await expect(repo.issueInviteCode(takenMemberId)).rejects.toThrow('이미 계정이 연결된 멤버입니다.');
+        await expect(repo.issueInviteCode('nope')).rejects.toThrow('멤버를 찾을 수 없습니다.');
+      });
+
+      it('코드로 연결되고 1회용이다(대소문자·하이픈 무시)', async () => {
+        const { repo, freeMemberId } = await makeRepo();
+        await repo.signInAsDemo('admin');
+        const { code } = await repo.issueInviteCode(freeMemberId);
+        await repo.signInAsDemo('unlinked');
+        const profile = await repo.redeemInviteCode(code.toLowerCase().replace(/-/g, ' '));
+        expect(profile.member_id).toBe(freeMemberId);
+        await repo.unlinkMyMember();
+        await expect(repo.redeemInviteCode(code)).rejects.toThrow(INVITE_CODE_INVALID_MESSAGE);
+      });
+
+      it('무효 코드·재발급으로 폐기된 코드·비로그인은 같은 방식으로 실패한다', async () => {
+        const { repo, freeMemberId } = await makeRepo();
+        await repo.signInAsDemo('admin');
+        const first = await repo.issueInviteCode(freeMemberId);
+        const second = await repo.issueInviteCode(freeMemberId);
+        await repo.signInAsDemo('unlinked');
+        await expect(repo.redeemInviteCode('RUN-ZZZZ-ZZZZ')).rejects.toThrow(INVITE_CODE_INVALID_MESSAGE);
+        await expect(repo.redeemInviteCode(first.code)).rejects.toThrow(INVITE_CODE_INVALID_MESSAGE);
+        await repo.signOut();
+        await expect(repo.redeemInviteCode(second.code)).rejects.toThrow('로그인이 필요합니다.');
+      });
+
+      it('이미 멤버가 연결된 계정은 코드를 써도 연결이 바뀌지 않는다', async () => {
+        const { repo, freeMemberId } = await makeRepo();
+        await repo.signInAsDemo('admin');
+        const { code } = await repo.issueInviteCode(freeMemberId);
+        await repo.signInAsDemo('member');
+        const before = (await repo.ensureProfile((await repo.getUser())!)).member_id;
+        await expect(repo.redeemInviteCode(code)).rejects.toThrow(INVITE_CODE_INVALID_MESSAGE);
+        expect((await repo.ensureProfile((await repo.getUser())!)).member_id).toBe(before);
+      });
     });
   });
 }

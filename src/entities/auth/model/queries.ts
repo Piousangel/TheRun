@@ -103,3 +103,19 @@ export function useSignOut() {
     },
   });
 }
+
+export function useRedeemInviteCode(userId: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (code: string) => getApi().auth.redeemInviteCode(code),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: authKeys.profile(userId ?? undefined) });
+      queryClient.invalidateQueries({ queryKey: memberKeys.all });
+      queryClient.invalidateQueries({ queryKey: authKeys.claimableMembers(userId ?? undefined) });
+    },
+  });
+}
+
+export function useIssueInviteCode() {
+  return useMutation({ mutationFn: (memberId: string) => getApi().auth.issueInviteCode(memberId) });
+}

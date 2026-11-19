@@ -47,7 +47,7 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
     votes: createCollectionVoteRepo({ sessions: voteSessions, responses: voteResponses, members, now }),
     matches: createCollectionMatchRepo(matches, now),
     announcements: createCollectionAnnouncementRepo({ announcements, reads, currentUserId: () => session.get(), now }),
-    auth: createCollectionAuthRepo({ users, profiles, members, session, now }),
+    auth: createCollectionAuthRepo({ users, profiles, members, inviteCodes: new Collection(storage, 'invite_codes', () => []), session, now }),
     league,
     checkins,
     audit,

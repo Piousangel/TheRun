@@ -6,6 +6,8 @@ export interface AuthUser {
   email: string | null;
 }
 
+export const INVITE_CODE_INVALID_MESSAGE = '사용할 수 없는 코드입니다.';
+
 export type OAuthProvider = 'google' | 'kakao';
 
 export type DemoAccountKey = 'member' | 'admin' | 'superadmin' | 'unlinked';
@@ -37,6 +39,16 @@ export interface AuthRepo {
   unlinkMyMember(): Promise<AppProfile>;
   /** 아무 계정에도 연결되지 않았거나 나에게 연결된 멤버. name 오름차순 */
   listClaimableMembers(): Promise<Member[]>;
+  /**
+   * 운영진(admin 이상) 전용. 초대 코드를 새로 발급한다. 같은 멤버의 미사용 코드는 폐기된다.
+   * 이미 계정이 연결된 멤버에게는 발급할 수 없다. 평문 코드는 이 반환값에서만 볼 수 있다(7일 만료·1회용).
+   */
+  issueInviteCode(memberId: string): Promise<{ code: string; expiresAt: string }>;
+  /**
+   * 로그인한 본인이 코드를 써서 코드가 가리키는 멤버에 연결된다.
+   * 무효·만료·사용됨·폐기·이미 연결된 계정은 모두 같은 메시지(INVITE_CODE_INVALID_MESSAGE)로 실패한다.
+   */
+  redeemInviteCode(code: string): Promise<AppProfile>;
   /** 내 연결 멤버의 이름/전화번호 수정. 전화번호는 (010|000)-0000-0000 형식 */
   updateMyMemberProfile(input: { name: string; phoneNumber: string }): Promise<Member>;
 }
