@@ -1,11 +1,29 @@
 import type { Collection } from '@/shared/api/adapters/collection/collection';
 import type { SessionStore } from '@/shared/api/adapters/collection/storage';
-import { DEMO_ACCOUNTS, type AuthRepo, type AuthUser } from '@/shared/api/ports/auth-repo';
+import { DEMO_ACCOUNTS, INVITE_CODE_INVALID_MESSAGE, type AuthRepo, type AuthUser } from '@/shared/api/ports/auth-repo';
+import { newId } from '@/shared/lib/id';
+import { generateInviteCode, hashInviteCode } from '@/shared/lib/invite-code';
 import { normalizePhoneNumber } from '@/shared/lib/utils';
 import type { AppProfile } from '@/shared/types/auth';
 import type { Member } from '@/shared/types/member';
 
+/** DB `invite_codes` 테이블과 같은 모양. 코드 원문은 저장하지 않고 해시만 둔다. */
+export interface InviteCodeRow {
+  id: string;
+  code_hash: string;
+  member_id: string;
+  expires_at: string;
+  used_at: string | null;
+  used_by: string | null;
+  revoked_at: string | null;
+  created_by: string;
+  created_at: string;
+}
+
+const INVITE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 interface Deps {
+  inviteCodes: Collection<InviteCodeRow>;
   users: Collection<AuthUser>;
   profiles: Collection<AppProfile>;
   members: Collection<Member>;
@@ -16,7 +34,7 @@ interface Deps {
 const ROLE_ORDER: Record<AppProfile['role'], number> = { superadmin: 2, admin: 1, member: 0 };
 const PHONE_PATTERN = /^(010|000)-\d{4}-\d{4}$/;
 
-export function createCollectionAuthRepo({ users, profiles, members, session, now }: Deps): AuthRepo {
+export function createCollectionAuthRepo({ users, profiles, members, inviteCodes, session, now }: Deps): AuthRepo {
   const listeners = new Set<(user: AuthUser | null) => void>();
 
   const currentUser = async (): Promise<AuthUser | null> => {
@@ -95,6 +113,46 @@ export function createCollectionAuthRepo({ users, profiles, members, session, no
       return (await members.all())
         .filter((m) => !linkedElsewhere.has(m.id))
         .sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+    },
+    async issueInviteCode(memberId) {
+      const me = await ensureProfile(await requireUser());
+      if (me.role === 'member') throw new Error('운영진만 초대 코드를 발급할 수 있습니다.');
+      if (!(await members.get(memberId))) throw new Error('멤버를 찾을 수 없습니다.');
+      if ((await profiles.all()).some((p) => p.member_id === memberId)) throw new Error('이미 계정이 연결된 멤버입니다.');
+      const at = now();
+      for (const row of await inviteCodes.all()) {
+        if (row.member_id === memberId && !row.used_at && !row.revoked_at) {
+          await inviteCodes.update(row.id, { revoked_at: at.toISOString() });
+        }
+      }
+      const code = generateInviteCode();
+      const expiresAt = new Date(at.getTime() + INVITE_TTL_MS).toISOString();
+      await inviteCodes.insert({
+        id: newId(),
+        code_hash: await hashInviteCode(code),
+        member_id: memberId,
+        expires_at: expiresAt,
+        used_at: null,
+        used_by: null,
+        revoked_at: null,
+        created_by: me.id,
+        created_at: at.toISOString(),
+      });
+      return { code, expiresAt };
+    },
+    async redeemInviteCode(code) {
+      const me = await ensureProfile(await requireUser());
+      const hash = await hashInviteCode(code);
+      const at = now();
+      const row = (await inviteCodes.all()).find(
+        (r) => r.code_hash === hash && !r.used_at && !r.revoked_at && new Date(r.expires_at) > at,
+      );
+      if (!row) throw new Error(INVITE_CODE_INVALID_MESSAGE);
+      // DB 함수와 같이 코드를 먼저 선점(소진)한 뒤 연결 가능 여부를 검사한다.
+      await inviteCodes.update(row.id, { used_at: at.toISOString(), used_by: me.id });
+      if (me.member_id) throw new Error(INVITE_CODE_INVALID_MESSAGE);
+      if ((await profiles.all()).some((p) => p.member_id === row.member_id)) throw new Error(INVITE_CODE_INVALID_MESSAGE);
+      return profiles.update(me.id, { member_id: row.member_id, updated_at: at.toISOString() });
     },
     async updateMyMemberProfile({ name, phoneNumber }) {
       const me = await ensureProfile(await requireUser());

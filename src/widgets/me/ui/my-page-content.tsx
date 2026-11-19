@@ -264,6 +264,11 @@ export function MyPageContent() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {!profile?.member_id ? (
+            <Button asChild className="h-12 w-full rounded-full">
+              <Link href="/join">초대 코드로 연결하기</Link>
+            </Button>
+          ) : null}
           {profile?.member_id && !member ? (
             <div className="space-y-4 rounded-[1.6rem] border border-amber-200 bg-[linear-gradient(180deg,rgba(255,250,238,0.95),rgba(255,255,255,1))] p-4 shadow-[0_18px_44px_rgba(120,53,15,0.08)]">
               <div className="flex items-start gap-3">

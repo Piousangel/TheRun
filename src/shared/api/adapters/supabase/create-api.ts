@@ -5,6 +5,7 @@ import type { AuditRepo, CheckinRepo, ClubApi, LeagueRepo } from '@/shared/api/p
 import { ApiError, isSchemaMissingError } from '@/shared/api/ports/errors';
 import type { AuthUser } from '@/shared/api/ports/auth-repo';
 import type { VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
+import { generateInviteCode } from '@/shared/lib/invite-code';
 import { normalizePhoneNumber } from '@/shared/lib/utils';
 import type { Announcement, AnnouncementRead } from '@/shared/types/announcement';
 import type { AppProfile } from '@/shared/types/auth';
@@ -272,6 +273,21 @@ export function createSupabaseApi(): ClubApi {
         const { data, error } = await supabase.rpc('get_claimable_members');
         throwIf(error);
         return (data ?? []) as Member[];
+      },
+      async issueInviteCode(memberId) {
+        const code = generateInviteCode();
+        const { data, error } = await supabase.rpc('issue_invite_code', { p_member_id: memberId, p_code: code });
+        throwIf(error);
+        return { code, expiresAt: String(data) };
+      },
+      async redeemInviteCode(code) {
+        const { error } = await supabase.rpc('redeem_invite_code', { p_code: code });
+        throwIf(error);
+        const user = toAuthUser((await supabase.auth.getUser()).data.user);
+        if (!user) throw new Error('로그인이 필요합니다.');
+        const { data, error: profileError } = await supabase.from('app_profiles').select('*').eq('id', user.id).single();
+        throwIf(profileError);
+        return data as AppProfile;
       },
       async updateMyMemberProfile({ name, phoneNumber }) {
         const { data, error } = await supabase.rpc('update_my_member_profile', { input_name: name.trim(), input_phone: normalizePhoneNumber(phoneNumber) });

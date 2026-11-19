@@ -13,6 +13,7 @@ runAuthRepoContract(async () => {
     users: new Collection(storage, 'users', () => seed.users),
     profiles: new Collection(storage, 'app_profiles', () => seed.profiles),
     members: new Collection(storage, 'members', () => seed.members),
+    inviteCodes: new Collection(storage, 'invite_codes', () => []),
     session: new MemorySessionStore(),
     now: () => NOW,
   });
@@ -27,6 +28,7 @@ describe('createCollectionAuthRepo.signInWithOAuth', () => {
       users: new Collection(storage, 'users', () => seed.users),
       profiles: new Collection(storage, 'app_profiles', () => seed.profiles),
       members: new Collection(storage, 'members', () => seed.members),
+      inviteCodes: new Collection(storage, 'invite_codes', () => []),
       session: new MemorySessionStore(),
       now: () => NOW,
     });

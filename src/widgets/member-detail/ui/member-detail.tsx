@@ -7,6 +7,7 @@ import { MemberAvatar } from "@/entities/member/ui/member-avatar";
 import { MemberStatsRadar } from "@/entities/member/ui/member-stats-radar";
 import { MemberEditForm } from "@/features/member-edit/ui/member-edit-form";
 import { MemberDeleteButton } from "@/features/member-delete/ui/member-delete-button";
+import { InviteIssueButton } from "@/features/invite-issue/ui/invite-issue-button";
 import { useAuth } from "@/providers/auth-provider";
 import { usePageHeader } from "@/shared/lib/page-header/store";
 import { Button } from "@/shared/ui/button";
@@ -120,6 +121,7 @@ export function MemberDetail({ memberId }: MemberDetailProps) {
                     memberId={member.id}
                     memberName={member.name}
                   />
+                  <InviteIssueButton memberId={member.id} />
                 </>
               ) : null}
             </>
