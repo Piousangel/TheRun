@@ -25,6 +25,7 @@ const STATIC_ROUTES: ReadonlyArray<{ path: string; heading?: string | RegExp }> 
   { path: '/announcements', heading: '공지 보드' },
   { path: '/me', heading: '내 계정' },
   { path: '/strategy', heading: /팀 구성과 전술 흐름/ },
+  { path: '/seasons', heading: '리그 시즌' },
 ];
 
 async function expectNoErrorBanner(page: Page) {
@@ -34,7 +35,7 @@ async function expectNoErrorBanner(page: Page) {
 test.describe('라우트 스윕 — 관리자 세션으로 전 라우트가 시드로 렌더된다', () => {
   test.use({ storageState: path.join(STORAGE_DIR, 'admin.json') });
 
-  test('정적 라우트 10곳', async ({ page }, testInfo) => {
+  test('정적 라우트 11곳', async ({ page }, testInfo) => {
     for (const route of STATIC_ROUTES) {
       await test.step(route.path, async () => {
         await page.goto(route.path);

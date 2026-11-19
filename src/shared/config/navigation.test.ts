@@ -31,6 +31,11 @@ describe('visibleGroups', () => {
     expect(ops?.items.map((i) => i.href)).toEqual(['/members', '/strategy']);
   });
 
+  it('리그는 역할 무관하게 클럽 그룹에 보인다', () => {
+    const club = visibleGroups(NAV_GROUPS, false).find((g) => g.label === '클럽');
+    expect(club?.items.map((i) => i.href)).toEqual(['/announcements', '/seasons', '/club-guide']);
+  });
+
   it('더보기 그룹은 주요 그룹을 제외한다', () => {
     expect(MORE_GROUPS.map((g) => g.label)).toEqual(['클럽', '운영', '계정']);
   });
@@ -54,7 +59,7 @@ describe('activeTabHref', () => {
   });
 
   it('더보기 안의 화면은 더보기 탭', () => {
-    for (const path of ['/more', '/announcements', '/club-guide', '/members', '/members/m-1', '/strategy', '/me']) {
+    for (const path of ['/more', '/announcements', '/seasons', '/seasons/s-1', '/club-guide', '/members', '/members/m-1', '/strategy', '/me']) {
       expect(activeTabHref(path)).toBe('/more');
     }
   });
@@ -90,12 +95,14 @@ describe('resolveRouteMeta', () => {
   it('더보기 하위 화면은 /more로 돌아간다', () => {
     expect(resolveRouteMeta('/announcements')).toEqual({ title: '공지', kind: 'more-child', backHref: '/more' });
     expect(resolveRouteMeta('/strategy')).toEqual({ title: '전략·팀 편성', kind: 'more-child', backHref: '/more' });
+    expect(resolveRouteMeta('/seasons')).toEqual({ title: '리그', kind: 'more-child', backHref: '/more' });
   });
 
   it('상세 화면은 목록으로 돌아간다', () => {
     expect(resolveRouteMeta('/votes/v-1')).toEqual({ title: '투표', kind: 'deep', backHref: '/votes' });
     expect(resolveRouteMeta('/matches/m-1')).toEqual({ title: '경기', kind: 'deep', backHref: '/matches' });
     expect(resolveRouteMeta('/members/m-1')).toEqual({ title: '멤버', kind: 'deep', backHref: '/members' });
+    expect(resolveRouteMeta('/seasons/s-1')).toEqual({ title: '리그', kind: 'deep', backHref: '/seasons' });
   });
 
   it('모르는 경로는 제목 없는 root', () => {
