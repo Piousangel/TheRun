@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 const SESSION_COOKIE = 'therun-session';
-const protectedRoutes = ['/dashboard', '/attendance', '/votes', '/matches', '/members', '/team-division', '/me', '/announcements', '/strategy', '/more', '/club-guide', '/join'];
+const protectedRoutes = ['/dashboard', '/attendance', '/votes', '/matches', '/members', '/team-division', '/me', '/announcements', '/strategy', '/more', '/club-guide', '/join', '/seasons'];
 const authRoutes = ['/login'];
 
 function matches(path: string, routes: string[]) {

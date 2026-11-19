@@ -11,7 +11,7 @@ const ACCOUNTS = [
 // 그렇게 하지 않으면 스펙에서 처음 방문하는 라우트가 컴파일되는 동안 webpack의
 // Fast Refresh full-reload 신호가 도중의 page.goto를 가로채 "interrupted by another
 // navigation"으로 실패하는 경우가 있었다(로컬 dev 서버 첫 컴파일에서 재현됨).
-const ROUTES_TO_WARM = ['/votes', '/matches', '/members', '/attendance', '/announcements', '/me', '/strategy', '/club-guide', '/more'];
+const ROUTES_TO_WARM = ['/votes', '/matches', '/members', '/attendance', '/announcements', '/me', '/strategy', '/club-guide', '/more', '/seasons'];
 
 for (const account of ACCOUNTS) {
   setup(`데모 로그인 저장: ${account.file}`, async ({ page }) => {
