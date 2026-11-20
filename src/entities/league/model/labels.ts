@@ -39,3 +39,17 @@ export function formatSeasonPoints(season: Pick<Season, 'points'>): string {
 export function formatSeasonRange(season: Pick<Season, 'starts_on' | 'ends_on'>): string {
   return `${season.starts_on.replaceAll('-', '.')} – ${season.ends_on.replaceAll('-', '.')}`;
 }
+
+/** 리그 팀 색(조끼 색). 3팀 기본, 최대 6팀까지 겹치지 않게 고른다. */
+export const TEAM_COLORS = [
+  { value: '#E5484D', label: '빨강' },
+  { value: '#3E63DD', label: '파랑' },
+  { value: '#F5D90A', label: '노랑' },
+  { value: '#30A46C', label: '초록' },
+  { value: '#F76B15', label: '주황' },
+  { value: '#1C2024', label: '검정' },
+] as const;
+
+export function teamColorLabel(color: string): string {
+  return TEAM_COLORS.find((c) => c.value.toLowerCase() === color.toLowerCase())?.label ?? color;
+}

@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { leagueKeys } from '@/entities/league/model/keys';
 import { getApi } from '@/shared/api/client';
-import type { CreateSeasonData, Season, UpdateSeasonData } from '@/shared/types/league';
+import type {
+  CreateLeagueTeamData,
+  CreateSeasonData,
+  GenerateScheduleInput,
+  Season,
+  UpdateLeagueTeamData,
+  UpdateSeasonData,
+} from '@/shared/types/league';
 
 export { leagueKeys };
 
@@ -54,5 +61,48 @@ export function useUpdateSeason() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateSeasonData }) => getApi().league.updateSeason(id, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: leagueKeys.seasons() }),
+  });
+}
+
+/** 팀이 바뀌면 팀 목록과(삭제 거부 규칙 때문에) 일정을 함께 다시 읽는다. */
+function useInvalidateSeasonParts() {
+  const queryClient = useQueryClient();
+  return (seasonId: string) =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: leagueKeys.teams(seasonId) }),
+      queryClient.invalidateQueries({ queryKey: leagueKeys.schedule(seasonId) }),
+    ]);
+}
+
+export function useCreateLeagueTeam() {
+  const invalidate = useInvalidateSeasonParts();
+  return useMutation({
+    mutationFn: (data: CreateLeagueTeamData) => getApi().league.createTeam(data),
+    onSuccess: (team) => invalidate(team.season_id),
+  });
+}
+
+export function useUpdateLeagueTeam() {
+  const invalidate = useInvalidateSeasonParts();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; seasonId: string; data: UpdateLeagueTeamData }) => getApi().league.updateTeam(id, data),
+    onSuccess: (_team, { seasonId }) => invalidate(seasonId),
+  });
+}
+
+export function useRemoveLeagueTeam() {
+  const invalidate = useInvalidateSeasonParts();
+  return useMutation({
+    mutationFn: ({ id }: { id: string; seasonId: string }) => getApi().league.removeTeam(id),
+    onSuccess: (_void, { seasonId }) => invalidate(seasonId),
+  });
+}
+
+export function useGenerateSchedule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ seasonId, input }: { seasonId: string; input: GenerateScheduleInput }) =>
+      getApi().league.generateSchedule(seasonId, input),
+    onSuccess: (_schedule, { seasonId }) => queryClient.invalidateQueries({ queryKey: leagueKeys.schedule(seasonId) }),
   });
 }
