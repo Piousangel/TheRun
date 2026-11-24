@@ -1,9 +1,11 @@
 import type {
+  AddGoalData,
   CreateLeagueTeamData,
   CreateSeasonData,
   Fixture,
   FixtureStatus,
   GenerateScheduleInput,
+  GoalEvent,
   LeagueTeam,
   Matchday,
   Season,
@@ -43,4 +45,14 @@ export interface LeagueRepo {
    */
   generateSchedule(seasonId: string, input: GenerateScheduleInput): Promise<LeagueSchedule>;
   setFixtureStatus(fixtureId: string, status: FixtureStatus): Promise<Fixture>;
+
+  /** 시즌 전체 골 이벤트(순위 계산용). 기록 순(created_at 오름차순) */
+  listGoals(seasonId: string): Promise<GoalEvent[]>;
+  /**
+   * 골 한 건을 기록한다. 같은 id가 이미 있으면 새로 만들지 않고 기존 기록을 돌려준다(멱등).
+   * 팀이 그 경기의 두 팀이 아니거나, 쿼터가 시즌 쿼터 수를 벗어나거나, 득점자와 도움이 같으면 거부한다.
+   */
+  addGoal(data: AddGoalData): Promise<GoalEvent>;
+  /** 골 한 건을 지운다. 없으면 아무 일도 하지 않는다. actorId는 감사 기록에 남는다. */
+  removeGoal(id: string, actorId?: string | null): Promise<void>;
 }

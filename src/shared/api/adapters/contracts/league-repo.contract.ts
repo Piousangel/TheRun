@@ -83,5 +83,60 @@ export function runLeagueRepoContract(makeRepo: () => Promise<{ repo: LeagueRepo
       expect(await repo.listFixtures(drop.id)).toEqual([]);
       expect(await repo.listFixtures(keep.id)).toHaveLength(12);
     });
+
+    async function liveFixture(repo: LeagueRepo) {
+      const season = await seasonWithTeams(repo, 3);
+      const { fixtures } = await repo.generateSchedule(season.id, { first_date: '2026-12-05' });
+      const fixture = await repo.setFixtureStatus(fixtures[0].id, 'live');
+      return { season, fixture, fixtures };
+    }
+
+    it('골은 시즌별로 기록 순서대로 나오고, 같은 id로 다시 보내도 한 번만 남는다(멱등)', async () => {
+      const { repo } = await makeRepo();
+      const { season, fixture } = await liveFixture(repo);
+      const first = await repo.addGoal({ id: 'g-1', fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id, scorer_id: 'm1', assist_id: 'm2' });
+      const again = await repo.addGoal({ id: 'g-1', fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id, scorer_id: 'm1' });
+      expect(again).toEqual(first);
+      await repo.addGoal({ fixture_id: fixture.id, quarter: 2, team_id: fixture.away_team_id, scorer_id: 'm3' });
+      const goals = await repo.listGoals(season.id);
+      expect(goals).toHaveLength(2);
+      expect(goals[0]).toMatchObject({ id: 'g-1', quarter: 1, scorer_id: 'm1', assist_id: 'm2', own_goal: false });
+      expect(goals[1].assist_id).toBeNull();
+
+      const other = await liveFixture(repo);
+      expect(await repo.listGoals(other.season.id)).toEqual([]);
+    });
+
+    it('경기 전·다른 팀·범위 밖 쿼터·득점자=도움이면 거부한다', async () => {
+      const { repo } = await makeRepo();
+      const { fixture, fixtures } = await liveFixture(repo);
+      const outsider = fixtures.find((f) => f.home_team_id !== fixture.home_team_id && f.home_team_id !== fixture.away_team_id)?.home_team_id
+        ?? fixtures.find((f) => f.away_team_id !== fixture.home_team_id && f.away_team_id !== fixture.away_team_id)!.away_team_id;
+      await expect(repo.addGoal({ fixture_id: fixtures[1].id, quarter: 1, team_id: fixtures[1].home_team_id })).rejects.toThrow();
+      await expect(repo.addGoal({ fixture_id: fixture.id, quarter: 1, team_id: outsider })).rejects.toThrow();
+      await expect(repo.addGoal({ fixture_id: fixture.id, quarter: 4, team_id: fixture.home_team_id })).rejects.toThrow();
+      await expect(repo.addGoal({ fixture_id: fixture.id, quarter: 0, team_id: fixture.home_team_id })).rejects.toThrow();
+      await expect(repo.addGoal({ fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id, scorer_id: 'm1', assist_id: 'm1' })).rejects.toThrow();
+    });
+
+    it('자책골에는 도움이 붙지 않고, 끝난 경기도 고칠 수 있으며, removeGoal은 한 건만 지운다', async () => {
+      const { repo } = await makeRepo();
+      const { season, fixture } = await liveFixture(repo);
+      const own = await repo.addGoal({ fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id, scorer_id: 'm9', assist_id: 'm2', own_goal: true });
+      expect(own).toMatchObject({ own_goal: true, assist_id: null });
+      await repo.setFixtureStatus(fixture.id, 'final');
+      const late = await repo.addGoal({ fixture_id: fixture.id, quarter: 3, team_id: fixture.away_team_id });
+      await repo.removeGoal(own.id);
+      await repo.removeGoal('없는-골');
+      expect((await repo.listGoals(season.id)).map((g) => g.id)).toEqual([late.id]);
+    });
+
+    it('removeSeason은 그 시즌의 골도 지운다', async () => {
+      const { repo } = await makeRepo();
+      const { season, fixture } = await liveFixture(repo);
+      await repo.addGoal({ fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id });
+      await repo.removeSeason(season.id);
+      expect(await repo.listGoals(season.id)).toEqual([]);
+    });
   });
 }

@@ -2,7 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { leagueKeys } from '@/entities/league/model/keys';
 import { getApi } from '@/shared/api/client';
 import type {
+  AddGoalData,
   CreateLeagueTeamData,
+  FixtureStatus,
   CreateSeasonData,
   GenerateScheduleInput,
   Season,
@@ -104,5 +106,58 @@ export function useGenerateSchedule() {
     mutationFn: ({ seasonId, input }: { seasonId: string; input: GenerateScheduleInput }) =>
       getApi().league.generateSchedule(seasonId, input),
     onSuccess: (_schedule, { seasonId }) => queryClient.invalidateQueries({ queryKey: leagueKeys.schedule(seasonId) }),
+  });
+}
+
+/** 시즌 전체 골 이벤트. 경기 점수·순위·개인 기록이 모두 여기서 계산된다. */
+export function useLeagueGoals(seasonId: string | null) {
+  return useQuery({
+    queryKey: leagueKeys.goals(seasonId ?? ''),
+    queryFn: () => getApi().league.listGoals(seasonId as string),
+    enabled: !!seasonId,
+  });
+}
+
+/** 경기 변경 이력(골 기록·삭제). 최신순 */
+export function useFixtureHistory(fixtureId: string | null) {
+  return useQuery({
+    queryKey: leagueKeys.fixtureHistory(fixtureId ?? ''),
+    queryFn: () => getApi().audit.listFor('fixture', fixtureId as string),
+    enabled: !!fixtureId,
+  });
+}
+
+function useInvalidateGoals() {
+  const queryClient = useQueryClient();
+  return (seasonId: string, fixtureId: string) =>
+    Promise.all([
+      queryClient.invalidateQueries({ queryKey: leagueKeys.goals(seasonId) }),
+      queryClient.invalidateQueries({ queryKey: leagueKeys.fixtureHistory(fixtureId) }),
+    ]);
+}
+
+export function useAddGoal() {
+  const invalidate = useInvalidateGoals();
+  return useMutation({
+    mutationFn: ({ data }: { seasonId: string; data: AddGoalData }) => getApi().league.addGoal(data),
+    onSuccess: (goal, { seasonId }) => invalidate(seasonId, goal.fixture_id),
+  });
+}
+
+export function useRemoveGoal() {
+  const invalidate = useInvalidateGoals();
+  return useMutation({
+    mutationFn: ({ id, actorId }: { id: string; seasonId: string; fixtureId: string; actorId: string | null }) =>
+      getApi().league.removeGoal(id, actorId),
+    onSuccess: (_void, { seasonId, fixtureId }) => invalidate(seasonId, fixtureId),
+  });
+}
+
+export function useSetFixtureStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ fixtureId, status }: { fixtureId: string; seasonId: string; status: FixtureStatus }) =>
+      getApi().league.setFixtureStatus(fixtureId, status),
+    onSuccess: (_fixture, { seasonId }) => queryClient.invalidateQueries({ queryKey: leagueKeys.schedule(seasonId) }),
   });
 }

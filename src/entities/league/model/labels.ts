@@ -1,4 +1,4 @@
-import type { MvpMethod, Season, SeasonStatus, Tiebreaker } from '@/shared/types/league';
+import type { FixtureStatus, MvpMethod, Season, SeasonStatus, Tiebreaker } from '@/shared/types/league';
 import type { StatusTone } from '@/shared/ui/status-badge';
 
 export const SEASON_STATUS_LABELS: Record<SeasonStatus, string> = {
@@ -11,6 +11,18 @@ export const SEASON_STATUS_TONES: Record<SeasonStatus, StatusTone> = {
   draft: 'amber',
   active: 'green',
   done: 'gray',
+};
+
+export const FIXTURE_STATUS_LABELS: Record<FixtureStatus, string> = {
+  scheduled: '예정',
+  live: '진행 중',
+  final: '종료',
+};
+
+export const FIXTURE_STATUS_TONES: Record<FixtureStatus, StatusTone> = {
+  scheduled: 'gray',
+  live: 'red',
+  final: 'blue',
 };
 
 export const TIEBREAKER_LABELS: Record<Tiebreaker, string> = {

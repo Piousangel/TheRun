@@ -122,7 +122,7 @@ test.describe('리그 시즌 — 팀·팀장·일정', () => {
     await editForm.getByLabel('팀 이름').fill('C팀 블루');
     await editForm.getByRole('button', { name: '저장' }).click();
     await expect(editForm).toBeHidden();
-    await expect(detail.getByText('C팀 블루')).toBeVisible();
+    await expect(detail.getByRole('list', { name: '팀 목록' }).getByText('C팀 블루')).toBeVisible();
 
     // 일정 자동 생성: 3팀 × 4주 = 매주 3경기.
     await detail.getByRole('button', { name: '일정 자동 생성' }).click();
