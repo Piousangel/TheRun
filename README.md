@@ -1,6 +1,6 @@
 # The Run — 풋살 클럽 운영
 
-The Run 축구 동호회를 위한 모바일 중심 웹 앱. 투표 → 팀 나누기 → 경기 기록 → 공지의 주간 루프를 한 곳에서 돌린다.
+The Run 축구 동호회를 위한 모바일 중심 웹 앱. 투표 → 팀 나누기 → 경기 기록 → 공지의 주간 루프를 한 곳에서 돌립니다.
 
 > 지금은 **전면 개편 중**이다. 설계: `docs/superpowers/specs/2026-09-03-therun-overhaul-design.md`, 진행 계획: `docs/superpowers/plans/`. **오너가 승인된 스펙을 뒤집은 결정들은 `docs/product-decisions.md`에 있다 — 충돌 시 그 문서가 스펙을 이긴다.**
 
