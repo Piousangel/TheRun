@@ -248,31 +248,34 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
 
   if (isDesktop) {
     return (
-      <article className="grid grid-cols-[minmax(0,1fr)_380px] items-start gap-6" aria-label="경기 기록">
-        <div className="flex flex-col gap-6">
-          {header}
-          {scoreboard}
-          {timeline}
-          {historySection}
+      <article className="flex flex-col gap-6" aria-label="경기 기록">
+        {header}
+        {scoreboard}
+        {/* 768~1023px는 사이드바 옆이 좁아 패널을 위에 쌓고, 1024px부터 2단으로 나눈다. */}
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="order-2 flex flex-col gap-6 lg:order-1">
+            {timeline}
+            {historySection}
+          </div>
+          <aside className="order-1 flex flex-col gap-4 rounded-[16px] border border-border bg-sunken/40 p-5 lg:sticky lg:top-6 lg:order-2" aria-label="기록 패널">
+            {recording ? (
+              <>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-[15px] font-bold text-ink">골 기록</h3>
+                  <span className="text-[12px] text-ink-dim">
+                    쿼터 전환 <kbd className="rounded border border-border px-1">1</kbd>–<kbd className="rounded border border-border px-1">{quarters}</kbd>
+                  </span>
+                </div>
+                {quarterPicker}
+                <GoalRecordForm key={quarter} seasonId={seasonId} fixture={fixture} teams={teams} quarter={quarter} />
+              </>
+            ) : (
+              <p className="text-sm text-ink-dim">
+                {!canRecord ? '기록은 운영진과 두 팀 팀장이 할 수 있어요.' : fixture.status === 'scheduled' ? '경기 시작을 누르면 기록할 수 있어요.' : '경기가 끝났어요. 고치려면 기록 다시 열기를 누르세요.'}
+              </p>
+            )}
+          </aside>
         </div>
-        <aside className="sticky top-6 flex flex-col gap-4 rounded-[16px] border border-border bg-sunken/40 p-5" aria-label="기록 패널">
-          {recording ? (
-            <>
-              <div className="flex items-center justify-between">
-                <h3 className="text-[15px] font-bold text-ink">골 기록</h3>
-                <span className="text-[12px] text-ink-dim">
-                  쿼터 전환 <kbd className="rounded border border-border px-1">1</kbd>–<kbd className="rounded border border-border px-1">{quarters}</kbd>
-                </span>
-              </div>
-              {quarterPicker}
-              <GoalRecordForm key={quarter} seasonId={seasonId} fixture={fixture} teams={teams} quarter={quarter} />
-            </>
-          ) : (
-            <p className="text-sm text-ink-dim">
-              {!canRecord ? '기록은 운영진과 두 팀 팀장이 할 수 있어요.' : fixture.status === 'scheduled' ? '경기 시작을 누르면 기록할 수 있어요.' : '경기가 끝났어요. 고치려면 기록 다시 열기를 누르세요.'}
-            </p>
-          )}
-        </aside>
       </article>
     );
   }
