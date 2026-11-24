@@ -31,15 +31,17 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
   const announcements = new Collection(storage, 'announcements', () => seed().announcements);
   const reads = new Collection(storage, 'announcement_reads', () => seed().announcementReads);
 
+  const audit = createCollectionAuditRepo(new Collection(storage, 'audit_logs', () => []), now);
   const league = createCollectionLeagueRepo({
     seasons: new Collection(storage, 'league_seasons', () => []),
     teams: new Collection(storage, 'league_teams', () => []),
     matchdays: new Collection(storage, 'league_matchdays', () => []),
     fixtures: new Collection(storage, 'league_fixtures', () => []),
+    goals: new Collection(storage, 'league_goals', () => []),
+    audit,
     now,
   });
 
-  const audit = createCollectionAuditRepo(new Collection(storage, 'audit_logs', () => []), now);
   const checkins = createCollectionCheckinRepo({ checkins: new Collection(storage, 'checkins', () => []), audit, now });
 
   return {

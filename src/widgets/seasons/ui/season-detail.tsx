@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, Plus, Shirt, X } from 'lucide-react';
+import { CalendarDays, ChevronRight, Plus, Shirt, Trophy, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   MVP_METHOD_LABELS,
@@ -13,7 +14,8 @@ import {
   formatSeasonRange,
   teamColorLabel,
 } from '@/entities/league/model/labels';
-import { useLeagueSchedule, useLeagueTeams, useSeason, useUpdateSeason } from '@/entities/league/model/queries';
+import { useLeagueGoals, useLeagueSchedule, useLeagueTeams, useSeason, useUpdateSeason } from '@/entities/league/model/queries';
+import { computeStandings, fixtureScore } from '@/entities/league/model/standings';
 import { useMembers } from '@/entities/member/model/queries';
 import { ScheduleGenerateForm } from '@/features/league-schedule-generate/ui/schedule-generate-form';
 import { LeagueTeamForm } from '@/features/league-team-edit/ui/league-team-form';
@@ -21,7 +23,7 @@ import { useAuth } from '@/providers/auth-provider';
 import { DESKTOP_QUERY, useMediaQuery } from '@/shared/lib/use-media-query';
 import { useUrlState } from '@/shared/lib/use-url-state';
 import { cn } from '@/shared/lib/utils';
-import type { SeasonStatus } from '@/shared/types/league';
+import type { Fixture, GoalEvent, SeasonStatus } from '@/shared/types/league';
 import { Button } from '@/shared/ui/button';
 import { CardSkeleton } from '@/shared/ui/card-skeleton';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/shared/ui/drawer';
@@ -50,6 +52,7 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   const { data: season, isLoading, error, refetch } = useSeason(seasonId);
   const { data: teams } = useLeagueTeams(seasonId);
   const { data: schedule } = useLeagueSchedule(seasonId);
+  const { data: goals = [] } = useLeagueGoals(seasonId);
   const { data: members } = useMembers();
   const updateSeason = useUpdateSeason();
   const [teamParam, setTeamParam] = useUrlState('team');
@@ -61,6 +64,7 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   }
 
   const next = NEXT_STATUS[season.status];
+  const standings = computeStandings(season, teams ?? [], schedule?.fixtures ?? [], goals);
   const hasSchedule = !!schedule && schedule.matchdays.length > 0;
   const editingTeam = teamParam && teamParam !== TEAM_NEW ? (teams?.find((t) => t.id === teamParam) ?? null) : null;
   // 팀 목록이 아직 없으면 수정 대상을 모르므로 폼을 열지 않는다.
@@ -203,10 +207,68 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
         )}
       </section>
 
+      {teams && teams.length > 1 && (
+        <section className="flex flex-col gap-3" aria-labelledby="season-standings">
+          <h3 id="season-standings" className="flex items-center gap-2 text-[17px] font-bold text-ink">
+            <Trophy className="h-4 w-4" aria-hidden />
+            순위
+          </h3>
+          <div className="overflow-x-auto rounded-[14px] border border-border">
+            <table className="w-full text-sm tabular-nums" aria-label="시즌 순위">
+              <thead className="bg-sunken text-[12px] text-ink-dim">
+                <tr>
+                  <th scope="col" className="w-10 px-3 py-2 text-left font-medium">#</th>
+                  <th scope="col" className="px-3 py-2 text-left font-medium">팀</th>
+                  <th scope="col" className="px-2 py-2 text-right font-medium">경기</th>
+                  {isDesktop && (
+                    <>
+                      <th scope="col" className="px-2 py-2 text-right font-medium">승</th>
+                      <th scope="col" className="px-2 py-2 text-right font-medium">무</th>
+                      <th scope="col" className="px-2 py-2 text-right font-medium">패</th>
+                      <th scope="col" className="px-2 py-2 text-right font-medium">득점</th>
+                      <th scope="col" className="px-2 py-2 text-right font-medium">실점</th>
+                    </>
+                  )}
+                  <th scope="col" className="px-2 py-2 text-right font-medium">득실</th>
+                  <th scope="col" className="px-3 py-2 text-right font-medium">승점</th>
+                </tr>
+              </thead>
+              <tbody>
+                {standings.map((row) => (
+                  <tr key={row.team.id} className="border-t border-border">
+                    <td className="px-3 py-2.5 font-semibold text-ink">{row.rank}</td>
+                    <th scope="row" className="px-3 py-2.5 text-left font-semibold text-ink">
+                      <span className="inline-flex items-center gap-2">
+                        <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.team.color }} />
+                        {row.team.name}
+                      </span>
+                    </th>
+                    <td className="px-2 py-2.5 text-right text-ink-dim">{row.played}</td>
+                    {isDesktop && (
+                      <>
+                        <td className="px-2 py-2.5 text-right text-ink-dim">{row.won}</td>
+                        <td className="px-2 py-2.5 text-right text-ink-dim">{row.drawn}</td>
+                        <td className="px-2 py-2.5 text-right text-ink-dim">{row.lost}</td>
+                        <td className="px-2 py-2.5 text-right text-ink-dim">{row.goals_for}</td>
+                        <td className="px-2 py-2.5 text-right text-ink-dim">{row.goals_against}</td>
+                      </>
+                    )}
+                    <td className="px-2 py-2.5 text-right text-ink-dim">{row.goal_diff > 0 ? `+${row.goal_diff}` : row.goal_diff}</td>
+                    <td className="px-3 py-2.5 text-right font-bold text-ink">{row.points}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="text-[12px] text-ink-dim">끝난 경기만 반영돼요. 골 기록을 고치면 순위가 바로 다시 계산됩니다.</p>
+        </section>
+      )}
+
       <section className="flex flex-col gap-3" aria-labelledby="season-schedule">
         <h3 id="season-schedule" className="text-[17px] font-bold text-ink">
           일정
         </h3>
+        {hasSchedule && <p className="text-[13px] text-ink-dim">경기를 누르면 골을 기록하거나 결과를 볼 수 있어요.</p>}
         {isAdmin && (
           <ScheduleGenerateForm
             key={season.starts_on}
@@ -239,8 +301,13 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
                           {schedule.fixtures
                             .filter((f) => f.matchday_id === day.id)
                             .map((f) => (
-                              <li key={f.id} className="rounded-[10px] bg-sunken px-3 py-1.5 text-ink">
-                                <FixtureLabel order={f.order} home={teamName(f.home_team_id)} away={teamName(f.away_team_id)} homeColor={teamColor(f.home_team_id)} awayColor={teamColor(f.away_team_id)} />
+                              <li key={f.id}>
+                                <Link
+                                  href={`/seasons/${season.id}/fixtures/${f.id}`}
+                                  className="inline-flex min-h-[36px] items-center rounded-[10px] bg-sunken px-3 py-1.5 text-ink outline-none hover:bg-sunken-strong focus-visible:ring-2 focus-visible:ring-ring"
+                                >
+                                  <FixtureLabel fixture={f} goals={goals} home={teamName(f.home_team_id)} away={teamName(f.away_team_id)} homeColor={teamColor(f.home_team_id)} awayColor={teamColor(f.away_team_id)} />
+                                </Link>
                               </li>
                             ))}
                         </ol>
@@ -264,8 +331,14 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
                     </div>
                     <ol className="flex flex-col gap-1">
                       {dayFixtures.map((f) => (
-                        <li key={f.id} className="text-[13px] text-ink">
-                          <FixtureLabel order={f.order} home={teamName(f.home_team_id)} away={teamName(f.away_team_id)} homeColor={teamColor(f.home_team_id)} awayColor={teamColor(f.away_team_id)} />
+                        <li key={f.id}>
+                          <Link
+                            href={`/seasons/${season.id}/fixtures/${f.id}`}
+                            className="flex min-h-[44px] items-center justify-between gap-2 rounded-[10px] px-1 text-[13px] text-ink outline-none hover:bg-sunken focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            <FixtureLabel fixture={f} goals={goals} home={teamName(f.home_team_id)} away={teamName(f.away_team_id)} homeColor={teamColor(f.home_team_id)} awayColor={teamColor(f.away_team_id)} />
+                            <ChevronRight className="h-4 w-4 shrink-0 text-ink-dim" aria-hidden />
+                          </Link>
                         </li>
                       ))}
                     </ol>
@@ -294,15 +367,37 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   );
 }
 
-function FixtureLabel({ order, home, away, homeColor, awayColor }: { order: number; home: string; away: string; homeColor: string; awayColor: string }) {
+function FixtureLabel({
+  fixture,
+  goals,
+  home,
+  away,
+  homeColor,
+  awayColor,
+}: {
+  fixture: Fixture;
+  goals: GoalEvent[];
+  home: string;
+  away: string;
+  homeColor: string;
+  awayColor: string;
+}) {
+  const score = fixture.status === 'scheduled' ? null : fixtureScore(fixture, goals);
   return (
     <span className="inline-flex items-center gap-1.5">
-      <span className="tabular-nums text-ink-dim">{order}경기</span>
+      <span className="tabular-nums text-ink-dim">{fixture.order}경기</span>
       <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: homeColor }} />
       <span className="font-semibold">{home}</span>
-      <span className="text-ink-dim">vs</span>
+      {score ? (
+        <span className="font-bold tabular-nums">
+          {score.home}:{score.away}
+        </span>
+      ) : (
+        <span className="text-ink-dim">vs</span>
+      )}
       <span aria-hidden className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: awayColor }} />
       <span className="font-semibold">{away}</span>
+      {fixture.status === 'live' && <span className="text-[11px] font-bold text-signal-red-fg">진행 중</span>}
     </span>
   );
 }

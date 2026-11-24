@@ -1,19 +1,23 @@
 import type { Collection } from '@/shared/api/adapters/collection/collection';
 import { NotFoundError } from '@/shared/api/adapters/collection/storage';
+import type { AuditRepo } from '@/shared/api/ports/audit-repo';
 import type { LeagueRepo } from '@/shared/api/ports/league-repo';
 import { newId } from '@/shared/lib/id';
 import { addDaysIso, buildMatchdayPairings } from '@/shared/lib/league-schedule';
-import type { Fixture, LeagueTeam, Matchday, Season } from '@/shared/types/league';
+import type { Fixture, GoalEvent, LeagueTeam, Matchday, Season } from '@/shared/types/league';
 
 interface Deps {
   seasons: Collection<Season>;
   teams: Collection<LeagueTeam>;
   matchdays: Collection<Matchday>;
   fixtures: Collection<Fixture>;
+  goals: Collection<GoalEvent>;
+  /** 골 기록·삭제를 경기(`fixture`) 단위 변경 이력으로 남긴다 */
+  audit: AuditRepo;
   now: () => Date;
 }
 
-export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, now }: Deps): LeagueRepo {
+export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, goals, audit, now }: Deps): LeagueRepo {
   const seasonMatchdays = async (seasonId: string) =>
     (await matchdays.all()).filter((m) => m.season_id === seasonId).sort((a, b) => a.week - b.week);
 
@@ -58,6 +62,8 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
     async removeSeason(id) {
       const days = await seasonMatchdays(id);
       const dayIds = new Set(days.map((d) => d.id));
+      const fixtureIds = new Set((await fixtures.all()).filter((f) => dayIds.has(f.matchday_id)).map((f) => f.id));
+      await goals.replaceAll((await goals.all()).filter((g) => !fixtureIds.has(g.fixture_id)));
       await fixtures.replaceAll((await fixtures.all()).filter((f) => !dayIds.has(f.matchday_id)));
       await matchdays.replaceAll((await matchdays.all()).filter((m) => m.season_id !== id));
       await teams.replaceAll((await teams.all()).filter((t) => t.season_id !== id));
@@ -127,5 +133,50 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
       return { matchdays: newDays, fixtures: newFixtures };
     },
     setFixtureStatus: (fixtureId, status) => fixtures.update(fixtureId, { status }),
+
+    async listGoals(seasonId) {
+      const ids = new Set((await seasonFixtures(seasonId)).map((f) => f.id));
+      return (await goals.all()).filter((g) => ids.has(g.fixture_id)).sort((a, b) => a.created_at.localeCompare(b.created_at));
+    },
+    async addGoal(data) {
+      if (data.id) {
+        const existing = await goals.get(data.id);
+        if (existing) return existing;
+      }
+      const fixture = await fixtures.get(data.fixture_id);
+      if (!fixture) throw new NotFoundError('fixtures', data.fixture_id);
+      if (data.team_id !== fixture.home_team_id && data.team_id !== fixture.away_team_id) {
+        throw new Error('이 경기의 팀이 아닙니다.');
+      }
+      if (fixture.status === 'scheduled') throw new Error('경기를 시작한 뒤에 골을 기록할 수 있습니다.');
+      const day = await matchdays.get(fixture.matchday_id);
+      const season = day ? await seasons.get(day.season_id) : null;
+      const maxQuarter = season?.quarters_per_match ?? 1;
+      if (!Number.isInteger(data.quarter) || data.quarter < 1 || data.quarter > maxQuarter) {
+        throw new Error(`쿼터는 1~${maxQuarter} 사이여야 합니다.`);
+      }
+      if (data.scorer_id && data.assist_id && data.scorer_id === data.assist_id) {
+        throw new Error('득점자와 도움 선수가 같을 수 없습니다.');
+      }
+      const goal = await goals.insert({
+        id: data.id ?? newId(),
+        fixture_id: data.fixture_id,
+        quarter: data.quarter,
+        team_id: data.team_id,
+        scorer_id: data.scorer_id ?? null,
+        assist_id: data.own_goal ? null : (data.assist_id ?? null),
+        own_goal: data.own_goal ?? false,
+        created_by: data.created_by ?? null,
+        created_at: now().toISOString(),
+      });
+      await audit.record({ entity: 'fixture', entity_id: goal.fixture_id, action: 'create', after: goal, actor_id: goal.created_by ?? 'unknown' });
+      return goal;
+    },
+    async removeGoal(id, actorId) {
+      const goal = await goals.get(id);
+      if (!goal) return;
+      await goals.remove(id);
+      await audit.record({ entity: 'fixture', entity_id: goal.fixture_id, action: 'delete', before: goal, actor_id: actorId ?? 'unknown' });
+    },
   };
 }

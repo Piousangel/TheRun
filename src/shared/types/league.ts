@@ -83,3 +83,33 @@ export interface GenerateScheduleInput {
   weeks?: number;
   venue?: string | null;
 }
+
+/**
+ * 골 이벤트(스펙 §2.2 GoalEvent). 점수·순위·개인 기록은 이 이벤트에서 계산한다.
+ * - `team_id`는 득점이 인정된 팀이다. 자책골이면 득점자는 상대 팀 선수다.
+ * - `id`는 클라이언트가 만들 수 있다(오프라인 재전송에도 중복이 생기지 않게).
+ */
+export interface GoalEvent {
+  id: string;
+  fixture_id: string;
+  quarter: number; // 1..quarters_per_match
+  team_id: string;
+  scorer_id: string | null;
+  assist_id: string | null;
+  own_goal: boolean;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface AddGoalData {
+  /** 클라이언트가 만든 UUID. 같은 id로 다시 보내면 기존 기록을 돌려준다(멱등). */
+  id?: string;
+  fixture_id: string;
+  quarter: number;
+  team_id: string;
+  scorer_id?: string | null;
+  assist_id?: string | null;
+  own_goal?: boolean;
+  /** 기록한 사람(감사 기록의 actor) */
+  created_by?: string | null;
+}
