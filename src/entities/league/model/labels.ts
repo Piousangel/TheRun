@@ -65,3 +65,8 @@ export const TEAM_COLORS = [
 export function teamColorLabel(color: string): string {
   return TEAM_COLORS.find((c) => c.value.toLowerCase() === color.toLowerCase())?.label ?? color;
 }
+
+/** 미니게임 등수별 승점 "우승 2점 · 2위 1점" */
+export function formatMiniGamePoints(points: readonly number[]): string {
+  return points.map((p, i) => `${i === 0 ? '우승' : `${i + 1}위`} ${p}점`).join(' · ');
+}

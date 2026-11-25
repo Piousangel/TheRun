@@ -2,29 +2,40 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, ChevronRight, Medal, Plus, Shirt, Trophy, X } from 'lucide-react';
+import { CalendarDays, ChevronRight, Medal, Plus, Shirt, Target, Trophy, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   MVP_METHOD_LABELS,
   SEASON_STATUS_LABELS,
   SEASON_STATUS_TONES,
   TIEBREAKER_LABELS,
+  formatMiniGamePoints,
   formatSeasonFormat,
   formatSeasonPoints,
   formatSeasonRange,
   teamColorLabel,
 } from '@/entities/league/model/labels';
-import { useLeagueAppearances, useLeagueGoals, useLeagueSchedule, useLeagueTeams, useSeason, useUpdateSeason } from '@/entities/league/model/queries';
+import {
+  useLeagueAppearances,
+  useLeagueGoals,
+  useLeagueMiniGames,
+  useLeagueSchedule,
+  useLeagueTeams,
+  useSeason,
+  useUpdateSeason,
+} from '@/entities/league/model/queries';
 import { computePlayerStats, rankPlayers, type PlayerStatKey } from '@/entities/league/model/player-stats';
 import { computeStandings, fixtureScore } from '@/entities/league/model/standings';
 import { useMembers } from '@/entities/member/model/queries';
 import { ScheduleGenerateForm } from '@/features/league-schedule-generate/ui/schedule-generate-form';
+import { MiniGameForm } from '@/features/league-minigame/ui/minigame-form';
+import { MiniGameResultForm } from '@/features/league-minigame/ui/minigame-result-form';
 import { LeagueTeamForm } from '@/features/league-team-edit/ui/league-team-form';
 import { useAuth } from '@/providers/auth-provider';
 import { DESKTOP_QUERY, useMediaQuery } from '@/shared/lib/use-media-query';
 import { useUrlState } from '@/shared/lib/use-url-state';
 import { cn } from '@/shared/lib/utils';
-import type { Fixture, GoalEvent, SeasonStatus } from '@/shared/types/league';
+import type { Fixture, GoalEvent, MiniGame, SeasonStatus } from '@/shared/types/league';
 import { Button } from '@/shared/ui/button';
 import { CardSkeleton } from '@/shared/ui/card-skeleton';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/shared/ui/drawer';
@@ -32,6 +43,7 @@ import { EmptyState, ErrorState } from '@/shared/ui/empty-state';
 import { StatusBadge } from '@/shared/ui/status-badge';
 
 const TEAM_NEW = 'new';
+const MINIGAME_NEW = 'new';
 
 const NEXT_STATUS: Partial<Record<SeasonStatus, { status: SeasonStatus; label: string }>> = {
   draft: { status: 'active', label: '시즌 시작' },
@@ -46,18 +58,21 @@ interface SeasonDetailProps {
  * 시즌 상세. 운영진은 여기서 팀·팀장을 정하고 일정을 만든다.
  * - 팀 만들기/수정: `?team=new|<id>` — 모바일은 하단 시트, 데스크톱은 팀 목록 위 인라인 패널.
  * - 일정: 모바일은 주차 카드, 데스크톱은 주차 × 경기 표.
+ * - 미니게임: `?minigame=new|<id>` — 종목 추가(운영진)·결과 입력(운영진·팀장). 모바일은 시트, 데스크톱은 목록 위 패널.
  */
 export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   const router = useRouter();
-  const { isAdmin } = useAuth();
+  const { isAdmin, member } = useAuth();
   const { data: season, isLoading, error, refetch } = useSeason(seasonId);
   const { data: teams } = useLeagueTeams(seasonId);
   const { data: schedule } = useLeagueSchedule(seasonId);
   const { data: goals = [] } = useLeagueGoals(seasonId);
   const { data: appearances = [] } = useLeagueAppearances(seasonId);
+  const { data: miniGames = [] } = useLeagueMiniGames(seasonId);
   const { data: members } = useMembers();
   const updateSeason = useUpdateSeason();
   const [teamParam, setTeamParam] = useUrlState('team');
+  const [miniGameParam, setMiniGameParam] = useUrlState('minigame');
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
 
   if (isLoading) return <CardSkeleton count={2} />;
@@ -66,11 +81,24 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   }
 
   const next = NEXT_STATUS[season.status];
-  const standings = computeStandings(season, teams ?? [], schedule?.fixtures ?? [], goals);
+  const standings = computeStandings(season, teams ?? [], schedule?.fixtures ?? [], goals, miniGames);
+  const hasMiniGames = miniGames.length > 0;
   const hasSchedule = !!schedule && schedule.matchdays.length > 0;
   const editingTeam = teamParam && teamParam !== TEAM_NEW ? (teams?.find((t) => t.id === teamParam) ?? null) : null;
   // 팀 목록이 아직 없으면 수정 대상을 모르므로 폼을 열지 않는다.
   const teamFormOpen = isAdmin && (teamParam === TEAM_NEW || !!editingTeam);
+  // 미니게임 결과는 경기 기록처럼 운영진과 팀장이 입력한다(스펙 §2.1-1). 종목 추가·삭제는 시즌 설정이라 운영진만.
+  const isCaptain = !!member && !!teams?.some((t) => t.captain_member_id === member.id);
+  const canRecordMiniGame = isAdmin || isCaptain;
+  const editingMiniGame = miniGameParam && miniGameParam !== MINIGAME_NEW ? (miniGames.find((g) => g.id === miniGameParam) ?? null) : null;
+  const miniGameMode: 'new' | 'result' | null =
+    miniGameParam === MINIGAME_NEW && isAdmin ? 'new' : editingMiniGame && canRecordMiniGame && teams && teams.length > 0 ? 'result' : null;
+  const matchdayLabel = (game: MiniGame) => {
+    const day = game.matchday_id ? schedule?.matchdays.find((d) => d.id === game.matchday_id) : null;
+    return day ? `${day.week}주차 · ${day.date.slice(5).replace('-', '.')}` : '경기일 미정';
+  };
+  const resultLabel = (game: MiniGame) =>
+    game.results.length === 0 ? '결과 없음' : game.results.map((r) => `${r.rank}위 ${teamName(r.team_id)}`).join(' · ');
   const teamName = (id: string) => teams?.find((t) => t.id === id)?.name ?? '?';
   const teamColor = (id: string) => teams?.find((t) => t.id === id)?.color ?? 'transparent';
   const memberName = (id: string | null) => (id ? (members?.find((m) => m.id === id)?.name ?? null) : null);
@@ -94,6 +122,19 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
     if (window.history.length > 1) router.back();
     else setTeamParam(null);
   };
+
+  const handleCloseMiniGame = () => {
+    if (window.history.length > 1) router.back();
+    else setMiniGameParam(null);
+  };
+
+  const miniGameForm =
+    miniGameMode === 'new' ? (
+      <MiniGameForm seasonId={season.id} onDone={handleCloseMiniGame} />
+    ) : miniGameMode === 'result' && editingMiniGame ? (
+      <MiniGameResultForm key={`${editingMiniGame.id}-${teams?.length}`} game={editingMiniGame} canRemove={isAdmin} onDone={handleCloseMiniGame} />
+    ) : null;
+  const miniGameTitle = miniGameMode === 'new' ? '미니게임 추가' : editingMiniGame ? `${editingMiniGame.name} 결과` : '';
 
   const teamForm = teamFormOpen ? (
     <LeagueTeamForm key={teamParam} seasonId={season.id} team={editingTeam} hasSchedule={hasSchedule} onDone={handleCloseTeam} />
@@ -245,6 +286,12 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
                     </>
                   )}
                   <th scope="col" className="px-2 py-2 text-right font-medium">득실</th>
+                  {hasMiniGames && (
+                    <>
+                      {isDesktop && <th scope="col" className="px-2 py-2 text-right font-medium">경기 승점</th>}
+                      <th scope="col" className="px-2 py-2 text-right font-medium">{isDesktop ? '미니게임' : '미니'}</th>
+                    </>
+                  )}
                   <th scope="col" className="px-3 py-2 text-right font-medium">승점</th>
                 </tr>
               </thead>
@@ -269,13 +316,131 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
                       </>
                     )}
                     <td className="px-2 py-2.5 text-right text-ink-dim">{row.goal_diff > 0 ? `+${row.goal_diff}` : row.goal_diff}</td>
+                    {hasMiniGames && (
+                      <>
+                        {isDesktop && <td className="px-2 py-2.5 text-right text-ink-dim">{row.match_points}</td>}
+                        <td className="px-2 py-2.5 text-right text-ink-dim">{row.minigame_points}</td>
+                      </>
+                    )}
                     <td className="px-3 py-2.5 text-right font-bold text-ink">{row.points}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-          <p className="text-[12px] text-ink-dim">끝난 경기만 반영돼요. 골 기록을 고치면 순위가 바로 다시 계산됩니다.</p>
+          <p className="text-[12px] text-ink-dim">
+            끝난 경기만 반영돼요. 골 기록을 고치면 순위가 바로 다시 계산됩니다.
+            {hasMiniGames && ' 승점은 경기 승점 + 미니게임 승점의 합계예요.'}
+          </p>
+        </section>
+      )}
+
+      {teams && teams.length > 1 && (
+        <section className="flex flex-col gap-3" aria-labelledby="season-minigames">
+          <div className="flex items-center justify-between gap-3">
+            <h3 id="season-minigames" className="flex items-center gap-2 text-[17px] font-bold text-ink">
+              <Target className="h-4 w-4" aria-hidden />
+              미니게임 {hasMiniGames ? `(${miniGames.length})` : ''}
+            </h3>
+            {isAdmin && (
+              <Button variant="outline" className="h-11" onClick={() => setMiniGameParam(MINIGAME_NEW)}>
+                <Plus className="mr-1.5 h-4 w-4" aria-hidden />
+                미니게임 추가
+              </Button>
+            )}
+          </div>
+
+          {isDesktop && miniGameForm && (
+            <div className="flex flex-col gap-4 rounded-[14px] border border-brand/40 bg-sunken/40 p-5" aria-labelledby="minigame-panel-title">
+              <div className="flex items-center justify-between gap-3">
+                <h4 id="minigame-panel-title" className="text-[15px] font-bold text-ink">
+                  {miniGameTitle}
+                </h4>
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={handleCloseMiniGame} aria-label="미니게임 패널 닫기">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              {miniGameForm}
+            </div>
+          )}
+
+          {!hasMiniGames ? (
+            <EmptyState
+              icon={Target}
+              title="아직 미니게임이 없어요"
+              description={isAdmin ? '승부차기·크로스바처럼 경기 외 종목을 추가하면 우승 팀에 승점을 줍니다.' : '운영진이 종목을 정하면 이곳에 보입니다.'}
+            />
+          ) : isDesktop ? (
+            <div className="overflow-x-auto rounded-[14px] border border-border">
+              <table className="w-full text-sm" aria-label="미니게임">
+                <thead className="bg-sunken text-left text-[12px] text-ink-dim">
+                  <tr>
+                    <th scope="col" className="px-4 py-2 font-medium">종목</th>
+                    <th scope="col" className="px-4 py-2 font-medium">경기일</th>
+                    <th scope="col" className="px-4 py-2 font-medium">승점</th>
+                    <th scope="col" className="px-4 py-2 font-medium">결과</th>
+                    {canRecordMiniGame && <th scope="col" className="w-0 px-4 py-2" aria-label="결과 입력" />}
+                  </tr>
+                </thead>
+                <tbody>
+                  {miniGames.map((game) => (
+                    <tr key={game.id} className={cn('border-t border-border', game.id === miniGameParam && 'bg-sunken/60')}>
+                      <th scope="row" className="px-4 py-3 text-left font-semibold text-ink">
+                        {game.name}
+                        {game.description && <span className="block text-[12px] font-normal text-ink-dim">{game.description}</span>}
+                      </th>
+                      <td className="whitespace-nowrap px-4 py-3 tabular-nums text-ink-dim">{matchdayLabel(game)}</td>
+                      <td className="whitespace-nowrap px-4 py-3 text-ink-dim">{formatMiniGamePoints(game.points)}</td>
+                      <td className={cn('px-4 py-3', game.results.length ? 'font-semibold text-ink' : 'text-ink-dim')}>{resultLabel(game)}</td>
+                      {canRecordMiniGame && (
+                        <td className="px-4 py-2 text-right">
+                          <Button variant="outline" className="h-9 whitespace-nowrap" onClick={() => setMiniGameParam(game.id)}>
+                            {game.results.length ? '결과 수정' : '결과 입력'}
+                          </Button>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <ul className="flex flex-col gap-2" aria-label="미니게임">
+              {miniGames.map((game) => {
+                const body = (
+                  <>
+                    <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                      <span className="flex items-center justify-between gap-2">
+                        <span className="truncate text-sm font-semibold text-ink">{game.name}</span>
+                        <span className="shrink-0 text-[12px] tabular-nums text-ink-dim">{matchdayLabel(game)}</span>
+                      </span>
+                      <span className="truncate text-[12px] text-ink-dim">{formatMiniGamePoints(game.points)}</span>
+                      <span className={cn('truncate text-[13px]', game.results.length ? 'font-semibold text-ink' : 'text-ink-dim')}>
+                        {resultLabel(game)}
+                      </span>
+                    </span>
+                    {canRecordMiniGame && <ChevronRight className="h-4 w-4 shrink-0 text-ink-dim" aria-hidden />}
+                  </>
+                );
+                return (
+                  <li key={game.id}>
+                    {canRecordMiniGame ? (
+                      <button
+                        type="button"
+                        onClick={() => setMiniGameParam(game.id)}
+                        aria-label={`${game.name} 결과 입력`}
+                        className="flex min-h-[64px] w-full items-center gap-3 rounded-[12px] border border-border px-4 py-3 text-left outline-none hover:bg-sunken focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        {body}
+                      </button>
+                    ) : (
+                      <div className="flex min-h-[64px] items-center gap-3 rounded-[12px] border border-border px-4 py-3">{body}</div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </section>
       )}
 
@@ -433,6 +598,18 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
           <EmptyState icon={CalendarDays} title="아직 일정이 없어요" description="팀이 정해지면 4주 × 3경기 일정을 자동으로 만듭니다." />
         )}
       </section>
+
+      {isDesktop === false && (
+        <Drawer open={!!miniGameForm} onOpenChange={(open) => (open ? undefined : handleCloseMiniGame())}>
+          <DrawerContent className="max-h-[92vh]">
+            <DrawerHeader>
+              <DrawerTitle>{miniGameTitle}</DrawerTitle>
+              <DrawerDescription>{miniGameMode === 'new' ? '종목과 등수별 승점을 정합니다.' : '팀마다 등수를 고르세요. 같은 등수는 공동입니다.'}</DrawerDescription>
+            </DrawerHeader>
+            {miniGameForm}
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {isDesktop === false && (
         <Drawer open={teamFormOpen} onOpenChange={(open) => (open ? undefined : handleCloseTeam())}>

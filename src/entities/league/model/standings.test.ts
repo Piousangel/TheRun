@@ -1,5 +1,5 @@
-import { computeStandings, fixtureScore } from '@/entities/league/model/standings';
-import type { Fixture, GoalEvent, LeagueTeam, Season } from '@/shared/types/league';
+import { computeStandings, fixtureScore, miniGamePointsFor } from '@/entities/league/model/standings';
+import type { Fixture, GoalEvent, LeagueTeam, MiniGame, Season } from '@/shared/types/league';
 
 const season: Season = {
   id: 's', name: 's', starts_on: '2026-12-05', ends_on: '2026-12-26', status: 'active',
@@ -70,5 +70,33 @@ describe('computeStandings', () => {
   it('경기가 없으면 모두 0점 같은 순위, 이름순', () => {
     const rows = computeStandings(season, [B, A], [], []);
     expect(rows.map((r) => [r.team.id, r.rank])).toEqual([['A', 1], ['B', 1]]);
+  });
+});
+
+describe('미니게임 승점', () => {
+  const game = (id: string, points: number[], results: MiniGame['results']): MiniGame => ({
+    id, season_id: 's', matchday_id: null, name: id, description: null, points, results, created_at: '', updated_at: '',
+  });
+
+  it('등수별 승점을 주고, 승점이 없는 등수·결과 없는 팀은 0이다', () => {
+    const g = game('pk', [2, 1], [{ team_id: 'A', rank: 1 }, { team_id: 'B', rank: 2 }, { team_id: 'C', rank: 3 }]);
+    expect(['A', 'B', 'C', 'D'].map((t) => miniGamePointsFor(g, t))).toEqual([2, 1, 0, 0]);
+  });
+
+  it('경기 승점과 따로 보이고 합계로 정렬한다 — 미니게임으로 순위가 뒤집힌다', () => {
+    // A가 B를 1:0으로 이겨 경기 승점 3:0, 미니게임 두 종목 모두 B 우승(2점씩) → 합계 B 4 > A 3
+    const fixtures = [fx('m1', 'A', 'B')];
+    const g = goals('m1', 'A', 1);
+    const games = [game('pk', [2], [{ team_id: 'B', rank: 1 }]), game('bar', [2, 1], [{ team_id: 'B', rank: 1 }]), game('todo', [1], [])];
+    const rows = computeStandings(season, [A, B], fixtures, g, games);
+    expect(rows.map((r) => [r.team.id, r.rank, r.match_points, r.minigame_points, r.points])).toEqual([
+      ['B', 1, 0, 4, 4],
+      ['A', 2, 3, 0, 3],
+    ]);
+  });
+
+  it('공동 우승이면 두 팀 모두 우승 점수를 받는다', () => {
+    const rows = computeStandings(season, [A, B, C], [], [], [game('pk', [1], [{ team_id: 'A', rank: 1 }, { team_id: 'C', rank: 1 }])]);
+    expect(rows.map((r) => [r.team.id, r.points])).toEqual([['A', 1], ['C', 1], ['B', 0]]);
   });
 });

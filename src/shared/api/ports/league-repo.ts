@@ -9,6 +9,9 @@ import type {
   GoalEvent,
   LeagueTeam,
   Matchday,
+  MiniGame,
+  CreateMiniGameData,
+  SetMiniGameResultsData,
   Season,
   SetLineupData,
   UpdateLeagueTeamData,
@@ -66,4 +69,16 @@ export interface LeagueRepo {
    * 명단이 실제로 바뀐 경우에만 경기(`fixture`) 변경 이력에 남긴다.
    */
   setLineup(data: SetLineupData): Promise<Appearance[]>;
+
+  /** 시즌의 미니게임. 경기일 주차 → 만든 순서 (경기일 없는 종목은 뒤) */
+  listMiniGames(seasonId: string): Promise<MiniGame[]>;
+  /** 이름이 비었거나, 승점이 1~3개의 0 이상 정수가 아니거나, 다른 시즌의 경기일이면 거부한다. 기본 승점 [1] */
+  createMiniGame(data: CreateMiniGameData): Promise<MiniGame>;
+  /** 미니게임과 결과를 지운다. 없으면 아무 일도 하지 않는다 */
+  removeMiniGame(id: string, actorId?: string | null): Promise<void>;
+  /**
+   * 결과를 통째로 바꾼다. 시즌 팀이 아니거나, 같은 팀이 두 번이거나, 등수가 1~팀 수 밖이면 거부한다.
+   * 결과 입력·수정은 미니게임(`minigame`) 변경 이력에 남는다.
+   */
+  setMiniGameResults(data: SetMiniGameResultsData): Promise<MiniGame>;
 }

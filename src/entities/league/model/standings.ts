@@ -1,4 +1,4 @@
-import type { Fixture, GoalEvent, LeagueTeam, Season } from '@/shared/types/league';
+import type { Fixture, GoalEvent, LeagueTeam, MiniGame, Season } from '@/shared/types/league';
 
 /** 순위·점수는 저장하지 않고 골 이벤트에서 계산한다(스펙 §2.2). */
 
@@ -28,6 +28,11 @@ export interface StandingRow {
   goals_for: number;
   goals_against: number;
   goal_diff: number;
+  /** 경기 승점 */
+  match_points: number;
+  /** 미니게임 승점 */
+  minigame_points: number;
+  /** 합계(정렬 기준) */
   points: number;
 }
 
@@ -42,8 +47,14 @@ function pointsFor(teamId: string, r: Result, season: Season): number {
   return season.points.draw;
 }
 
+/** 미니게임 한 종목에서 팀이 받는 승점. 결과가 없거나 승점이 없는 등수면 0 */
+export function miniGamePointsFor(game: MiniGame, teamId: string): number {
+  const result = game.results.find((r) => r.team_id === teamId);
+  return result ? (game.points[result.rank - 1] ?? 0) : 0;
+}
+
 /**
- * 끝난(final) 경기만 센다. 승점 → 시즌 동률 규칙 순서(득실차·다득점·승자승) → 팀 이름 순으로 정렬한다.
+ * 끝난(final) 경기만 센다. 미니게임 승점은 경기 승점과 따로 계산해 합계에 더한다(스펙 §2.1-1). 승점 → 시즌 동률 규칙 순서(득실차·다득점·승자승) → 팀 이름 순으로 정렬한다.
  * 승자승은 두 팀 사이 경기의 승점 합으로 비교한다. 모든 기준이 같으면 같은 순위를 준다.
  */
 export function computeStandings(
@@ -51,11 +62,14 @@ export function computeStandings(
   teams: readonly LeagueTeam[],
   fixtures: readonly Fixture[],
   goals: readonly GoalEvent[],
+  miniGames: readonly MiniGame[] = [],
 ): StandingRow[] {
   const results: Result[] = fixtures.filter((f) => f.status === 'final').map((fixture) => ({ fixture, score: fixtureScore(fixture, goals) }));
 
   const rows = teams.map((team): StandingRow => {
-    const row: StandingRow = { team, rank: 0, played: 0, won: 0, drawn: 0, lost: 0, goals_for: 0, goals_against: 0, goal_diff: 0, points: 0 };
+    const row: StandingRow = {
+      team, rank: 0, played: 0, won: 0, drawn: 0, lost: 0, goals_for: 0, goals_against: 0, goal_diff: 0, match_points: 0, minigame_points: 0, points: 0,
+    };
     for (const r of results) {
       const isHome = r.fixture.home_team_id === team.id;
       if (!isHome && r.fixture.away_team_id !== team.id) continue;
@@ -67,9 +81,11 @@ export function computeStandings(
       if (mine > theirs) row.won += 1;
       else if (mine < theirs) row.lost += 1;
       else row.drawn += 1;
-      row.points += pointsFor(team.id, r, season);
+      row.match_points += pointsFor(team.id, r, season);
     }
     row.goal_diff = row.goals_for - row.goals_against;
+    row.minigame_points = miniGames.reduce((sum, game) => sum + miniGamePointsFor(game, team.id), 0);
+    row.points = row.match_points + row.minigame_points;
     return row;
   });
 

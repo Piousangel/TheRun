@@ -17,6 +17,7 @@ runLeagueRepoContract(async () => {
     fixtures: new Collection(storage, 'league_fixtures', () => []),
     goals: new Collection(storage, 'league_goals', () => []),
     appearances: new Collection(storage, 'league_appearances', () => []),
+    miniGames: new Collection(storage, 'league_minigames', () => []),
     audit,
     now,
   });
@@ -36,6 +37,7 @@ describe('collection LeagueRepo — 골 감사 기록', () => {
       fixtures: new Collection(storage, 'league_fixtures', () => []),
       goals: new Collection(storage, 'league_goals', () => []),
       appearances: new Collection(storage, 'league_appearances', () => []),
+    miniGames: new Collection(storage, 'league_minigames', () => []),
       audit,
       now,
     });
@@ -58,5 +60,33 @@ describe('collection LeagueRepo — 골 감사 기록', () => {
     expect(lineupLogs.map((l) => [l.action, l.actor_id])).toEqual([['update', 'u2'], ['create', 'u1']]);
     expect(lineupLogs[0].before).toMatchObject({ kind: 'lineup', quarter: 1, member_ids: ['m1', 'm2'] });
     expect(lineupLogs[0].after).toMatchObject({ kind: 'lineup', member_ids: ['m1', 'm3'] });
+  });
+
+  it('미니게임 결과 입력·수정·삭제가 미니게임 변경 이력(entity=minigame)에 남는다', async () => {
+    const storage = new MemoryStorage();
+    let tick = 0;
+    const now = () => new Date(Date.UTC(2026, 10, 16, 0, 0, tick++));
+    const audit = createCollectionAuditRepo(new Collection(storage, 'audit_logs', () => []), now);
+    const repo = createCollectionLeagueRepo({
+      seasons: new Collection(storage, 'league_seasons', () => []),
+      teams: new Collection(storage, 'league_teams', () => []),
+      matchdays: new Collection(storage, 'league_matchdays', () => []),
+      fixtures: new Collection(storage, 'league_fixtures', () => []),
+      goals: new Collection(storage, 'league_goals', () => []),
+      appearances: new Collection(storage, 'league_appearances', () => []),
+      miniGames: new Collection(storage, 'league_minigames', () => []),
+      audit,
+      now,
+    });
+    const season = await repo.createSeason({ name: 's', starts_on: '2026-12-05', ends_on: '2026-12-26' });
+    const a = await repo.createTeam({ season_id: season.id, name: 'A', color: '#000' });
+    const b = await repo.createTeam({ season_id: season.id, name: 'B', color: '#fff' });
+    const game = await repo.createMiniGame({ season_id: season.id, name: '승부차기', actor_id: 'u1' });
+    await repo.setMiniGameResults({ minigame_id: game.id, results: [{ team_id: a.id, rank: 1 }], actor_id: 'u1' });
+    await repo.setMiniGameResults({ minigame_id: game.id, results: [{ team_id: b.id, rank: 1 }], actor_id: 'u2' });
+    await repo.removeMiniGame(game.id, 'u3');
+    const logs = await audit.listFor('minigame', game.id);
+    expect(logs.map((l) => [l.action, l.actor_id])).toEqual([['delete', 'u3'], ['update', 'u2'], ['create', 'u1'], ['create', 'u1']]);
+    expect(logs[1].before).toMatchObject({ kind: 'minigame_results', results: [{ team_id: a.id, rank: 1 }] });
   });
 });
