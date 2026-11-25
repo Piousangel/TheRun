@@ -4,11 +4,13 @@ import { getApi } from '@/shared/api/client';
 import type {
   AddGoalData,
   CreateLeagueTeamData,
+  CreateMiniGameData,
   FixtureStatus,
   CreateSeasonData,
   GenerateScheduleInput,
   Season,
   SetLineupData,
+  SetMiniGameResultsData,
   UpdateLeagueTeamData,
   UpdateSeasonData,
 } from '@/shared/types/league';
@@ -181,5 +183,38 @@ export function useSetLineup() {
         queryClient.invalidateQueries({ queryKey: leagueKeys.appearances(seasonId) }),
         queryClient.invalidateQueries({ queryKey: leagueKeys.fixtureHistory(data.fixture_id) }),
       ]),
+  });
+}
+
+/** 시즌 미니게임(종목·승점·결과). 순위표의 미니게임 승점이 여기서 계산된다. */
+export function useLeagueMiniGames(seasonId: string | null) {
+  return useQuery({
+    queryKey: leagueKeys.miniGames(seasonId ?? ''),
+    queryFn: () => getApi().league.listMiniGames(seasonId as string),
+    enabled: !!seasonId,
+  });
+}
+
+export function useCreateMiniGame() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: CreateMiniGameData) => getApi().league.createMiniGame(data),
+    onSuccess: (game) => queryClient.invalidateQueries({ queryKey: leagueKeys.miniGames(game.season_id) }),
+  });
+}
+
+export function useRemoveMiniGame() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, actorId }: { id: string; seasonId: string; actorId: string | null }) => getApi().league.removeMiniGame(id, actorId),
+    onSuccess: (_void, { seasonId }) => queryClient.invalidateQueries({ queryKey: leagueKeys.miniGames(seasonId) }),
+  });
+}
+
+export function useSetMiniGameResults() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: SetMiniGameResultsData) => getApi().league.setMiniGameResults(data),
+    onSuccess: (game) => queryClient.invalidateQueries({ queryKey: leagueKeys.miniGames(game.season_id) }),
   });
 }

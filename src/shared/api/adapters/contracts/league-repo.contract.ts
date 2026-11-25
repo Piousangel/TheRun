@@ -187,5 +187,52 @@ export function runLeagueRepoContract(makeRepo: () => Promise<{ repo: LeagueRepo
       await repo.removeSeason(season.id);
       expect(await repo.listAppearances(other.season.id)).toHaveLength(1);
     });
+    it('미니게임: 기본 승점 [1], 경기일 순서로 나오고, 결과를 통째로 바꾸며, removeSeason이 함께 지운다', async () => {
+      const { repo } = await makeRepo();
+      const season = await seasonWithTeams(repo, 3);
+      const { matchdays } = await repo.generateSchedule(season.id, { first_date: '2026-12-05' });
+      const free = await repo.createMiniGame({ season_id: season.id, name: '  크로스바  ' });
+      const pk = await repo.createMiniGame({ season_id: season.id, name: '승부차기', description: '3명씩', matchday_id: matchdays[1].id, points: [2, 1] });
+      expect(free).toMatchObject({ name: '크로스바', points: [1], results: [], matchday_id: null, description: null });
+      expect((await repo.listMiniGames(season.id)).map((g) => g.id)).toEqual([pk.id, free.id]);
+
+      const [a, b, c] = await repo.listTeams(season.id);
+      const done = await repo.setMiniGameResults({ minigame_id: pk.id, results: [{ team_id: b.id, rank: 2 }, { team_id: a.id, rank: 1 }] });
+      expect(done.results).toEqual([{ team_id: a.id, rank: 1 }, { team_id: b.id, rank: 2 }]);
+      // 공동 등수도 허용, 통째로 교체
+      await repo.setMiniGameResults({ minigame_id: pk.id, results: [{ team_id: c.id, rank: 1 }, { team_id: a.id, rank: 1 }] });
+      expect((await repo.listMiniGames(season.id))[0].results.map((r) => r.team_id)).toEqual([c.id, a.id]);
+
+      const other = await seasonWithTeams(repo, 2);
+      expect(await repo.listMiniGames(other.id)).toEqual([]);
+      await repo.removeMiniGame(free.id);
+      await repo.removeMiniGame('없는-게임');
+      expect(await repo.listMiniGames(season.id)).toHaveLength(1);
+      await repo.removeSeason(season.id);
+      expect(await repo.listMiniGames(season.id)).toEqual([]);
+    });
+
+    it('미니게임: 빈 이름·잘못된 승점·다른 시즌 경기일·남의 팀·중복 팀·범위 밖 등수를 거부한다', async () => {
+      const { repo } = await makeRepo();
+      const season = await seasonWithTeams(repo, 3);
+      const other = await seasonWithTeams(repo, 2);
+      const { matchdays } = await repo.generateSchedule(other.id, { first_date: '2026-12-05' });
+      await expect(repo.createMiniGame({ season_id: season.id, name: ' ' })).rejects.toThrow();
+      await expect(repo.createMiniGame({ season_id: season.id, name: 'x', points: [] })).rejects.toThrow();
+      await expect(repo.createMiniGame({ season_id: season.id, name: 'x', points: [1, 1, 1, 1] })).rejects.toThrow();
+      await expect(repo.createMiniGame({ season_id: season.id, name: 'x', points: [-1] })).rejects.toThrow();
+      await expect(repo.createMiniGame({ season_id: season.id, name: 'x', points: [1.5] })).rejects.toThrow();
+      await expect(repo.createMiniGame({ season_id: season.id, name: 'x', matchday_id: matchdays[0].id })).rejects.toThrow();
+      await expect(repo.createMiniGame({ season_id: '없는-시즌', name: 'x' })).rejects.toThrow();
+
+      const game = await repo.createMiniGame({ season_id: season.id, name: '승부차기' });
+      const [a] = await repo.listTeams(season.id);
+      const [outsider] = await repo.listTeams(other.id);
+      await expect(repo.setMiniGameResults({ minigame_id: game.id, results: [{ team_id: outsider.id, rank: 1 }] })).rejects.toThrow();
+      await expect(repo.setMiniGameResults({ minigame_id: game.id, results: [{ team_id: a.id, rank: 1 }, { team_id: a.id, rank: 2 }] })).rejects.toThrow();
+      await expect(repo.setMiniGameResults({ minigame_id: game.id, results: [{ team_id: a.id, rank: 4 }] })).rejects.toThrow();
+      await expect(repo.setMiniGameResults({ minigame_id: game.id, results: [{ team_id: a.id, rank: 0 }] })).rejects.toThrow();
+      await expect(repo.setMiniGameResults({ minigame_id: '없는-게임', results: [] })).rejects.toThrow();
+    });
   });
 }

@@ -4,7 +4,7 @@ import type { AuditRepo } from '@/shared/api/ports/audit-repo';
 import type { LeagueRepo } from '@/shared/api/ports/league-repo';
 import { newId } from '@/shared/lib/id';
 import { addDaysIso, buildMatchdayPairings } from '@/shared/lib/league-schedule';
-import type { Appearance, Fixture, GoalEvent, LeagueTeam, LineupAuditSnapshot, Matchday, Season } from '@/shared/types/league';
+import type { Appearance, Fixture, GoalEvent, LeagueTeam, LineupAuditSnapshot, Matchday, MiniGame, Season } from '@/shared/types/league';
 
 interface Deps {
   seasons: Collection<Season>;
@@ -13,12 +13,13 @@ interface Deps {
   fixtures: Collection<Fixture>;
   goals: Collection<GoalEvent>;
   appearances: Collection<Appearance>;
+  miniGames: Collection<MiniGame>;
   /** 골 기록·삭제를 경기(`fixture`) 단위 변경 이력으로 남긴다 */
   audit: AuditRepo;
   now: () => Date;
 }
 
-export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, goals, appearances, audit, now }: Deps): LeagueRepo {
+export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, goals, appearances, miniGames, audit, now }: Deps): LeagueRepo {
   const seasonMatchdays = async (seasonId: string) =>
     (await matchdays.all()).filter((m) => m.season_id === seasonId).sort((a, b) => a.week - b.week);
 
@@ -83,6 +84,7 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
       await appearances.replaceAll((await appearances.all()).filter((a) => !fixtureIds.has(a.fixture_id)));
       await fixtures.replaceAll((await fixtures.all()).filter((f) => !dayIds.has(f.matchday_id)));
       await matchdays.replaceAll((await matchdays.all()).filter((m) => m.season_id !== id));
+      await miniGames.replaceAll((await miniGames.all()).filter((g) => g.season_id !== id));
       await teams.replaceAll((await teams.all()).filter((t) => t.season_id !== id));
       await seasons.remove(id);
     },
@@ -223,6 +225,69 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
         actor_id: data.actor_id ?? 'unknown',
       });
       return next;
+    },
+    async listMiniGames(seasonId) {
+      const weekOf = new Map((await seasonMatchdays(seasonId)).map((d) => [d.id, d.week]));
+      const week = (g: MiniGame) => (g.matchday_id ? (weekOf.get(g.matchday_id) ?? Infinity) : Infinity);
+      return (await miniGames.all())
+        .filter((g) => g.season_id === seasonId)
+        .sort((a, b) => week(a) - week(b) || a.created_at.localeCompare(b.created_at));
+    },
+    async createMiniGame(data) {
+      await requireSeason(data.season_id);
+      const name = data.name.trim();
+      if (!name) throw new Error('미니게임 이름을 입력하세요.');
+      const points = data.points ?? [1];
+      if (points.length < 1 || points.length > 3 || points.some((p) => !Number.isInteger(p) || p < 0)) {
+        throw new Error('승점은 1~3위까지 0 이상의 정수로 정합니다.');
+      }
+      if (data.matchday_id) {
+        const day = await matchdays.get(data.matchday_id);
+        if (!day || day.season_id !== data.season_id) throw new Error('이 시즌의 경기일이 아닙니다.');
+      }
+      const at = now().toISOString();
+      const game = await miniGames.insert({
+        id: newId(),
+        season_id: data.season_id,
+        matchday_id: data.matchday_id ?? null,
+        name,
+        description: data.description?.trim() || null,
+        points,
+        results: [],
+        created_at: at,
+        updated_at: at,
+      });
+      await audit.record({ entity: 'minigame', entity_id: game.id, action: 'create', after: game, actor_id: data.actor_id ?? 'unknown' });
+      return game;
+    },
+    async removeMiniGame(id, actorId) {
+      const game = await miniGames.get(id);
+      if (!game) return;
+      await miniGames.remove(id);
+      await audit.record({ entity: 'minigame', entity_id: id, action: 'delete', before: game, actor_id: actorId ?? 'unknown' });
+    },
+    async setMiniGameResults(data) {
+      const game = await miniGames.get(data.minigame_id);
+      if (!game) throw new NotFoundError('minigames', data.minigame_id);
+      const teamIds = new Set((await teams.all()).filter((t) => t.season_id === game.season_id).map((t) => t.id));
+      const seen = new Set<string>();
+      for (const r of data.results) {
+        if (!teamIds.has(r.team_id)) throw new Error('이 시즌의 팀이 아닙니다.');
+        if (seen.has(r.team_id)) throw new Error('같은 팀이 두 번 들어 있습니다.');
+        if (!Number.isInteger(r.rank) || r.rank < 1 || r.rank > teamIds.size) throw new Error(`등수는 1~${teamIds.size} 사이여야 합니다.`);
+        seen.add(r.team_id);
+      }
+      const results = [...data.results].sort((a, b) => a.rank - b.rank).map(({ team_id, rank }) => ({ team_id, rank }));
+      const updated = await miniGames.update(game.id, { results, updated_at: now().toISOString() });
+      await audit.record({
+        entity: 'minigame',
+        entity_id: game.id,
+        action: game.results.length === 0 ? 'create' : results.length === 0 ? 'delete' : 'update',
+        before: game.results.length === 0 ? null : { kind: 'minigame_results', results: game.results },
+        after: results.length === 0 ? null : { kind: 'minigame_results', results },
+        actor_id: data.actor_id ?? 'unknown',
+      });
+      return updated;
     },
   };
 }

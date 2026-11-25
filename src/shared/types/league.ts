@@ -144,3 +144,44 @@ export interface LineupAuditSnapshot {
   team_id: string;
   member_ids: string[];
 }
+
+/**
+ * 미니게임(스펙 §2.1-1 · §2.2 MiniGame/MiniGameResult). 승부차기·크로스바 맞히기처럼 경기와 따로 치르고,
+ * 등수에 따라 시즌 순위표의 '미니게임 승점'을 준다. 승점은 저장하지 않고 등수와 `points`로 계산한다.
+ */
+export interface MiniGameResult {
+  team_id: string;
+  /** 1부터. 같은 등수(공동)도 허용한다 */
+  rank: number;
+}
+
+export interface MiniGame {
+  id: string;
+  season_id: string;
+  /** 어느 경기일에 하는지(선택) */
+  matchday_id: string | null;
+  name: string;
+  description: string | null;
+  /** 등수별 승점 [1위, 2위?, 3위?]. 기본 [1] — 우승만 1점(스펙 §5-3) */
+  points: number[];
+  /** 결과가 없으면 빈 배열(아직 안 함) */
+  results: MiniGameResult[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateMiniGameData {
+  season_id: string;
+  name: string;
+  description?: string | null;
+  matchday_id?: string | null;
+  points?: number[];
+  actor_id?: string | null;
+}
+
+export interface SetMiniGameResultsData {
+  minigame_id: string;
+  /** 결과 전체. 기존 결과를 통째로 바꾼다(빈 배열이면 결과 지우기) */
+  results: MiniGameResult[];
+  actor_id?: string | null;
+}
