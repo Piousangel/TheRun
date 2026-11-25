@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
-import { useAddGoal, useRemoveGoal } from '@/entities/league/model/queries';
+import { useAddGoal, useLeagueAppearances, useRemoveGoal } from '@/entities/league/model/queries';
 import { useMembers } from '@/entities/member/model/queries';
 import { useAuth } from '@/providers/auth-provider';
 import { newId } from '@/shared/lib/id';
@@ -32,12 +32,19 @@ export function GoalRecordForm({ seasonId, fixture, teams, quarter, initialTeamI
   const { data: members = [] } = useMembers();
   const addGoal = useAddGoal();
   const removeGoal = useRemoveGoal();
+  const { data: appearances = [] } = useLeagueAppearances(seasonId);
   const [teamId, setTeamId] = useState<string | null>(initialTeamId);
   const [scorerId, setScorerId] = useState<string | null>(null);
 
   const sides = [fixture.home_team_id, fixture.away_team_id].map((id) => teams.find((t) => t.id === id)).filter((t): t is LeagueTeam => !!t);
   const team = sides.find((t) => t.id === teamId) ?? null;
-  const sortedMembers = [...members].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
+  // 이 쿼터에 그 팀으로 뛴 선수를 앞에 둔다(명단이 없으면 전체 멤버 이름순).
+  const onPitch = new Set(
+    appearances.filter((a) => a.fixture_id === fixture.id && a.quarter === quarter && a.team_id === teamId).map((a) => a.member_id),
+  );
+  const sortedMembers = [...members].sort(
+    (a, b) => Number(onPitch.has(b.id)) - Number(onPitch.has(a.id)) || a.name.localeCompare(b.name, 'ko'),
+  );
   const step = !team ? 'team' : !scorerId ? 'scorer' : 'assist';
   const nameOf = (id: string | null) => (id && id !== NONE ? (members.find((m) => m.id === id)?.name ?? '?') : null);
 
@@ -123,7 +130,7 @@ export function GoalRecordForm({ seasonId, fixture, teams, quarter, initialTeamI
 
       {step !== 'team' && (
         <div className="flex flex-col gap-2">
-          <h4 className="text-[13px] font-semibold text-ink-dim">2. 득점자</h4>
+          <h4 className="text-[13px] font-semibold text-ink-dim">2. 득점자{onPitch.size > 0 && ' — 출전 선수 먼저'}</h4>
           <ul className="grid grid-cols-3 gap-2 lg:grid-cols-4" aria-label="득점자 고르기">
             {sortedMembers.map((m) => pick(m.name, scorerId === m.id, () => setScorerId(m.id), m.id))}
             {pick('모름', scorerId === NONE, () => setScorerId(NONE), NONE)}

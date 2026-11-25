@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, ChevronRight, Plus, Shirt, Trophy, X } from 'lucide-react';
+import { CalendarDays, ChevronRight, Medal, Plus, Shirt, Trophy, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   MVP_METHOD_LABELS,
@@ -14,7 +14,8 @@ import {
   formatSeasonRange,
   teamColorLabel,
 } from '@/entities/league/model/labels';
-import { useLeagueGoals, useLeagueSchedule, useLeagueTeams, useSeason, useUpdateSeason } from '@/entities/league/model/queries';
+import { useLeagueAppearances, useLeagueGoals, useLeagueSchedule, useLeagueTeams, useSeason, useUpdateSeason } from '@/entities/league/model/queries';
+import { computePlayerStats, rankPlayers, type PlayerStatKey } from '@/entities/league/model/player-stats';
 import { computeStandings, fixtureScore } from '@/entities/league/model/standings';
 import { useMembers } from '@/entities/member/model/queries';
 import { ScheduleGenerateForm } from '@/features/league-schedule-generate/ui/schedule-generate-form';
@@ -53,6 +54,7 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   const { data: teams } = useLeagueTeams(seasonId);
   const { data: schedule } = useLeagueSchedule(seasonId);
   const { data: goals = [] } = useLeagueGoals(seasonId);
+  const { data: appearances = [] } = useLeagueAppearances(seasonId);
   const { data: members } = useMembers();
   const updateSeason = useUpdateSeason();
   const [teamParam, setTeamParam] = useUrlState('team');
@@ -72,6 +74,19 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   const teamName = (id: string) => teams?.find((t) => t.id === id)?.name ?? '?';
   const teamColor = (id: string) => teams?.find((t) => t.id === id)?.color ?? 'transparent';
   const memberName = (id: string | null) => (id ? (members?.find((m) => m.id === id)?.name ?? null) : null);
+  // 개인 기록은 끝난 경기만이 아니라 기록된 모든 경기에서 계산한다(경기 중에도 득점 순위가 바로 보인다).
+  const playerStats = computePlayerStats(goals, appearances);
+  const nameOrDash = (id: string) => memberName(id) ?? '?';
+  const leaders: { key: PlayerStatKey; title: string; unit: string }[] = [
+    { key: 'goals', title: '득점', unit: '골' },
+    { key: 'assists', title: '도움', unit: '도움' },
+  ];
+  const statTable = rankPlayers(playerStats, 'points', nameOrDash).concat(
+    playerStats
+      .filter((r) => r.points === 0)
+      .sort((a, b) => b.quarters - a.quarters || nameOrDash(a.member_id).localeCompare(nameOrDash(b.member_id), 'ko'))
+      .map((r) => ({ ...r, rank: 0 })),
+  );
 
   const handleOpenTeam = (id: string) => setTeamParam(id);
 
@@ -261,6 +276,73 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
             </table>
           </div>
           <p className="text-[12px] text-ink-dim">끝난 경기만 반영돼요. 골 기록을 고치면 순위가 바로 다시 계산됩니다.</p>
+        </section>
+      )}
+
+      {playerStats.length > 0 && (
+        <section className="flex flex-col gap-3" aria-labelledby="season-players">
+          <h3 id="season-players" className="flex items-center gap-2 text-[17px] font-bold text-ink">
+            <Medal className="h-4 w-4" aria-hidden />
+            개인 기록
+          </h3>
+          {isDesktop ? (
+            <div className="max-h-[420px] overflow-auto rounded-[14px] border border-border">
+              <table className="w-full text-sm tabular-nums" aria-label="개인 기록">
+                <thead className="sticky top-0 bg-sunken text-[12px] text-ink-dim">
+                  <tr>
+                    <th scope="col" className="w-10 px-3 py-2 text-left font-medium">#</th>
+                    <th scope="col" className="px-3 py-2 text-left font-medium">선수</th>
+                    <th scope="col" className="px-2 py-2 text-right font-medium">출전 쿼터</th>
+                    <th scope="col" className="px-2 py-2 text-right font-medium">골</th>
+                    <th scope="col" className="px-2 py-2 text-right font-medium">도움</th>
+                    <th scope="col" className="px-3 py-2 text-right font-medium">공격포인트</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {statTable.map((row) => (
+                    <tr key={row.member_id} className="border-t border-border">
+                      <td className="px-3 py-2 font-semibold text-ink">{row.rank || '–'}</td>
+                      <th scope="row" className="px-3 py-2 text-left font-semibold text-ink">
+                        {nameOrDash(row.member_id)}
+                      </th>
+                      <td className="px-2 py-2 text-right text-ink-dim">{row.quarters}</td>
+                      <td className="px-2 py-2 text-right text-ink-dim">{row.goals}</td>
+                      <td className="px-2 py-2 text-right text-ink-dim">{row.assists}</td>
+                      <td className="px-3 py-2 text-right font-bold text-ink">{row.points}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {leaders.map(({ key, title, unit }) => {
+                const top = rankPlayers(playerStats, key, nameOrDash).slice(0, 3);
+                return (
+                  <section key={key} aria-label={`${title} 순위`} className="flex flex-col gap-2 rounded-[14px] border border-border p-3">
+                    <h4 className="text-[13px] font-semibold text-ink-dim">{title} TOP 3</h4>
+                    {top.length === 0 ? (
+                      <p className="text-[13px] text-ink-dim">아직 없어요</p>
+                    ) : (
+                      <ol className="flex flex-col gap-1.5">
+                        {top.map((r) => (
+                          <li key={r.member_id} className="flex items-center gap-2 text-sm">
+                            <span className="w-4 shrink-0 font-bold tabular-nums text-ink-dim">{r.rank}</span>
+                            <span className="min-w-0 flex-1 truncate font-semibold text-ink">{nameOrDash(r.member_id)}</span>
+                            <span className="shrink-0 tabular-nums text-ink">
+                              {r[key]}
+                              <span className="text-[11px] text-ink-dim">{unit}</span>
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
+          )}
+          <p className="text-[12px] text-ink-dim">자책골은 개인 기록에 넣지 않아요. 출전 쿼터는 경기 화면의 출전 명단에서 셉니다.</p>
         </section>
       )}
 

@@ -3,11 +3,12 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Goal, History, Trash2 } from 'lucide-react';
+import { ChevronLeft, Goal, History, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { FIXTURE_STATUS_LABELS, FIXTURE_STATUS_TONES } from '@/entities/league/model/labels';
 import {
   useFixtureHistory,
+  useLeagueAppearances,
   useLeagueGoals,
   useLeagueSchedule,
   useLeagueTeams,
@@ -18,11 +19,12 @@ import {
 import { fixtureScore } from '@/entities/league/model/standings';
 import { useMembers } from '@/entities/member/model/queries';
 import { GoalRecordForm } from '@/features/fixture-goal-record/ui/goal-record-form';
+import { LineupForm } from '@/features/fixture-lineup-edit/ui/lineup-form';
 import { useAuth } from '@/providers/auth-provider';
 import { DESKTOP_QUERY, useMediaQuery } from '@/shared/lib/use-media-query';
 import { useUrlState } from '@/shared/lib/use-url-state';
 import { cn } from '@/shared/lib/utils';
-import type { FixtureStatus, GoalEvent } from '@/shared/types/league';
+import type { FixtureStatus, GoalEvent, LeagueTeam, LineupAuditSnapshot } from '@/shared/types/league';
 import { Button } from '@/shared/ui/button';
 import { CardSkeleton } from '@/shared/ui/card-skeleton';
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from '@/shared/ui/drawer';
@@ -45,6 +47,8 @@ function isTypingTarget(target: EventTarget | null) {
   return target instanceof HTMLElement && (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
 }
 
+const isLineupSnapshot = (v: unknown): v is LineupAuditSnapshot => !!v && typeof v === 'object' && (v as { kind?: unknown }).kind === 'lineup';
+
 const timeOf = (iso: string) => new Date(iso).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
 
 /**
@@ -52,6 +56,7 @@ const timeOf = (iso: string) => new Date(iso).toLocaleTimeString('ko-KR', { hour
  * - 모바일: 점수판 + 하단 고정 팀별 [골] 버튼 → 하단 시트(`?goal=<teamId>`)에서 득점자 → 도움.
  * - 데스크톱: 왼쪽 점수판·쿼터별 기록·변경 이력, 오른쪽 상시 기록 패널. 숫자 키로 쿼터 전환.
  * - 쿼터는 `?q=`(replace)라 새로고침해도 유지된다.
+ * - 쿼터 출전 명단: `?lineup=<teamId>` — 모바일은 하단 시트, 데스크톱은 기록 패널이 명단 편집으로 바뀐다.
  */
 export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
   const router = useRouter();
@@ -60,6 +65,7 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
   const { data: teams = [] } = useLeagueTeams(seasonId);
   const { data: schedule, isLoading: scheduleLoading } = useLeagueSchedule(seasonId);
   const { data: goals = [] } = useLeagueGoals(seasonId);
+  const { data: appearances = [], isSuccess: appearancesReady } = useLeagueAppearances(seasonId);
   const { data: history = [] } = useFixtureHistory(fixtureId);
   const { data: members = [] } = useMembers();
   const setStatus = useSetFixtureStatus();
@@ -67,6 +73,7 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
   const [qParam, setQParam] = useUrlState('q', 'replace');
   const [goalParam, setGoalParam] = useUrlState('goal');
+  const [lineupParam, setLineupParam] = useUrlState('lineup');
 
   const fixture = schedule?.fixtures.find((f) => f.id === fixtureId) ?? null;
   const matchday = fixture ? schedule?.matchdays.find((d) => d.id === fixture.matchday_id) : null;
@@ -82,6 +89,11 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
     if (!isDesktop || !recording) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.metaKey || event.ctrlKey || event.altKey || isTypingTarget(event.target)) return;
+      if (event.key === 'Escape' && lineupParam) {
+        event.preventDefault();
+        setLineupParam(null);
+        return;
+      }
       const n = Number(event.key);
       if (Number.isInteger(n) && n >= 1 && n <= quarters) {
         event.preventDefault();
@@ -90,7 +102,7 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isDesktop, recording, quarters, setQParam]);
+  }, [isDesktop, recording, quarters, setQParam, lineupParam, setLineupParam]);
 
   if (isLoading || scheduleLoading) return <CardSkeleton count={2} />;
   if (error || !season) return <ErrorState title="경기를 불러오지 못했어요" description={error?.message} onRetry={() => refetch()} />;
@@ -104,6 +116,13 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
   const nameOf = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? '?') : '득점자 미상');
   const sheetTeamId = goalParam === home.id || goalParam === away.id ? goalParam : null;
   const sheetOpen = isDesktop === false && recording && !!sheetTeamId;
+  // 명단 폼은 직전 쿼터 명단을 초기값으로 쓰므로 출전 기록을 다 읽은 뒤에만 연다(딥링크·새로고침).
+  const lineupTeam = recording && appearancesReady ? ([home, away].find((t) => t.id === lineupParam) ?? null) : null;
+  const lineupOf = (q: number, teamId: string) =>
+    appearances
+      .filter((a) => a.fixture_id === fixture.id && a.quarter === q && a.team_id === teamId)
+      .map((a) => nameOf(a.member_id))
+      .sort((a, b) => a.localeCompare(b, 'ko'));
 
   const handleAdvance = async () => {
     try {
@@ -127,6 +146,24 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
     if (window.history.length > 1) router.back();
     else setGoalParam(null);
   };
+
+  const handleCloseLineup = () => {
+    if (window.history.length > 1) router.back();
+    else setLineupParam(null);
+  };
+
+  const lineupForm = (team: LeagueTeam) => (
+    <LineupForm
+      key={`${team.id}-${quarter}`}
+      seasonId={seasonId}
+      fixture={fixture}
+      team={team}
+      quarter={quarter}
+      appearances={appearances}
+      playersPerSide={season.players_per_side}
+      onDone={handleCloseLineup}
+    />
+  );
 
   const quarterOptions = Array.from({ length: quarters }, (_, i) => ({ value: String(i + 1), label: `${i + 1}Q` }));
 
@@ -195,6 +232,47 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
     </section>
   );
 
+  // 기록 중에는 고른 쿼터 명단만, 아니면 모든 쿼터 명단을 보여준다(경기 상세: 쿼터별 출전 명단).
+  const shownQuarters = recording ? [quarter] : Array.from({ length: quarters }, (_, i) => i + 1);
+  const hasAnyLineup = appearances.some((a) => a.fixture_id === fixture.id);
+  const lineupSection = (recording || hasAnyLineup) && (
+    <section aria-labelledby="fixture-lineups" className="flex flex-col gap-3">
+      <h3 id="fixture-lineups" className="flex items-center gap-2 text-[17px] font-bold text-ink">
+        <Users className="h-4 w-4" aria-hidden />
+        {recording ? `${quarter}쿼터 출전 명단` : '쿼터별 출전 명단'}
+      </h3>
+      <ul className="flex flex-col gap-2" aria-label="출전 명단">
+        {shownQuarters.flatMap((q) =>
+          [home, away].map((t) => {
+            const names = lineupOf(q, t.id);
+            if (!recording && names.length === 0) return null;
+            return (
+              <li key={`${q}-${t.id}`} className="flex min-h-[52px] items-center gap-3 rounded-[12px] border border-border px-3 py-2" aria-label={`${q}쿼터 ${t.name} 명단`}>
+                <span aria-hidden className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: t.color }} />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-[12px] font-semibold text-ink-dim">
+                    {recording ? t.name : `${q}Q · ${t.name}`} · <span className="tabular-nums">{names.length}명</span>
+                  </span>
+                  <span className="text-sm text-ink">{names.length > 0 ? names.join(', ') : '명단 없음 — 골 기록은 명단 없이도 돼요'}</span>
+                </span>
+                {recording && (
+                  <Button
+                    variant={lineupParam === t.id ? 'default' : 'outline'}
+                    className="h-11 shrink-0"
+                    aria-label={`${t.name} ${quarter}쿼터 명단 편집`}
+                    onClick={() => setLineupParam(t.id)}
+                  >
+                    명단
+                  </Button>
+                )}
+              </li>
+            );
+          }),
+        )}
+      </ul>
+    </section>
+  );
+
   const historySection = history.length > 0 && (
     <details className="rounded-[12px] border border-border px-4 py-3">
       <summary className="flex min-h-[28px] cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
@@ -203,10 +281,19 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
       </summary>
       <ol className="mt-2 flex flex-col gap-1 text-[13px] text-ink-dim">
         {history.map((log) => {
-          const g = (log.after ?? log.before) as GoalEvent | null;
+          const snapshot = log.after ?? log.before;
+          const action = log.action === 'create' ? '기록' : log.action === 'delete' ? '삭제' : '수정';
+          let what = '';
+          if (isLineupSnapshot(snapshot)) {
+            const t = snapshot.team_id === home.id ? home : away;
+            what = `${snapshot.quarter}Q ${t.name} 출전 명단 ${isLineupSnapshot(log.after) ? log.after.member_ids.length : 0}명`;
+          } else if (snapshot) {
+            const g = snapshot as GoalEvent;
+            what = `${g.quarter}Q ${nameOf(g.scorer_id)} 골`;
+          }
           return (
             <li key={log.id} className="tabular-nums">
-              {timeOf(log.at)} · {log.action === 'create' ? '기록' : log.action === 'delete' ? '삭제' : '수정'} · {g ? `${g.quarter}Q ${nameOf(g.scorer_id)} 골` : ''}
+              {timeOf(log.at)} · {action} · {what}
             </li>
           );
         })}
@@ -254,11 +341,24 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
         {/* 768~1023px는 사이드바 옆이 좁아 패널을 위에 쌓고, 1024px부터 2단으로 나눈다. */}
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="order-2 flex flex-col gap-6 lg:order-1">
+            {lineupSection}
             {timeline}
             {historySection}
           </div>
           <aside className="order-1 flex flex-col gap-4 rounded-[16px] border border-border bg-sunken/40 p-5 lg:sticky lg:top-6 lg:order-2" aria-label="기록 패널">
-            {recording ? (
+            {recording && lineupTeam ? (
+              <>
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-[15px] font-bold text-ink">
+                    {lineupTeam.name} · {quarter}쿼터 출전 명단
+                  </h3>
+                  <span className="text-[12px] text-ink-dim">
+                    <kbd className="rounded border border-border px-1">Esc</kbd> 닫기
+                  </span>
+                </div>
+                {lineupForm(lineupTeam)}
+              </>
+            ) : recording ? (
               <>
                 <div className="flex items-center justify-between">
                   <h3 className="text-[15px] font-bold text-ink">골 기록</h3>
@@ -285,6 +385,7 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
       {header}
       {scoreboard}
       {quarterPicker}
+      {lineupSection}
       {timeline}
       {historySection}
 
@@ -299,6 +400,20 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
             ))}
           </div>
         </div>
+      )}
+
+      {isDesktop === false && (
+        <Drawer open={!!lineupTeam} onOpenChange={(open) => (open ? undefined : handleCloseLineup())}>
+          <DrawerContent className="max-h-[92vh] overflow-y-auto">
+            <DrawerHeader>
+              <DrawerTitle>
+                {lineupTeam?.name} · {quarter}쿼터 출전 명단
+              </DrawerTitle>
+              <DrawerDescription>이 쿼터에 뛴 선수를 고르세요. 직전 쿼터 명단이 기본값이에요.</DrawerDescription>
+            </DrawerHeader>
+            {lineupTeam && lineupForm(lineupTeam)}
+          </DrawerContent>
+        </Drawer>
       )}
 
       {isDesktop === false && (

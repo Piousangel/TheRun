@@ -16,6 +16,7 @@ runLeagueRepoContract(async () => {
     matchdays: new Collection(storage, 'league_matchdays', () => []),
     fixtures: new Collection(storage, 'league_fixtures', () => []),
     goals: new Collection(storage, 'league_goals', () => []),
+    appearances: new Collection(storage, 'league_appearances', () => []),
     audit,
     now,
   });
@@ -34,6 +35,7 @@ describe('collection LeagueRepo — 골 감사 기록', () => {
       matchdays: new Collection(storage, 'league_matchdays', () => []),
       fixtures: new Collection(storage, 'league_fixtures', () => []),
       goals: new Collection(storage, 'league_goals', () => []),
+      appearances: new Collection(storage, 'league_appearances', () => []),
       audit,
       now,
     });
@@ -46,5 +48,15 @@ describe('collection LeagueRepo — 골 감사 기록', () => {
     await repo.removeGoal(goal.id, 'u2');
     const logs = await audit.listFor('fixture', fixtures[0].id);
     expect(logs.map((l) => [l.action, l.actor_id])).toEqual([['delete', 'u2'], ['create', 'u1']]);
+
+    // 출전 명단: 처음 저장은 create, 바꾸면 update(전후 명단), 같은 명단을 다시 저장하면 기록하지 않는다
+    const lineup = { fixture_id: fixtures[0].id, quarter: 1, team_id: fixtures[0].home_team_id };
+    await repo.setLineup({ ...lineup, member_ids: ['m1', 'm2'], actor_id: 'u1' });
+    await repo.setLineup({ ...lineup, member_ids: ['m2', 'm1'], actor_id: 'u1' });
+    await repo.setLineup({ ...lineup, member_ids: ['m1', 'm3'], actor_id: 'u2' });
+    const lineupLogs = (await audit.listFor('fixture', fixtures[0].id)).slice(0, 2);
+    expect(lineupLogs.map((l) => [l.action, l.actor_id])).toEqual([['update', 'u2'], ['create', 'u1']]);
+    expect(lineupLogs[0].before).toMatchObject({ kind: 'lineup', quarter: 1, member_ids: ['m1', 'm2'] });
+    expect(lineupLogs[0].after).toMatchObject({ kind: 'lineup', member_ids: ['m1', 'm3'] });
   });
 });
