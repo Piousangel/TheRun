@@ -3,8 +3,10 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronLeft, Goal, History, Trash2, Users } from 'lucide-react';
+import { ChevronLeft, CloudOff, Goal, History, RefreshCw, Trash2, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { mergeQueuedGoals, useGoalQueue } from '@/entities/league/model/goal-queue';
+import { useGoalSync } from '@/entities/league/model/goal-sync';
 import { FIXTURE_STATUS_LABELS, FIXTURE_STATUS_TONES } from '@/entities/league/model/labels';
 import {
   useFixtureHistory,
@@ -64,16 +66,18 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
   const { data: season, isLoading, error, refetch } = useSeason(seasonId);
   const { data: teams = [] } = useLeagueTeams(seasonId);
   const { data: schedule, isLoading: scheduleLoading } = useLeagueSchedule(seasonId);
-  const { data: goals = [] } = useLeagueGoals(seasonId);
+  const { data: serverGoals = [] } = useLeagueGoals(seasonId);
+  const goalSync = useGoalSync();
+  const removeQueued = useGoalQueue((s) => s.remove);
   const { data: appearances = [], isSuccess: appearancesReady } = useLeagueAppearances(seasonId);
   const { data: history = [] } = useFixtureHistory(fixtureId);
   const { data: members = [] } = useMembers();
   const setStatus = useSetFixtureStatus();
   const removeGoal = useRemoveGoal();
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
-  const [qParam, setQParam] = useUrlState('q', 'replace');
-  const [goalParam, setGoalParam] = useUrlState('goal');
-  const [lineupParam, setLineupParam] = useUrlState('lineup');
+  const [qParam, setQParam] = useUrlState('q', 'replace', { shallow: true });
+  const [goalParam, setGoalParam] = useUrlState('goal', 'push', { shallow: true });
+  const [lineupParam, setLineupParam] = useUrlState('lineup', 'push', { shallow: true });
 
   const fixture = schedule?.fixtures.find((f) => f.id === fixtureId) ?? null;
   const matchday = fixture ? schedule?.matchdays.find((d) => d.id === fixture.matchday_id) : null;
@@ -110,7 +114,12 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
     return <EmptyState icon={Goal} title="경기를 찾을 수 없어요" description="일정이 다시 만들어졌을 수 있어요. 시즌 화면에서 다시 고르세요." />;
   }
 
+  // 아직 보내지 않은 골도 점수·타임라인에 바로 보인다(오프라인 우선, 스펙 §2.3).
+  const goals = mergeQueuedGoals(serverGoals, goalSync.items, seasonId);
   const fixtureGoals = goals.filter((g) => g.fixture_id === fixture.id);
+  const queuedIds = new Set(goalSync.pending.map((i) => i.data.id));
+  const fixturePending = goalSync.pending.filter((i) => i.data.fixture_id === fixture.id);
+  const fixtureFailed = goalSync.failed.filter((i) => i.data.fixture_id === fixture.id);
   const score = fixtureScore(fixture, fixtureGoals);
   const next = NEXT_STATUS[fixture.status];
   const nameOf = (id: string | null) => (id ? (members.find((m) => m.id === id)?.name ?? '?') : '득점자 미상');
@@ -134,6 +143,11 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
   };
 
   const handleRemove = async (goal: GoalEvent) => {
+    if (queuedIds.has(goal.id)) {
+      removeQueued(goal.id);
+      toast.success('보내기 전 골 기록을 지웠어요.');
+      return;
+    }
     try {
       await removeGoal.mutateAsync({ id: goal.id, seasonId, fixtureId: fixture.id, actorId: user?.id ?? null });
       toast.success('골 기록을 지웠어요.');
@@ -141,6 +155,64 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
       toast.error(e instanceof Error ? e.message : '지우지 못했습니다.');
     }
   };
+
+  const handleFlush = async () => {
+    const result = await goalSync.flush();
+    if (!result) return;
+    if (result.stoppedOffline) toast.error('아직 연결이 없어요. 연결되면 자동으로 보내요.');
+    else if (result.rejected.length > 0) toast.error(`${result.rejected.length}건은 보내지 못했어요. 아래 이유를 확인하세요.`);
+    else if (result.sent.length > 0) toast.success(`대기 중이던 골 ${result.sent.length}건을 보냈어요.`);
+  };
+
+  // 기기에만 있는 기록 상태. 0건이고 연결돼 있으면 아무것도 보이지 않는다(스펙 §6-4: 저장 중·실패·오프라인 상태가 항상 보인다).
+  const syncStatus = (fixturePending.length > 0 || fixtureFailed.length > 0 || !goalSync.online) && (
+    <section
+      aria-label="동기화 상태"
+      role="status"
+      className={cn(
+        'flex flex-col gap-2 rounded-[12px] border px-4 py-3',
+        fixtureFailed.length > 0 ? 'border-transparent bg-signal-red-bg' : 'border-transparent bg-signal-amber-bg',
+      )}
+    >
+      <div className="flex min-h-[44px] items-center gap-2">
+        <CloudOff className="h-4 w-4 shrink-0 text-ink-dim" aria-hidden />
+        <p className="min-w-0 flex-1 text-sm text-ink">
+          {!goalSync.online && <span className="font-semibold">오프라인 · </span>}
+          {fixturePending.length > 0 ? (
+            <>
+              동기화 대기 <span className="font-bold tabular-nums">{fixturePending.length}건</span>
+              <span className="text-ink-dim"> — 기기에 저장돼 있어요</span>
+            </>
+          ) : (
+            <span className="text-ink-dim">기록은 기기에 저장되고 연결되면 보내요</span>
+          )}
+        </p>
+        {fixturePending.length > 0 && goalSync.online && (
+          <Button variant="outline" className="h-11 shrink-0" onClick={handleFlush} disabled={goalSync.syncing}>
+            <RefreshCw className={cn('mr-1 h-4 w-4', goalSync.syncing && 'animate-spin')} aria-hidden />
+            지금 보내기
+          </Button>
+        )}
+      </div>
+      {fixtureFailed.length > 0 && (
+        <ul className="flex flex-col gap-1" aria-label="보내지 못한 기록">
+          {fixtureFailed.map((i) => (
+            <li key={i.data.id} className="flex min-h-[44px] items-center gap-2 text-sm">
+              <span className="min-w-0 flex-1 text-ink">
+                <span className="font-semibold">
+                  {i.data.quarter}Q {nameOf(i.data.scorer_id ?? null)} 골
+                </span>
+                <span className="text-ink-dim"> — {i.error}</span>
+              </span>
+              <Button variant="ghost" className="h-11 shrink-0" onClick={() => removeQueued(i.data.id)}>
+                버리기
+              </Button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
 
   const handleCloseSheet = () => {
     if (window.history.length > 1) router.back();
@@ -207,6 +279,7 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
                           {g.own_goal && <span className="text-ink-dim"> (자책)</span>}
                           {g.assist_id && <span className="text-ink-dim"> · 도움 {nameOf(g.assist_id)}</span>}
                           <span className="text-ink-dim"> — {t.name}</span>
+                          {queuedIds.has(g.id) && <StatusBadge tone="amber" className="ml-1 align-middle">대기</StatusBadge>}
                         </span>
                         {canRecord && fixture.status !== 'scheduled' && (
                           <Button
@@ -338,6 +411,7 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
       <article className="flex flex-col gap-6" aria-label="경기 기록">
         {header}
         {scoreboard}
+        {syncStatus}
         {/* 768~1023px는 사이드바 옆이 좁아 패널을 위에 쌓고, 1024px부터 2단으로 나눈다. */}
         <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-[minmax(0,1fr)_380px]">
           <div className="order-2 flex flex-col gap-6 lg:order-1">
@@ -384,6 +458,7 @@ export function FixtureRecord({ seasonId, fixtureId }: FixtureRecordProps) {
     <article className="flex flex-col gap-5 pb-24" aria-label="경기 기록">
       {header}
       {scoreboard}
+      {syncStatus}
       {quarterPicker}
       {lineupSection}
       {timeline}
