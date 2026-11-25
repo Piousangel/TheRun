@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { isNetworkError, isOffline, useGoalQueue } from '@/entities/league/model/goal-queue';
 import { useAddGoal, useLeagueAppearances, useRemoveGoal } from '@/entities/league/model/queries';
 import { useMembers } from '@/entities/member/model/queries';
 import { useAuth } from '@/providers/auth-provider';
@@ -26,6 +27,7 @@ const NONE = '__none__';
 /**
  * [골] → 팀 → 득점자 → 도움(없음 가능) → 끝. 스펙 §2.3.
  * 기록 id는 여기서 만든다(재전송 멱등). 기록 직후 5초 동안 '실행 취소' 토스트를 띄운다.
+ * 연결이 없거나 연결 오류로 실패하면 기기 큐(`useGoalQueue`)에 남기고, 연결되면 `useGoalSync`가 보낸다.
  */
 export function GoalRecordForm({ seasonId, fixture, teams, quarter, initialTeamId = null, onDone }: GoalRecordFormProps) {
   const { user } = useAuth();
@@ -56,31 +58,42 @@ export function GoalRecordForm({ seasonId, fixture, teams, quarter, initialTeamI
   const handleSave = async (assistId: string | null) => {
     if (!team || !scorerId) return;
     const scorer = scorerId === NONE ? null : scorerId;
+    const data = {
+      id: newId(),
+      fixture_id: fixture.id,
+      quarter,
+      team_id: team.id,
+      scorer_id: scorer,
+      assist_id: assistId,
+      created_by: user?.id ?? null,
+    };
+    const label = `${quarter}Q ${team.name} 골 · ${nameOf(scorer) ?? '득점자 미상'}${assistId ? ` (도움 ${nameOf(assistId)})` : ''}`;
+    const actorId = user?.id ?? null;
+    // 실행 취소: 아직 기기 큐에 있으면 큐에서 빼고, 이미 보냈으면 서버에서 지운다.
+    const undo = () => {
+      const queue = useGoalQueue.getState();
+      if (queue.items.some((i) => i.data.id === data.id)) queue.remove(data.id);
+      else removeGoal.mutate({ id: data.id, seasonId, fixtureId: fixture.id, actorId });
+    };
+    const keepOffline = () => {
+      useGoalQueue.getState().enqueue({ seasonId, data, queued_at: new Date().toISOString() });
+      toast.success(`${label} — 기기에 저장, 연결되면 보내요`, { duration: 5000, action: { label: '실행 취소', onClick: undo } });
+      reset();
+      onDone?.();
+    };
+
+    if (isOffline()) {
+      keepOffline();
+      return;
+    }
     try {
-      const goal = await addGoal.mutateAsync({
-        seasonId,
-        data: {
-          id: newId(),
-          fixture_id: fixture.id,
-          quarter,
-          team_id: team.id,
-          scorer_id: scorer,
-          assist_id: assistId,
-          created_by: user?.id ?? null,
-        },
-      });
-      const who = nameOf(scorer) ?? '득점자 미상';
-      toast.success(`${quarter}Q ${team.name} 골 · ${who}${assistId ? ` (도움 ${nameOf(assistId)})` : ''}`, {
-        duration: 5000,
-        action: {
-          label: '실행 취소',
-          onClick: () => removeGoal.mutate({ id: goal.id, seasonId, fixtureId: fixture.id, actorId: user?.id ?? null }),
-        },
-      });
+      await addGoal.mutateAsync({ seasonId, data });
+      toast.success(label, { duration: 5000, action: { label: '실행 취소', onClick: undo } });
       reset();
       onDone?.();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : '골을 기록하지 못했습니다.');
+      if (isNetworkError(e)) keepOffline();
+      else toast.error(e instanceof Error ? e.message : '골을 기록하지 못했습니다.');
     }
   };
 
