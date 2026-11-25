@@ -113,3 +113,34 @@ export interface AddGoalData {
   /** 기록한 사람(감사 기록의 actor) */
   created_by?: string | null;
 }
+
+/**
+ * 쿼터별 출전(스펙 §2.2 Appearance). "이 쿼터에 이 팀으로 뛰었다".
+ * v1은 회원만 기록한다(게스트·임대 출전은 S2 뒤 항목). 출전 쿼터 수·개인 기록은 여기서 계산한다.
+ */
+export interface Appearance {
+  id: string;
+  fixture_id: string;
+  quarter: number;
+  team_id: string;
+  member_id: string;
+  created_at: string;
+}
+
+export interface SetLineupData {
+  fixture_id: string;
+  quarter: number;
+  team_id: string;
+  /** 이 쿼터에 이 팀으로 뛴 회원 전체. 기존 명단을 통째로 바꾼다(빈 배열이면 명단 삭제). */
+  member_ids: string[];
+  /** 바꾼 사람(감사 기록의 actor) */
+  actor_id?: string | null;
+}
+
+/** 출전 명단 변경 감사 기록의 before/after 모양 */
+export interface LineupAuditSnapshot {
+  kind: 'lineup';
+  quarter: number;
+  team_id: string;
+  member_ids: string[];
+}

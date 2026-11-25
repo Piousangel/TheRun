@@ -38,6 +38,7 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
     matchdays: new Collection(storage, 'league_matchdays', () => []),
     fixtures: new Collection(storage, 'league_fixtures', () => []),
     goals: new Collection(storage, 'league_goals', () => []),
+    appearances: new Collection(storage, 'league_appearances', () => []),
     audit,
     now,
   });

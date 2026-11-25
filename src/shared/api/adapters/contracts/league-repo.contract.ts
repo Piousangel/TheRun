@@ -138,5 +138,54 @@ export function runLeagueRepoContract(makeRepo: () => Promise<{ repo: LeagueRepo
       await repo.removeSeason(season.id);
       expect(await repo.listGoals(season.id)).toEqual([]);
     });
+
+    it('setLineup은 경기·쿼터·팀 단위로 명단을 통째로 바꾸고, 중복은 한 번만 남긴다', async () => {
+      const { repo } = await makeRepo();
+      const { season, fixture } = await liveFixture(repo);
+      const home = { fixture_id: fixture.id, team_id: fixture.home_team_id };
+      const q1 = await repo.setLineup({ ...home, quarter: 1, member_ids: ['m1', 'm2', 'm2'] });
+      expect(q1.map((a) => a.member_id).sort()).toEqual(['m1', 'm2']);
+      expect(q1[0]).toMatchObject({ fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id });
+      await repo.setLineup({ ...home, quarter: 2, member_ids: ['m1', 'm2'] });
+      await repo.setLineup({ fixture_id: fixture.id, team_id: fixture.away_team_id, quarter: 1, member_ids: ['m5'] });
+
+      // 1쿼터 홈 명단만 바뀌고 다른 쿼터·상대 팀 명단은 그대로다
+      await repo.setLineup({ ...home, quarter: 1, member_ids: ['m1', 'm3'] });
+      const key = (a: { quarter: number; team_id: string; member_id: string }) =>
+        `${a.quarter}-${a.team_id === fixture.home_team_id ? 'H' : 'A'}-${a.member_id}`;
+      expect((await repo.listAppearances(season.id)).map(key).sort()).toEqual(['1-A-m5', '1-H-m1', '1-H-m3', '2-H-m1', '2-H-m2']);
+
+      // 빈 명단으로 저장하면 그 명단이 사라진다
+      await repo.setLineup({ ...home, quarter: 2, member_ids: [] });
+      expect((await repo.listAppearances(season.id)).filter((a) => a.quarter === 2)).toEqual([]);
+
+      const other = await liveFixture(repo);
+      expect(await repo.listAppearances(other.season.id)).toEqual([]);
+    });
+
+    it('setLineup은 다른 팀·범위 밖 쿼터·같은 쿼터 상대 팀 선수를 거부한다', async () => {
+      const { repo } = await makeRepo();
+      const { fixture, fixtures } = await liveFixture(repo);
+      const outsider = [fixtures[1].home_team_id, fixtures[1].away_team_id].find(
+        (id) => id !== fixture.home_team_id && id !== fixture.away_team_id,
+      )!;
+      await expect(repo.setLineup({ fixture_id: fixture.id, quarter: 1, team_id: outsider, member_ids: ['m1'] })).rejects.toThrow();
+      await expect(repo.setLineup({ fixture_id: fixture.id, quarter: 4, team_id: fixture.home_team_id, member_ids: ['m1'] })).rejects.toThrow();
+      await expect(repo.setLineup({ fixture_id: '없는-경기', quarter: 1, team_id: fixture.home_team_id, member_ids: ['m1'] })).rejects.toThrow();
+      await repo.setLineup({ fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id, member_ids: ['m1'] });
+      await expect(repo.setLineup({ fixture_id: fixture.id, quarter: 1, team_id: fixture.away_team_id, member_ids: ['m1'] })).rejects.toThrow();
+      // 다른 쿼터에서는 상대 팀으로 뛸 수 있다(경기 단위 임대는 쿼터마다 다를 수 있음)
+      await expect(repo.setLineup({ fixture_id: fixture.id, quarter: 2, team_id: fixture.away_team_id, member_ids: ['m1'] })).resolves.toHaveLength(1);
+    });
+
+    it('removeSeason은 그 시즌의 출전 기록도 지운다', async () => {
+      const { repo } = await makeRepo();
+      const { season, fixture } = await liveFixture(repo);
+      const other = await liveFixture(repo);
+      await repo.setLineup({ fixture_id: fixture.id, quarter: 1, team_id: fixture.home_team_id, member_ids: ['m1'] });
+      await repo.setLineup({ fixture_id: other.fixture.id, quarter: 1, team_id: other.fixture.home_team_id, member_ids: ['m2'] });
+      await repo.removeSeason(season.id);
+      expect(await repo.listAppearances(other.season.id)).toHaveLength(1);
+    });
   });
 }

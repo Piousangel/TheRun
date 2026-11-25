@@ -8,6 +8,7 @@ import type {
   CreateSeasonData,
   GenerateScheduleInput,
   Season,
+  SetLineupData,
   UpdateLeagueTeamData,
   UpdateSeasonData,
 } from '@/shared/types/league';
@@ -159,5 +160,26 @@ export function useSetFixtureStatus() {
     mutationFn: ({ fixtureId, status }: { fixtureId: string; seasonId: string; status: FixtureStatus }) =>
       getApi().league.setFixtureStatus(fixtureId, status),
     onSuccess: (_fixture, { seasonId }) => queryClient.invalidateQueries({ queryKey: leagueKeys.schedule(seasonId) }),
+  });
+}
+
+/** 시즌 전체 쿼터별 출전 기록. 출전 쿼터 수·개인 기록 계산에 쓴다. */
+export function useLeagueAppearances(seasonId: string | null) {
+  return useQuery({
+    queryKey: leagueKeys.appearances(seasonId ?? ''),
+    queryFn: () => getApi().league.listAppearances(seasonId as string),
+    enabled: !!seasonId,
+  });
+}
+
+export function useSetLineup() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ data }: { seasonId: string; data: SetLineupData }) => getApi().league.setLineup(data),
+    onSuccess: (_lineup, { seasonId, data }) =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: leagueKeys.appearances(seasonId) }),
+        queryClient.invalidateQueries({ queryKey: leagueKeys.fixtureHistory(data.fixture_id) }),
+      ]),
   });
 }

@@ -20,3 +20,5 @@
 9. 골 이벤트 마이그레이션(`goal_events`, 클라이언트 UUID PK·RLS) + Supabase 리그 어댑터에 listGoals/addGoal/removeGoal (11/25 로컬 어댑터만)
 10. 골 기록 자책골 입력 UI(모델·어댑터는 `own_goal` 지원, 화면 없음)
 11. 같은 쿼터·같은 득점자 10초 내 중복 경고(스펙 §2.3, Realtime과 함께)
+12. 출전 명단 마이그레이션(`appearances`, 경기·쿼터·팀 단위 교체) + Supabase 리그 어댑터 listAppearances/setLineup (11/25 13시 로컬 어댑터만)
+13. 출전 명단에 게스트·임대(`guest_name`, `loan_from_team_id`)와 포지션(GK) — 스펙 §2.2, 클린시트 기록의 선행
