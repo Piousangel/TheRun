@@ -33,3 +33,14 @@ export function classifyCheckin(checkedInAt: Date): Exclude<CheckinStatus, 'abse
 export function kstToday(now: Date): string {
   return toKst(now).date;
 }
+
+/** ISO 시각의 KST 날짜 YYYY-MM-DD. 투표 세션 event_date를 경기일로 바꿀 때 쓴다. */
+export function kstDateOf(isoAt: string): string {
+  return toKst(new Date(isoAt)).date;
+}
+
+/** ISO 시각의 KST 시:분 "HH:mm". 체크인 시각 표시용. */
+export function kstTimeOf(isoAt: string): string {
+  const { minutes } = toKst(new Date(isoAt));
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+}

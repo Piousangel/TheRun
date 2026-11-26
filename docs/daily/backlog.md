@@ -22,3 +22,5 @@
 11. 같은 쿼터·같은 득점자 10초 내 중복 경고(스펙 §2.3, Realtime과 함께)
 12. 출전 명단 마이그레이션(`appearances`, 경기·쿼터·팀 단위 교체) + Supabase 리그 어댑터 listAppearances/setLineup (11/25 13시 로컬 어댑터만)
 13. 출전 명단에 게스트·임대(`guest_name`, `loan_from_team_id`)와 포지션(GK) — 스펙 §2.2, 클린시트 기록의 선행
+14. 연간 출석왕(스펙 §3: 연간 누적 + 시즌별) — 체크인 포트에 기간 조회(`listByRange`) 추가 + 두 어댑터·계약 테스트, 명단 화면에 연간 탭 (11/26 20시 체크인 v1에서 분리)
+15. 체크인 Supabase 어댑터 + `checkins` 마이그레이션 적용 확인(지금은 Supabase 모드에서 'CHECKIN_NOT_MIGRATED')

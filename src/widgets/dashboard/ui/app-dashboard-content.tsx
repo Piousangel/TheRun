@@ -30,6 +30,7 @@ import {
   useAnnouncements,
   useAnnouncementReads,
 } from "@/entities/announcement/model/queries";
+import { CheckinCard } from "@/features/checkin/ui/checkin-card";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
@@ -149,6 +150,12 @@ export function AppDashboardContent() {
           icon: CalendarDays,
         },
         {
+          href: "/attendance/checkin",
+          title: "체크인 명단",
+          body: "경기일 정시·지각·결석 확정",
+          icon: CheckCircle2,
+        },
+        {
           href: "/matches",
           title: "경기 진행",
           body: "실시간 운영과 기록 저장",
@@ -190,6 +197,10 @@ export function AppDashboardContent() {
 
   return (
     <div>
+      {/* 경기일 05:30~08:00에만 그려진다. 비면 empty:hidden으로 여백도 없앤다(스펙 §3: 홈 최상단). */}
+      <div className="mx-auto max-w-7xl px-4 py-3 empty:hidden sm:px-8 lg:px-10">
+        <CheckinCard />
+      </div>
       <section className="editorial-hero relative overflow-hidden border-b border-border/70 text-white">
         <div className="editorial-glow-gold absolute left-0 top-0 h-64 w-64 rounded-full" />
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 lg:px-10">
