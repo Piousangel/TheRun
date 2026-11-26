@@ -1,4 +1,4 @@
-import { addDaysIso, allPairs, buildMatchdayPairings } from '@/shared/lib/league-schedule';
+import { addDaysIso, allPairs, buildMatchdayPairings, seasonWeekCount } from '@/shared/lib/league-schedule';
 
 describe('league-schedule', () => {
   it('3팀이면 매 경기일 3경기, 4주 총 12경기', () => {
@@ -30,5 +30,15 @@ describe('league-schedule', () => {
 
   it('addDaysIso는 월 경계를 넘는다', () => {
     expect(addDaysIso('2026-11-28', 7)).toBe('2026-12-05');
+  });
+});
+
+describe('seasonWeekCount', () => {
+  it('일정이 있으면 경기일 수, 없으면 기간을 7일 단위로 센다(1~12)', () => {
+    expect(seasonWeekCount('2026-12-05', '2026-12-26', 3)).toBe(3);
+    expect(seasonWeekCount('2026-12-05', '2026-12-26')).toBe(4);
+    expect(seasonWeekCount('2026-12-05', '2026-12-05')).toBe(1);
+    expect(seasonWeekCount('2026-12-05', '2026-12-01')).toBe(1);
+    expect(seasonWeekCount('2026-01-01', '2026-12-31')).toBe(12);
   });
 });

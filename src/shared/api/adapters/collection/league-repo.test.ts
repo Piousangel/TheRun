@@ -18,6 +18,7 @@ runLeagueRepoContract(async () => {
     goals: new Collection(storage, 'league_goals', () => []),
     appearances: new Collection(storage, 'league_appearances', () => []),
     miniGames: new Collection(storage, 'league_minigames', () => []),
+    availability: new Collection(storage, 'league_availability', () => []),
     audit,
     now,
   });
@@ -38,6 +39,7 @@ describe('collection LeagueRepo — 골 감사 기록', () => {
       goals: new Collection(storage, 'league_goals', () => []),
       appearances: new Collection(storage, 'league_appearances', () => []),
     miniGames: new Collection(storage, 'league_minigames', () => []),
+    availability: new Collection(storage, 'league_availability', () => []),
       audit,
       now,
     });
@@ -75,6 +77,7 @@ describe('collection LeagueRepo — 골 감사 기록', () => {
       goals: new Collection(storage, 'league_goals', () => []),
       appearances: new Collection(storage, 'league_appearances', () => []),
       miniGames: new Collection(storage, 'league_minigames', () => []),
+    availability: new Collection(storage, 'league_availability', () => []),
       audit,
       now,
     });

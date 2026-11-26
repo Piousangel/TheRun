@@ -234,5 +234,39 @@ export function runLeagueRepoContract(makeRepo: () => Promise<{ repo: LeagueRepo
       await expect(repo.setMiniGameResults({ minigame_id: game.id, results: [{ team_id: a.id, rank: 0 }] })).rejects.toThrow();
       await expect(repo.setMiniGameResults({ minigame_id: '없는-게임', results: [] })).rejects.toThrow();
     });
+
+    it('참석 가능 주차: 회원당 한 행을 통째로 바꾸고(중복 제거·정렬), 시즌별로 분리되며 removeSeason이 함께 지운다', async () => {
+      const { repo } = await makeRepo();
+      const season = await seasonWithTeams(repo, 3);
+      // 일정이 없어도 기간(12/05~12/26 = 4주)으로 입력할 수 있다
+      const a = await repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [4, 1, 2, 2] });
+      expect(a).toMatchObject({ season_id: season.id, member_id: 'm1', weeks: [1, 2, 4] });
+      await repo.setAvailability({ season_id: season.id, member_id: 'm2', weeks: [] });
+      const again = await repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [3] });
+      expect(again.weeks).toEqual([3]);
+      const rows = await repo.listAvailability(season.id);
+      expect(rows).toHaveLength(2);
+      expect(rows.find((r) => r.member_id === 'm1')?.weeks).toEqual([3]);
+      expect(rows.find((r) => r.member_id === 'm2')?.weeks).toEqual([]);
+
+      const other = await seasonWithTeams(repo, 2);
+      expect(await repo.listAvailability(other.id)).toEqual([]);
+      await repo.removeSeason(season.id);
+      expect(await repo.listAvailability(season.id)).toEqual([]);
+    });
+
+    it('참석 가능 주차: 범위 밖·정수 아닌 주차, 없는 시즌, 끝난 시즌을 거부하고 일정이 있으면 경기일 수를 따른다', async () => {
+      const { repo } = await makeRepo();
+      const season = await seasonWithTeams(repo, 3);
+      await expect(repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [0] })).rejects.toThrow();
+      await expect(repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [5] })).rejects.toThrow();
+      await expect(repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [1.5] })).rejects.toThrow();
+      await expect(repo.setAvailability({ season_id: '없는-시즌', member_id: 'm1', weeks: [1] })).rejects.toThrow();
+      await repo.generateSchedule(season.id, { first_date: '2026-12-05', weeks: 2 });
+      await expect(repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [3] })).rejects.toThrow();
+      expect((await repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [2] })).weeks).toEqual([2]);
+      await repo.updateSeason(season.id, { status: 'done' });
+      await expect(repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [1] })).rejects.toThrow();
+    });
   });
 }

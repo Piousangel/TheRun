@@ -1,6 +1,7 @@
 import type {
   AddGoalData,
   Appearance,
+  Availability,
   CreateLeagueTeamData,
   CreateSeasonData,
   Fixture,
@@ -12,6 +13,7 @@ import type {
   MiniGame,
   CreateMiniGameData,
   SetMiniGameResultsData,
+  SetAvailabilityData,
   Season,
   SetLineupData,
   UpdateLeagueTeamData,
@@ -81,4 +83,13 @@ export interface LeagueRepo {
    * 결과 입력·수정은 미니게임(`minigame`) 변경 이력에 남는다.
    */
   setMiniGameResults(data: SetMiniGameResultsData): Promise<MiniGame>;
+
+  /** 시즌의 참석 가능 주차(입력한 회원만). 순서는 보장하지 않는다 */
+  listAvailability(seasonId: string): Promise<Availability[]>;
+  /**
+   * 한 회원의 참석 가능 주차를 통째로 바꾼다(중복 제거·오름차순). 빈 배열이면 "한 주도 못 온다".
+   * 주차가 1~시즌 주차 수(경기일 수, 일정이 없으면 기간으로 계산) 밖의 정수가 아니거나, 끝난 시즌이면 거부한다.
+   * 변경은 시즌(`season`) 변경 이력에 남는다.
+   */
+  setAvailability(data: SetAvailabilityData): Promise<Availability>;
 }

@@ -8,5 +8,6 @@ export const leagueKeys = {
   goals: (seasonId: string) => [...leagueKeys.season(seasonId), 'goals'] as const,
   appearances: (seasonId: string) => [...leagueKeys.season(seasonId), 'appearances'] as const,
   miniGames: (seasonId: string) => [...leagueKeys.season(seasonId), 'minigames'] as const,
+  availability: (seasonId: string) => [...leagueKeys.season(seasonId), 'availability'] as const,
   fixtureHistory: (fixtureId: string) => [...leagueKeys.all, 'fixture-history', fixtureId] as const,
 };
