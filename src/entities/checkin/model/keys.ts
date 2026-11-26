@@ -4,4 +4,6 @@ export const checkinKeys = {
   dates: () => [...checkinKeys.all, 'dates'] as const,
   /** 여러 경기일의 체크인 묶음(시즌 출석왕). 날짜는 정렬해서 키를 안정화한다. */
   onDates: (dates: readonly string[]) => [...checkinKeys.dates(), [...dates].sort().join(',')] as const,
+  /** 한 경기일의 체크인(홈 체크인 카드·운영진 명단) */
+  byDate: (date: string) => [...checkinKeys.all, 'date', date] as const,
 };
