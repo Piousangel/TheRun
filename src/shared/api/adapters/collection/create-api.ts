@@ -44,7 +44,7 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
     now,
   });
 
-  const checkins = createCollectionCheckinRepo({ checkins: new Collection(storage, 'checkins', () => []), audit, now });
+  const checkins = createCollectionCheckinRepo({ checkins: new Collection(storage, 'checkins', () => seed().checkins), audit, now });
 
   return {
     members: createCollectionMemberRepo(members, now),

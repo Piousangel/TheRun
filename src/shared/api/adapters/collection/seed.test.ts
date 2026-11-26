@@ -72,6 +72,19 @@ describe('buildSeed', () => {
     expect(seed.announcementReads).toEqual([]);
   });
 
+  it('체크인은 지난 4주 토요일 경기일에만 있고 (날짜, 멤버)가 유일하며 정시우가 4연속 정시다', () => {
+    const days = [...new Set(seed.checkins.map((c) => c.date))].sort();
+    expect(days).toEqual(['2026-08-08', '2026-08-15', '2026-08-22', '2026-08-29']);
+    const keys = new Set(seed.checkins.map((c) => `${c.date}:${c.member_id}`));
+    expect(keys.size).toBe(seed.checkins.length);
+    const kings = seed.checkins.filter((c) => c.member_id === 'm-05');
+    expect(kings.map((c) => c.status)).toEqual(['on_time', 'on_time', 'on_time', 'on_time']);
+    for (const c of seed.checkins) {
+      if (c.status === 'absent') expect(c.checked_in_at).toBeNull();
+      else expect(c.checked_in_at).not.toBeNull();
+    }
+  });
+
   it('같은 now로 두 번 만들면 동일하다', () => {
     expect(buildSeed(NOW)).toEqual(seed);
   });

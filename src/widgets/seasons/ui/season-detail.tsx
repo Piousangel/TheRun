@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, ChevronRight, Medal, Plus, Shirt, Target, Trophy, X } from 'lucide-react';
+import { CalendarDays, ChevronRight, Crown, Medal, Plus, Shirt, Target, Trophy, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   MVP_METHOD_LABELS,
@@ -26,12 +26,15 @@ import {
 } from '@/entities/league/model/queries';
 import { computePlayerStats, rankPlayers, type PlayerStatKey } from '@/entities/league/model/player-stats';
 import { computeStandings, fixtureScore } from '@/entities/league/model/standings';
+import { computeAttendanceKing } from '@/entities/checkin/model/attendance-king';
+import { useCheckinsOnDates } from '@/entities/checkin/model/queries';
 import { useMembers } from '@/entities/member/model/queries';
 import { ScheduleGenerateForm } from '@/features/league-schedule-generate/ui/schedule-generate-form';
 import { MiniGameForm } from '@/features/league-minigame/ui/minigame-form';
 import { MiniGameResultForm } from '@/features/league-minigame/ui/minigame-result-form';
 import { LeagueTeamForm } from '@/features/league-team-edit/ui/league-team-form';
 import { useAuth } from '@/providers/auth-provider';
+import { kstToday } from '@/shared/lib/checkin-time';
 import { DESKTOP_QUERY, useMediaQuery } from '@/shared/lib/use-media-query';
 import { useUrlState } from '@/shared/lib/use-url-state';
 import { cn } from '@/shared/lib/utils';
@@ -74,6 +77,10 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   const [teamParam, setTeamParam] = useUrlState('team');
   const [miniGameParam, setMiniGameParam] = useUrlState('minigame');
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  // 출석왕은 지난 경기일만 센다(오늘 포함). 앞으로의 경기일은 결석으로 치지 않는다.
+  const today = kstToday(new Date());
+  const pastDays = (schedule?.matchdays ?? []).map((d) => d.date).filter((d) => d <= today);
+  const { data: checkins = [], isLoading: checkinsLoading, error: checkinsError } = useCheckinsOnDates(pastDays);
 
   if (isLoading) return <CardSkeleton count={2} />;
   if (error || !season) {
@@ -115,6 +122,8 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
       .sort((a, b) => b.quarters - a.quarters || nameOrDash(a.member_id).localeCompare(nameOrDash(b.member_id), 'ko'))
       .map((r) => ({ ...r, rank: 0 })),
   );
+
+  const attendance = computeAttendanceKing(checkins, pastDays, nameOrDash);
 
   const handleOpenTeam = (id: string) => setTeamParam(id);
 
@@ -508,6 +517,72 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
             </div>
           )}
           <p className="text-[12px] text-ink-dim">자책골은 개인 기록에 넣지 않아요. 출전 쿼터는 경기 화면의 출전 명단에서 셉니다.</p>
+        </section>
+      )}
+
+      {hasSchedule && (
+        <section className="flex flex-col gap-3" aria-labelledby="season-attendance">
+          <h3 id="season-attendance" className="flex items-center gap-2 text-[17px] font-bold text-ink">
+            <Crown className="h-4 w-4" aria-hidden />
+            출석왕
+          </h3>
+          {pastDays.length === 0 ? (
+            <p className="text-[13px] text-ink-dim">첫 경기일이 지나면 출석 순위가 쌓여요.</p>
+          ) : checkinsError ? (
+            <p className="text-[13px] text-ink-dim">출석 기록을 불러오지 못했어요.</p>
+          ) : checkinsLoading ? (
+            <CardSkeleton count={1} />
+          ) : attendance.length === 0 ? (
+            <p className="text-[13px] text-ink-dim">지난 경기일 {pastDays.length}번에 체크인 기록이 없어요.</p>
+          ) : isDesktop ? (
+            <div className="max-h-[420px] overflow-auto rounded-[14px] border border-border">
+              <table className="w-full text-sm tabular-nums" aria-label="출석왕">
+                <thead className="sticky top-0 bg-sunken text-[12px] text-ink-dim">
+                  <tr>
+                    <th scope="col" className="w-10 px-3 py-2 text-left font-medium">#</th>
+                    <th scope="col" className="px-3 py-2 text-left font-medium">선수</th>
+                    <th scope="col" className="px-2 py-2 text-right font-medium">정시</th>
+                    <th scope="col" className="px-2 py-2 text-right font-medium">지각</th>
+                    <th scope="col" className="px-2 py-2 text-right font-medium">출석률</th>
+                    <th scope="col" className="px-2 py-2 text-right font-medium">연속 정시</th>
+                    <th scope="col" className="px-3 py-2 text-right font-medium">최고 연속</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attendance.map((row) => (
+                    <tr key={row.member_id} className="border-t border-border">
+                      <td className="px-3 py-2 font-semibold text-ink">{row.rank}</td>
+                      <th scope="row" className="px-3 py-2 text-left font-semibold text-ink">
+                        {nameOrDash(row.member_id)}
+                      </th>
+                      <td className="px-2 py-2 text-right font-bold text-ink">{row.on_time}</td>
+                      <td className="px-2 py-2 text-right text-ink-dim">{row.late}</td>
+                      <td className="px-2 py-2 text-right text-ink-dim">{Math.round((row.attended / pastDays.length) * 100)}%</td>
+                      <td className="px-2 py-2 text-right text-ink-dim">{row.streak}</td>
+                      <td className="px-3 py-2 text-right text-ink-dim">{row.best_streak}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <ol className="flex flex-col gap-1.5 rounded-[14px] border border-border p-3" aria-label="출석왕">
+              {attendance.slice(0, 5).map((row) => (
+                <li key={row.member_id} className="flex min-h-[32px] items-center gap-2 text-sm">
+                  <span className="w-4 shrink-0 font-bold tabular-nums text-ink-dim">{row.rank}</span>
+                  <span className="min-w-0 flex-1 truncate font-semibold text-ink">{nameOrDash(row.member_id)}</span>
+                  <span className="shrink-0 tabular-nums text-ink">
+                    정시 {row.on_time}
+                    <span className="text-[11px] text-ink-dim">/{pastDays.length}</span>
+                  </span>
+                  {row.streak >= 2 && (
+                    <span className="shrink-0 rounded-full bg-sunken px-2 py-0.5 text-[11px] font-semibold tabular-nums text-ink">{row.streak}연속</span>
+                  )}
+                </li>
+              ))}
+            </ol>
+          )}
+          <p className="text-[12px] text-ink-dim">경기일 06:30까지 체크인하면 정시예요. 지각·결석은 연속 정시를 끊어요.</p>
         </section>
       )}
 
