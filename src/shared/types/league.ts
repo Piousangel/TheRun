@@ -185,3 +185,25 @@ export interface SetMiniGameResultsData {
   results: MiniGameResult[];
   actor_id?: string | null;
 }
+
+/**
+ * 참석 가능 주차(스펙 §2.1 · §2.2 Availability). 시즌 시작 전에 전원이 입력하고, 드래프트 선수 카드에 보인다.
+ * 회원당 시즌 하나에 한 행이다(`id` = `${season_id}:${member_id}`). 빈 배열은 "한 주도 못 온다"이고, 행이 없으면 미입력이다.
+ */
+export interface Availability {
+  id: string;
+  season_id: string;
+  member_id: string;
+  /** 1부터 시작하는 주차, 오름차순·중복 없음 */
+  weeks: number[];
+  updated_at: string;
+}
+
+export interface SetAvailabilityData {
+  season_id: string;
+  member_id: string;
+  /** 참석 가능한 주차 전체. 기존 값을 통째로 바꾼다 */
+  weeks: number[];
+  /** 입력한 사람(본인 또는 대신 입력한 운영진). 감사 기록의 actor */
+  actor_id?: string | null;
+}

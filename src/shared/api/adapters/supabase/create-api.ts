@@ -23,6 +23,7 @@ function createUnavailableLeagueRepo(): LeagueRepo {
     listMatchdays: fail, listFixtures: fail, generateSchedule: fail, setFixtureStatus: fail,
     listGoals: fail, addGoal: fail, removeGoal: fail, listAppearances: fail, setLineup: fail,
     listMiniGames: fail, createMiniGame: fail, removeMiniGame: fail, setMiniGameResults: fail,
+    listAvailability: fail, setAvailability: fail,
   };
 }
 

@@ -45,3 +45,16 @@ export function addDaysIso(date: string, days: number): string {
   const t = new Date(Date.UTC(y, m - 1, d + days));
   return t.toISOString().slice(0, 10);
 }
+
+/**
+ * 시즌 주차 수. 일정이 있으면 경기일 수, 없으면 기간(시작일부터 7일 단위, 끝날 포함)으로 센다. 1~12로 자른다.
+ * 참석 가능 주차 입력은 일정을 만들기 전에도 할 수 있어야 해서 기간으로도 셀 수 있게 한다.
+ */
+export function seasonWeekCount(startsOn: string, endsOn: string, matchdayCount = 0): number {
+  if (matchdayCount > 0) return matchdayCount;
+  const [ys, ms, ds] = startsOn.split('-').map(Number);
+  const [ye, me, de] = endsOn.split('-').map(Number);
+  const days = Math.round((Date.UTC(ye, me - 1, de) - Date.UTC(ys, ms - 1, ds)) / 86_400_000);
+  if (!Number.isFinite(days)) return 1;
+  return Math.min(12, Math.max(1, Math.floor(days / 7) + 1));
+}

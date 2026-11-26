@@ -34,6 +34,7 @@ import { MiniGameForm } from '@/features/league-minigame/ui/minigame-form';
 import { MiniGameResultForm } from '@/features/league-minigame/ui/minigame-result-form';
 import { LeagueTeamForm } from '@/features/league-team-edit/ui/league-team-form';
 import { useAuth } from '@/providers/auth-provider';
+import { SeasonAvailability } from '@/widgets/seasons/ui/season-availability';
 import { kstToday } from '@/shared/lib/checkin-time';
 import { DESKTOP_QUERY, useMediaQuery } from '@/shared/lib/use-media-query';
 import { useUrlState } from '@/shared/lib/use-url-state';
@@ -61,6 +62,7 @@ interface SeasonDetailProps {
  * 시즌 상세. 운영진은 여기서 팀·팀장을 정하고 일정을 만든다.
  * - 팀 만들기/수정: `?team=new|<id>` — 모바일은 하단 시트, 데스크톱은 팀 목록 위 인라인 패널.
  * - 일정: 모바일은 주차 카드, 데스크톱은 주차 × 경기 표.
+ * - 참석 가능 주차: `?availability=<memberId>` — 본인은 카드에서 바로, 운영진은 회원을 골라 대신 입력(season-availability).
  * - 미니게임: `?minigame=new|<id>` — 종목 추가(운영진)·결과 입력(운영진·팀장). 모바일은 시트, 데스크톱은 목록 위 패널.
  */
 export function SeasonDetail({ seasonId }: SeasonDetailProps) {
@@ -271,6 +273,8 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
           />
         )}
       </section>
+
+      <SeasonAvailability seasonId={season.id} />
 
       {teams && teams.length > 1 && (
         <section className="flex flex-col gap-3" aria-labelledby="season-standings">

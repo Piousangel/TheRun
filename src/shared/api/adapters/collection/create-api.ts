@@ -40,6 +40,7 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
     goals: new Collection(storage, 'league_goals', () => []),
     appearances: new Collection(storage, 'league_appearances', () => []),
     miniGames: new Collection(storage, 'league_minigames', () => []),
+    availability: new Collection(storage, 'league_availability', () => []),
     audit,
     now,
   });

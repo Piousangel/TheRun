@@ -3,8 +3,8 @@ import { NotFoundError } from '@/shared/api/adapters/collection/storage';
 import type { AuditRepo } from '@/shared/api/ports/audit-repo';
 import type { LeagueRepo } from '@/shared/api/ports/league-repo';
 import { newId } from '@/shared/lib/id';
-import { addDaysIso, buildMatchdayPairings } from '@/shared/lib/league-schedule';
-import type { Appearance, Fixture, GoalEvent, LeagueTeam, LineupAuditSnapshot, Matchday, MiniGame, Season } from '@/shared/types/league';
+import { addDaysIso, buildMatchdayPairings, seasonWeekCount } from '@/shared/lib/league-schedule';
+import type { Appearance, Availability, Fixture, GoalEvent, LeagueTeam, LineupAuditSnapshot, Matchday, MiniGame, Season } from '@/shared/types/league';
 
 interface Deps {
   seasons: Collection<Season>;
@@ -14,12 +14,13 @@ interface Deps {
   goals: Collection<GoalEvent>;
   appearances: Collection<Appearance>;
   miniGames: Collection<MiniGame>;
+  availability: Collection<Availability>;
   /** 골 기록·삭제를 경기(`fixture`) 단위 변경 이력으로 남긴다 */
   audit: AuditRepo;
   now: () => Date;
 }
 
-export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, goals, appearances, miniGames, audit, now }: Deps): LeagueRepo {
+export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, goals, appearances, miniGames, availability, audit, now }: Deps): LeagueRepo {
   const seasonMatchdays = async (seasonId: string) =>
     (await matchdays.all()).filter((m) => m.season_id === seasonId).sort((a, b) => a.week - b.week);
 
@@ -85,6 +86,7 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
       await fixtures.replaceAll((await fixtures.all()).filter((f) => !dayIds.has(f.matchday_id)));
       await matchdays.replaceAll((await matchdays.all()).filter((m) => m.season_id !== id));
       await miniGames.replaceAll((await miniGames.all()).filter((g) => g.season_id !== id));
+      await availability.replaceAll((await availability.all()).filter((a) => a.season_id !== id));
       await teams.replaceAll((await teams.all()).filter((t) => t.season_id !== id));
       await seasons.remove(id);
     },
@@ -288,6 +290,36 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
         actor_id: data.actor_id ?? 'unknown',
       });
       return updated;
+    },
+
+    async listAvailability(seasonId) {
+      return (await availability.all()).filter((a) => a.season_id === seasonId);
+    },
+    async setAvailability(data) {
+      const season = await requireSeason(data.season_id);
+      if (season.status === 'done') throw new Error('끝난 시즌은 참석 가능 주차를 바꿀 수 없습니다.');
+      if (!data.member_id) throw new Error('회원을 골라 주세요.');
+      const maxWeek = seasonWeekCount(season.starts_on, season.ends_on, (await seasonMatchdays(season.id)).length);
+      for (const w of data.weeks) {
+        if (!Number.isInteger(w) || w < 1 || w > maxWeek) throw new Error(`주차는 1~${maxWeek} 사이여야 합니다.`);
+      }
+      const weeks = [...new Set(data.weeks)].sort((a, b) => a - b);
+      const id = `${season.id}:${data.member_id}`;
+      const before = await availability.get(id);
+      const row: Availability = { id, season_id: season.id, member_id: data.member_id, weeks, updated_at: now().toISOString() };
+      const saved = before ? await availability.update(id, { weeks, updated_at: row.updated_at }) : await availability.insert(row);
+      const same = before && before.weeks.length === weeks.length && before.weeks.every((w, i) => w === weeks[i]);
+      if (!same) {
+        await audit.record({
+          entity: 'season',
+          entity_id: season.id,
+          action: before ? 'update' : 'create',
+          before: before ? { kind: 'availability', member_id: data.member_id, weeks: before.weeks } : null,
+          after: { kind: 'availability', member_id: data.member_id, weeks },
+          actor_id: data.actor_id ?? 'unknown',
+        });
+      }
+      return saved;
     },
   };
 }

@@ -9,6 +9,7 @@ import type {
   CreateSeasonData,
   GenerateScheduleInput,
   Season,
+  SetAvailabilityData,
   SetLineupData,
   SetMiniGameResultsData,
   UpdateLeagueTeamData,
@@ -216,5 +217,22 @@ export function useSetMiniGameResults() {
   return useMutation({
     mutationFn: (data: SetMiniGameResultsData) => getApi().league.setMiniGameResults(data),
     onSuccess: (game) => queryClient.invalidateQueries({ queryKey: leagueKeys.miniGames(game.season_id) }),
+  });
+}
+
+/** 시즌 참석 가능 주차(드래프트 선수 카드·운영진 집계). 입력한 회원만 행이 있다. */
+export function useLeagueAvailability(seasonId: string | null) {
+  return useQuery({
+    queryKey: leagueKeys.availability(seasonId ?? ''),
+    queryFn: () => getApi().league.listAvailability(seasonId as string),
+    enabled: !!seasonId,
+  });
+}
+
+export function useSetAvailability() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: SetAvailabilityData) => getApi().league.setAvailability(data),
+    onSuccess: (row) => queryClient.invalidateQueries({ queryKey: leagueKeys.availability(row.season_id) }),
   });
 }
