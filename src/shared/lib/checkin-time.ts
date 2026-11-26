@@ -28,3 +28,8 @@ export function isCheckinWindowOpen(date: string, now: Date): boolean {
 export function classifyCheckin(checkedInAt: Date): Exclude<CheckinStatus, 'absent'> {
   return toKst(checkedInAt).minutes <= toMinutes(CHECKIN_ON_TIME_UNTIL) ? 'on_time' : 'late';
 }
+
+/** 오늘 날짜(KST) YYYY-MM-DD. 지난 경기일만 출석 집계에 넣을 때 쓴다. */
+export function kstToday(now: Date): string {
+  return toKst(now).date;
+}

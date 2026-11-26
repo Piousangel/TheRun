@@ -1,7 +1,8 @@
-import { addDays, nextSaturday, previousSaturday, set, subDays, subWeeks } from 'date-fns';
+import { addDays, format, nextSaturday, previousSaturday, set, subDays, subWeeks } from 'date-fns';
 import { DEMO_ACCOUNTS, type AuthUser } from '@/shared/api/ports/auth-repo';
 import type { Announcement, AnnouncementRead } from '@/shared/types/announcement';
 import type { AppProfile } from '@/shared/types/auth';
+import type { Checkin, CheckinStatus } from '@/shared/types/checkin';
 import type { GoalRecord, Match, PlayerMatchRecord, TeamMatchData } from '@/shared/types/match';
 import type { Member, MemberStats } from '@/shared/types/member';
 import type { VoteResponse, VoteSession } from '@/shared/types/vote';
@@ -15,6 +16,8 @@ export interface SeedData {
   matches: Match[];
   announcements: Announcement[];
   announcementReads: AnnouncementRead[];
+  /** 지난 4주 토요일 경기일의 출석 체크인(출석왕 데모). 날짜는 시드 경기와 같다. */
+  checkins: Checkin[];
 }
 
 const MEMBER_NAMES = [
@@ -186,6 +189,38 @@ export function buildSeed(now: Date): SeedData {
     };
   });
 
+  // 지난 4주 경기일(오래된 순 d0..d3) 체크인. o=정시, l=지각, x=운영진 결석 확정, -=기록 없음.
+  // 정시우 4연속 정시(출석왕), 최예준 정시 3·지각 1, 박도윤 정시 3(마지막 주 없음) → 2·3위는 출석 수로 갈린다.
+  const checkinDays = [3, 2, 1, 0].map((weekOffset) => format(subWeeks(lastSaturday, weekOffset), 'yyyy-MM-dd'));
+  const checkinPattern: Record<string, string> = {
+    'm-05': 'oooo',
+    'm-04': 'oolo',
+    'm-03': 'ooo-',
+    'm-07': 'lloo',
+    'm-01': 'olo-',
+    'm-02': 'ollx',
+    'm-06': '-olo',
+    'm-08': 'l-ll',
+  };
+  const checkinStatus: Record<string, CheckinStatus> = { o: 'on_time', l: 'late', x: 'absent' };
+  const checkins: Checkin[] = Object.entries(checkinPattern).flatMap(([memberId, pattern]) =>
+    checkinDays.flatMap((day, i) => {
+      const status = checkinStatus[pattern[i]];
+      if (!status) return [];
+      const minute = Number(memberId.slice(2)) % 10;
+      const checkedInAt = status === 'absent' ? null : new Date(`${day}T06:${status === 'on_time' ? 10 + minute : 40 + minute}:00+09:00`).toISOString();
+      return [{
+        id: `ck-${memberId}-${day}`,
+        date: day,
+        member_id: memberId,
+        status,
+        checked_in_at: checkedInAt,
+        confirmed_by: status === 'absent' ? 'u-admin' : null,
+        updated_at: checkedInAt ?? new Date(`${day}T09:00:00+09:00`).toISOString(),
+      }];
+    }),
+  );
+
   const announcements: Announcement[] = [
     { id: 'an-1', title: '9월 회비 안내', body: '이번 달 회비는 9월 10일까지 입금 부탁드립니다.', category: 'general', is_pinned: true, publish_at: iso(subDays(now, 2)), created_by: 'u-admin', created_at: iso(subDays(now, 2)), updated_at: iso(subDays(now, 2)) },
     { id: 'an-2', title: '이번 주 경기장 변경', body: '이번 주는 A구장 대신 B구장에서 진행합니다.', category: 'match', is_pinned: false, publish_at: iso(subDays(now, 1)), created_by: 'u-admin', created_at: iso(subDays(now, 1)), updated_at: iso(subDays(now, 1)) },
@@ -193,5 +228,5 @@ export function buildSeed(now: Date): SeedData {
     { id: 'an-4', title: '분실물: 검정 정강이 보호대', body: '지난 경기 후 벤치에 남겨진 보호대를 보관 중입니다.', category: 'urgent', is_pinned: false, publish_at: iso(subDays(now, 6)), created_by: 'u-admin', created_at: iso(subDays(now, 6)), updated_at: iso(subDays(now, 6)) },
   ];
 
-  return { users, profiles, members, voteSessions, voteResponses, matches, announcements, announcementReads: [] };
+  return { users, profiles, members, voteSessions, voteResponses, matches, announcements, announcementReads: [], checkins };
 }
