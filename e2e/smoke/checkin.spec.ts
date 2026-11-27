@@ -54,7 +54,9 @@ test.describe('S1 출석 체크인 v1 — 멤버', () => {
     // 명단은 읽기 전용: 본인이 정시로 보이고 확정 버튼이 없다
     await page.goto('/attendance/checkin');
     await expect(page.getByRole('heading', { name: '체크인 명단', level: 1 })).toBeVisible();
-    await expect(page.getByText('김민준').first()).toBeVisible();
+    // 데스크톱 사이드바(모바일에서 숨김)에도 내 이름이 있어 페이지 전체로 찾으면 사이드바가 먼저 잡힌다.
+    // 2026-11-28: main CI #82·#86 mobile 실패 원인(사이드바 로딩 타이밍에 따라 간헐). 명단 본문(<main>)으로 범위를 좁힌다.
+    await expect(page.getByRole('main').getByText('김민준').first()).toBeVisible();
     await expect(page.getByRole('button', { name: /결석 처리/ })).toHaveCount(0);
     await expect(page.getByRole('button', { name: '정시', exact: true })).toHaveCount(0);
   });
