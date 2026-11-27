@@ -1,7 +1,7 @@
 import type { User } from '@supabase/supabase-js';
 import { getSupabaseClient } from '@/shared/api/adapters/supabase/config';
 import { withSingleActiveMatchSession } from '@/shared/api/adapters/single-active-match';
-import type { AuditRepo, CheckinRepo, ClubApi, LeagueRepo } from '@/shared/api/ports';
+import type { AuditRepo, ChatRepo, CheckinRepo, ClubApi, LeagueRepo } from '@/shared/api/ports';
 import { ApiError, isSchemaMissingError } from '@/shared/api/ports/errors';
 import type { AuthUser } from '@/shared/api/ports/auth-repo';
 import type { VoteResponseWithMember } from '@/shared/api/ports/vote-repo';
@@ -40,6 +40,14 @@ function createUnavailableAuditRepo(): AuditRepo {
     throw new ApiError('감사 기록은 Supabase 스키마 적용 후에 사용할 수 있습니다.', 'AUDIT_NOT_MIGRATED');
   };
   return { record: fail, listFor: fail };
+}
+
+/** 채팅 v1은 로컬 어댑터 먼저(데모 2초 동기화). Supabase는 chat_messages·chat_reads 마이그레이션 + Realtime 구독과 함께 붙인다. */
+function createUnavailableChatRepo(): ChatRepo {
+  const fail = async (): Promise<never> => {
+    throw new ApiError('채팅은 Supabase 스키마 적용 후에 사용할 수 있습니다.', 'CHAT_NOT_MIGRATED');
+  };
+  return { listChannels: fail, listMessages: fail, sendMessage: fail, deleteMessage: fail, markRead: fail };
 }
 
 function toAuthUser(user: User | null | undefined): AuthUser | null {
@@ -220,6 +228,7 @@ export function createSupabaseApi(): ClubApi {
     league: createUnavailableLeagueRepo(),
     checkins: createUnavailableCheckinRepo(),
     audit: createUnavailableAuditRepo(),
+    chat: createUnavailableChatRepo(),
 
     auth: {
       async getUser() {

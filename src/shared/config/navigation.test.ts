@@ -31,9 +31,9 @@ describe('visibleGroups', () => {
     expect(ops?.items.map((i) => i.href)).toEqual(['/members', '/strategy']);
   });
 
-  it('리그는 역할 무관하게 클럽 그룹에 보인다', () => {
+  it('채팅·리그는 역할 무관하게 클럽 그룹에 보인다', () => {
     const club = visibleGroups(NAV_GROUPS, false).find((g) => g.label === '클럽');
-    expect(club?.items.map((i) => i.href)).toEqual(['/announcements', '/seasons', '/club-guide']);
+    expect(club?.items.map((i) => i.href)).toEqual(['/chat', '/announcements', '/seasons', '/club-guide']);
   });
 
   it('더보기 그룹은 주요 그룹을 제외한다', () => {
@@ -59,7 +59,7 @@ describe('activeTabHref', () => {
   });
 
   it('더보기 안의 화면은 더보기 탭', () => {
-    for (const path of ['/more', '/announcements', '/seasons', '/seasons/s-1', '/club-guide', '/members', '/members/m-1', '/strategy', '/me']) {
+    for (const path of ['/more', '/chat', '/announcements', '/seasons', '/seasons/s-1', '/club-guide', '/members', '/members/m-1', '/strategy', '/me']) {
       expect(activeTabHref(path)).toBe('/more');
     }
   });

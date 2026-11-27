@@ -1,6 +1,7 @@
 import { createCollectionAnnouncementRepo } from '@/shared/api/adapters/collection/announcement-repo';
 import { createCollectionAuditRepo } from '@/shared/api/adapters/collection/audit-repo';
 import { createCollectionAuthRepo } from '@/shared/api/adapters/collection/auth-repo';
+import { createCollectionChatRepo } from '@/shared/api/adapters/collection/chat-repo';
 import { createCollectionCheckinRepo } from '@/shared/api/adapters/collection/checkin-repo';
 import { Collection } from '@/shared/api/adapters/collection/collection';
 import { createCollectionLeagueRepo } from '@/shared/api/adapters/collection/league-repo';
@@ -57,5 +58,12 @@ export function createCollectionApi({ storage, session, now = () => new Date() }
     league,
     checkins,
     audit,
+    chat: createCollectionChatRepo({
+      messages: new Collection(storage, 'chat_messages', () => seed().chatMessages),
+      reads: new Collection(storage, 'chat_reads', () => []),
+      league,
+      audit,
+      now,
+    }),
   };
 }
