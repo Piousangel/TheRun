@@ -268,5 +268,62 @@ export function runLeagueRepoContract(makeRepo: () => Promise<{ repo: LeagueRepo
       await repo.updateSeason(season.id, { status: 'done' });
       await expect(repo.setAvailability({ season_id: season.id, member_id: 'm1', weeks: [1] })).rejects.toThrow();
     });
+
+    it('드래프트: 추첨·스네이크 순서(1-2-3-3-2-1)로 픽하고, 차례 아닌 팀·중복·팀장을 거부한다', async () => {
+      const { repo } = await makeRepo();
+      const season = await seasonWithTeams(repo, 3);
+      const teams = await repo.listTeams(season.id);
+      await repo.updateTeam(teams[0].id, { captain_member_id: 'cap' });
+      expect(await repo.getDraft(season.id)).toBeNull();
+
+      const drawn = await repo.startDraft({ season_id: season.id });
+      expect([...drawn.order].sort()).toEqual(teams.map((t) => t.id).sort());
+      expect(drawn).toMatchObject({ status: 'open', picks: [] });
+
+      // 픽이 없으면 다시 추첨(교체)할 수 있다 — 여기서는 순서를 정해 둔다
+      const [a, b, c] = teams.map((t) => t.id);
+      await repo.startDraft({ season_id: season.id, order: [a, b, c] });
+      await expect(repo.makeDraftPick({ season_id: season.id, team_id: b, member_id: 'm1' })).rejects.toThrow();
+      await expect(repo.makeDraftPick({ season_id: season.id, team_id: a, member_id: 'cap' })).rejects.toThrow();
+      const picks = [a, b, c, c, b, a];
+      for (const [i, teamId] of picks.entries()) {
+        await repo.makeDraftPick({ season_id: season.id, team_id: teamId, member_id: `m${i + 1}`, actor_id: 'admin' });
+      }
+      await expect(repo.makeDraftPick({ season_id: season.id, team_id: a, member_id: 'm1' })).rejects.toThrow();
+      const draft = await repo.getDraft(season.id);
+      expect(draft?.picks.map((p) => p.team_id)).toEqual(picks);
+      expect(draft?.picks.map((p) => p.pick_no)).toEqual([1, 2, 3, 4, 5, 6]);
+      expect(draft?.picks[0].picked_by).toBe('admin');
+
+      // 픽이 생기면 재추첨 불가
+      await expect(repo.startDraft({ season_id: season.id })).rejects.toThrow();
+    });
+
+    it('드래프트: 마지막 픽 되돌리기·끝내기, 순서 검증, 팀 부족, removeSeason이 함께 지운다', async () => {
+      const { repo } = await makeRepo();
+      const lonely = await seasonWithTeams(repo, 1);
+      await expect(repo.startDraft({ season_id: lonely.id })).rejects.toThrow();
+
+      const season = await seasonWithTeams(repo, 2);
+      const [a, b] = (await repo.listTeams(season.id)).map((t) => t.id);
+      await expect(repo.startDraft({ season_id: season.id, order: [a, a] })).rejects.toThrow();
+      await expect(repo.startDraft({ season_id: season.id, order: [a] })).rejects.toThrow();
+      await expect(repo.makeDraftPick({ season_id: season.id, team_id: a, member_id: 'm1' })).rejects.toThrow();
+      await repo.startDraft({ season_id: season.id, order: [b, a] });
+      await repo.makeDraftPick({ season_id: season.id, team_id: b, member_id: 'm1' });
+      await repo.makeDraftPick({ season_id: season.id, team_id: a, member_id: 'm2' });
+      const undone = await repo.undoDraftPick(season.id, 'admin');
+      expect(undone.picks.map((p) => p.member_id)).toEqual(['m1']);
+      // 되돌린 자리(2번 픽)는 다시 a 차례, m2도 다시 뽑을 수 있다
+      await repo.makeDraftPick({ season_id: season.id, team_id: a, member_id: 'm2' });
+      const done = await repo.finishDraft(season.id, 'admin');
+      expect(done.status).toBe('done');
+      await expect(repo.makeDraftPick({ season_id: season.id, team_id: a, member_id: 'm3' })).rejects.toThrow();
+      await expect(repo.undoDraftPick(season.id)).rejects.toThrow();
+      await expect(repo.finishDraft(season.id)).rejects.toThrow();
+
+      await repo.removeSeason(season.id);
+      expect(await repo.getDraft(season.id)).toBeNull();
+    });
   });
 }

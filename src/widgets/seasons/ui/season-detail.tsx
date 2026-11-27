@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CalendarDays, ChevronRight, Crown, Medal, Plus, Shirt, Target, Trophy, X } from 'lucide-react';
+import { CalendarDays, ChevronRight, Crown, Dices, Medal, Plus, Shirt, Target, Trophy, X } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   MVP_METHOD_LABELS,
@@ -17,6 +17,7 @@ import {
 } from '@/entities/league/model/labels';
 import {
   useLeagueAppearances,
+  useLeagueDraft,
   useLeagueGoals,
   useLeagueMiniGames,
   useLeagueSchedule,
@@ -75,6 +76,7 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
   const { data: appearances = [] } = useLeagueAppearances(seasonId);
   const { data: miniGames = [] } = useLeagueMiniGames(seasonId);
   const { data: members } = useMembers();
+  const { data: draft } = useLeagueDraft(seasonId);
   const updateSeason = useUpdateSeason();
   const [teamParam, setTeamParam] = useUrlState('team');
   const [miniGameParam, setMiniGameParam] = useUrlState('minigame');
@@ -275,6 +277,30 @@ export function SeasonDetail({ seasonId }: SeasonDetailProps) {
       </section>
 
       <SeasonAvailability seasonId={season.id} />
+
+      {teams && teams.length > 1 && (
+        <Link
+          href={`/seasons/${season.id}/draft`}
+          aria-label="드래프트"
+          className="flex min-h-[64px] items-center gap-3 rounded-[14px] border border-border px-4 py-3 outline-none hover:bg-sunken focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Dices className="h-5 w-5 shrink-0 text-brand" aria-hidden />
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="font-bold text-ink">드래프트</span>
+            <span className="truncate text-[13px] text-ink-dim">
+              {!draft
+                ? '팀장이 스네이크 순서로 선수를 뽑아요'
+                : draft.status === 'open'
+                  ? `진행 중 · ${draft.picks.length}픽`
+                  : `완료 · ${draft.picks.length}픽`}
+            </span>
+          </span>
+          <StatusBadge tone={!draft ? 'gray' : draft.status === 'open' ? 'amber' : 'green'}>
+            {!draft ? '시작 전' : draft.status === 'open' ? '진행 중' : '완료'}
+          </StatusBadge>
+          <ChevronRight className="h-4 w-4 shrink-0 text-ink-dim" aria-hidden />
+        </Link>
+      )}
 
       {teams && teams.length > 1 && (
         <section className="flex flex-col gap-3" aria-labelledby="season-standings">
