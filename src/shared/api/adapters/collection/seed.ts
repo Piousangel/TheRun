@@ -2,6 +2,7 @@ import { addDays, format, nextSaturday, previousSaturday, set, subDays, subWeeks
 import { DEMO_ACCOUNTS, type AuthUser } from '@/shared/api/ports/auth-repo';
 import type { Announcement, AnnouncementRead } from '@/shared/types/announcement';
 import type { AppProfile } from '@/shared/types/auth';
+import type { ChatMessage } from '@/shared/types/chat';
 import type { Checkin, CheckinStatus } from '@/shared/types/checkin';
 import type { GoalRecord, Match, PlayerMatchRecord, TeamMatchData } from '@/shared/types/match';
 import type { Member, MemberStats } from '@/shared/types/member';
@@ -18,6 +19,8 @@ export interface SeedData {
   announcementReads: AnnouncementRead[];
   /** 지난 4주 토요일 경기일의 출석 체크인(출석왕 데모). 날짜는 시드 경기와 같다. */
   checkins: Checkin[];
+  /** 클럽 채널 데모 대화(채팅 v1). 최근 이틀 안 */
+  chatMessages: ChatMessage[];
 }
 
 const MEMBER_NAMES = [
@@ -228,5 +231,24 @@ export function buildSeed(now: Date): SeedData {
     { id: 'an-4', title: '분실물: 검정 정강이 보호대', body: '지난 경기 후 벤치에 남겨진 보호대를 보관 중입니다.', category: 'urgent', is_pinned: false, publish_at: iso(subDays(now, 6)), created_by: 'u-admin', created_at: iso(subDays(now, 6)), updated_at: iso(subDays(now, 6)) },
   ];
 
-  return { users, profiles, members, voteSessions, voteResponses, matches, announcements, announcementReads: [], checkins };
+  const chatLines: Array<[string, string, number]> = [
+    ['m-02', '이번 주 토요일 07:00 정기 경기 투표 열었어요. 금요일까지 꼭 눌러 주세요!', 26 * 60],
+    ['m-05', '참석 눌렀습니다 🙌', 25 * 60],
+    ['m-07', '공은 제가 챙겨 갈게요', 20 * 60],
+    ['m-04', '조끼 세탁 끝났어요. 주차장 쪽 벤치에 둘게요', 3 * 60],
+    ['m-03', '내일 비 소식 있던데 구장 확인해 볼게요', 90],
+  ];
+  const chatMessages: ChatMessage[] = chatLines.map(([author, body, minutesAgo], index) => ({
+    id: `chat-seed-${index + 1}`,
+    channel_id: 'club',
+    author_member_id: author,
+    body,
+    client_msg_id: `chat-seed-${index + 1}`,
+    reply_to_id: null,
+    created_at: iso(new Date(now.getTime() - minutesAgo * 60 * 1000)),
+    deleted_at: null,
+    deleted_by: null,
+  }));
+
+  return { users, profiles, members, voteSessions, voteResponses, matches, announcements, announcementReads: [], checkins, chatMessages };
 }

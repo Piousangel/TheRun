@@ -26,3 +26,6 @@
 15. 체크인 Supabase 어댑터 + `checkins` 마이그레이션 적용 확인(지금은 Supabase 모드에서 'CHECKIN_NOT_MIGRATED')
 16. 참석 가능 주차 마이그레이션(`season_availability`, PK season_id+member_id, 본인·운영진만 쓰기 RLS) + Supabase 리그 어댑터 listAvailability/setAvailability (11/27 06시 로컬 어댑터만)
 17. 참석 가능 주차 미입력자에게 알림(푸시 v1과 함께) — 지금은 운영진이 목록에서 '미입력'을 보고 직접 챙긴다
+18. 채팅 마이그레이션(`chat_messages`: client_msg_id 유니크(작성자별)·reply_to·soft delete, `chat_reads`: PK channel+member) + RLS(클럽 채널 = 클럽 멤버, 팀 채널 = 팀장·드래프트 팀원·운영진) + Supabase 채팅 어댑터 + Realtime 구독(postgres_changes, 재연결 백필) (11/28 로컬 어댑터만)
+19. 홈 '새 채팅 N' 진입점(스펙 §6 평일 순서: 이번 주 투표 → 새 채팅 → 리그 순위)
+20. 채팅 경기일 스레드(스펙 §4 선택), 이미지·반응은 v2

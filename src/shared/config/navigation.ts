@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Bell, BookOpen, CalendarCheck, ClipboardList, Ellipsis, Home, Medal, Trophy, UserRound, Users, Vote } from 'lucide-react';
+import { Bell, BookOpen, MessagesSquare, CalendarCheck, ClipboardList, Ellipsis, Home, Medal, Trophy, UserRound, Users, Vote } from 'lucide-react';
 
 export interface NavItem {
   href: string;
@@ -19,6 +19,7 @@ const MATCHES: NavItem = { href: '/matches', label: '경기', icon: Trophy };
 const ATTENDANCE: NavItem = { href: '/attendance', label: '출석', icon: CalendarCheck };
 const MORE: NavItem = { href: '/more', label: '더보기', icon: Ellipsis };
 const ANNOUNCEMENTS: NavItem = { href: '/announcements', label: '공지', icon: Bell };
+const CHAT: NavItem = { href: '/chat', label: '채팅', icon: MessagesSquare };
 const LEAGUE: NavItem = { href: '/seasons', label: '리그', icon: Medal };
 const CLUB_GUIDE: NavItem = { href: '/club-guide', label: '클럽 안내', icon: BookOpen };
 const MEMBERS: NavItem = { href: '/members', label: '멤버', icon: Users, adminOnly: true };
@@ -29,7 +30,7 @@ export const TAB_ITEMS: readonly NavItem[] = [HOME, VOTES, MATCHES, ATTENDANCE, 
 
 export const NAV_GROUPS: readonly NavGroup[] = [
   { label: null, items: [HOME, VOTES, MATCHES, ATTENDANCE] },
-  { label: '클럽', items: [ANNOUNCEMENTS, LEAGUE, CLUB_GUIDE] },
+  { label: '클럽', items: [CHAT, ANNOUNCEMENTS, LEAGUE, CLUB_GUIDE] },
   { label: '운영', items: [MEMBERS, STRATEGY] },
   { label: '계정', items: [ME] },
 ];
