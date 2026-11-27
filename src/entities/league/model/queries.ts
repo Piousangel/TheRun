@@ -7,11 +7,14 @@ import type {
   CreateMiniGameData,
   FixtureStatus,
   CreateSeasonData,
+  Draft,
   GenerateScheduleInput,
+  MakeDraftPickData,
   Season,
   SetAvailabilityData,
   SetLineupData,
   SetMiniGameResultsData,
+  StartDraftData,
   UpdateLeagueTeamData,
   UpdateSeasonData,
 } from '@/shared/types/league';
@@ -235,4 +238,44 @@ export function useSetAvailability() {
     mutationFn: (data: SetAvailabilityData) => getApi().league.setAvailability(data),
     onSuccess: (row) => queryClient.invalidateQueries({ queryKey: leagueKeys.availability(row.season_id) }),
   });
+}
+
+/** 드래프트가 진행 중이거나 아직 시작 전이면 이 간격으로 다시 읽는다(데모 모드에서 다른 탭·기기의 픽 반영). Supabase 전환 시 Realtime 구독으로 바꾼다. */
+export const DRAFT_SYNC_MS = 2000;
+
+/** 시즌 드래프트. `live`면 끝나기 전까지 주기적으로 다시 읽어 다른 팀장의 픽이 바로 보인다(드래프트 화면). */
+export function useLeagueDraft(seasonId: string | null, { live = false }: { live?: boolean } = {}) {
+  return useQuery({
+    queryKey: leagueKeys.draft(seasonId ?? ''),
+    queryFn: () => getApi().league.getDraft(seasonId as string),
+    enabled: !!seasonId,
+    refetchInterval: (query) => (live && query.state.data?.status !== 'done' ? DRAFT_SYNC_MS : false),
+    staleTime: live ? 0 : undefined,
+  });
+}
+
+function useDraftMutation<T>(fn: (data: T) => Promise<Draft>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: (draft) => {
+      queryClient.setQueryData(leagueKeys.draft(draft.season_id), draft);
+    },
+  });
+}
+
+export function useStartDraft() {
+  return useDraftMutation((data: StartDraftData) => getApi().league.startDraft(data));
+}
+
+export function useMakeDraftPick() {
+  return useDraftMutation((data: MakeDraftPickData) => getApi().league.makeDraftPick(data));
+}
+
+export function useUndoDraftPick() {
+  return useDraftMutation((data: { seasonId: string; actorId?: string | null }) => getApi().league.undoDraftPick(data.seasonId, data.actorId));
+}
+
+export function useFinishDraft() {
+  return useDraftMutation((data: { seasonId: string; actorId?: string | null }) => getApi().league.finishDraft(data.seasonId, data.actorId));
 }

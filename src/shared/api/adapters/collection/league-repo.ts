@@ -3,8 +3,9 @@ import { NotFoundError } from '@/shared/api/adapters/collection/storage';
 import type { AuditRepo } from '@/shared/api/ports/audit-repo';
 import type { LeagueRepo } from '@/shared/api/ports/league-repo';
 import { newId } from '@/shared/lib/id';
+import { draftTeamForPick, shuffleDraftOrder } from '@/shared/lib/league-draft';
 import { addDaysIso, buildMatchdayPairings, seasonWeekCount } from '@/shared/lib/league-schedule';
-import type { Appearance, Availability, Fixture, GoalEvent, LeagueTeam, LineupAuditSnapshot, Matchday, MiniGame, Season } from '@/shared/types/league';
+import type { Appearance, Availability, Draft, Fixture, GoalEvent, LeagueTeam, LineupAuditSnapshot, Matchday, MiniGame, Season } from '@/shared/types/league';
 
 interface Deps {
   seasons: Collection<Season>;
@@ -15,12 +16,15 @@ interface Deps {
   appearances: Collection<Appearance>;
   miniGames: Collection<MiniGame>;
   availability: Collection<Availability>;
+  drafts: Collection<Draft>;
+  /** 드래프트 추첨(테스트에서 고정) */
+  random?: () => number;
   /** 골 기록·삭제를 경기(`fixture`) 단위 변경 이력으로 남긴다 */
   audit: AuditRepo;
   now: () => Date;
 }
 
-export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, goals, appearances, miniGames, availability, audit, now }: Deps): LeagueRepo {
+export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures, goals, appearances, miniGames, availability, drafts, random = Math.random, audit, now }: Deps): LeagueRepo {
   const seasonMatchdays = async (seasonId: string) =>
     (await matchdays.all()).filter((m) => m.season_id === seasonId).sort((a, b) => a.week - b.week);
 
@@ -30,6 +34,21 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
     return (await fixtures.all())
       .filter((f) => weekOf.has(f.matchday_id))
       .sort((a, b) => (weekOf.get(a.matchday_id)! - weekOf.get(b.matchday_id)!) || a.order - b.order);
+  }
+
+  // 드래프트 변경은 읽기 → 검증 → 쓰기라, 같은 차례에 두 픽이 겹치지 않게 한 줄로 세운다.
+  let draftTail: Promise<unknown> = Promise.resolve();
+  const serialDraft = <R>(task: () => Promise<R>): Promise<R> => {
+    const run = draftTail.then(task, task);
+    draftTail = run.catch(() => undefined);
+    return run;
+  };
+
+  async function requireOpenDraft(seasonId: string) {
+    const draft = await drafts.get(seasonId);
+    if (!draft) throw new Error('드래프트가 아직 시작되지 않았습니다.');
+    if (draft.status !== 'open') throw new Error('이미 끝난 드래프트입니다.');
+    return draft;
   }
 
   async function requireSeason(id: string) {
@@ -87,6 +106,7 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
       await matchdays.replaceAll((await matchdays.all()).filter((m) => m.season_id !== id));
       await miniGames.replaceAll((await miniGames.all()).filter((g) => g.season_id !== id));
       await availability.replaceAll((await availability.all()).filter((a) => a.season_id !== id));
+      await drafts.remove(id);
       await teams.replaceAll((await teams.all()).filter((t) => t.season_id !== id));
       await seasons.remove(id);
     },
@@ -320,6 +340,92 @@ export function createCollectionLeagueRepo({ seasons, teams, matchdays, fixtures
         });
       }
       return saved;
+    },
+    async getDraft(seasonId) {
+      return drafts.get(seasonId);
+    },
+    startDraft(data) {
+      return serialDraft(async () => {
+        const season = await requireSeason(data.season_id);
+        if (season.status === 'done') throw new Error('끝난 시즌은 드래프트를 할 수 없습니다.');
+        const teamIds = (await teams.all()).filter((t) => t.season_id === season.id).map((t) => t.id);
+        if (teamIds.length < 2) throw new Error('팀이 2개 이상 있어야 드래프트를 시작할 수 있습니다.');
+        const order = data.order ?? shuffleDraftOrder(teamIds, random);
+        if (order.length !== teamIds.length || new Set(order).size !== order.length || order.some((id) => !teamIds.includes(id))) {
+          throw new Error('드래프트 순서에는 시즌 팀을 한 번씩 모두 넣어야 합니다.');
+        }
+        const before = await drafts.get(season.id);
+        if (before && before.picks.length > 0) throw new Error('이미 픽이 있는 드래프트는 다시 추첨할 수 없습니다.');
+        const at = now().toISOString();
+        const draft: Draft = { id: season.id, season_id: season.id, order, status: 'open', picks: [], created_at: before?.created_at ?? at, updated_at: at };
+        if (before) await drafts.update(season.id, draft);
+        else await drafts.insert(draft);
+        await audit.record({
+          entity: 'season',
+          entity_id: season.id,
+          action: before ? 'update' : 'create',
+          before: before ? { kind: 'draft_order', order: before.order } : null,
+          after: { kind: 'draft_order', order },
+          actor_id: data.actor_id ?? 'unknown',
+        });
+        return draft;
+      });
+    },
+    makeDraftPick(data) {
+      return serialDraft(async () => {
+        const draft = await requireOpenDraft(data.season_id);
+        const pickNo = draft.picks.length + 1;
+        const onClock = draftTeamForPick(draft.order, pickNo);
+        if (data.team_id !== onClock) throw new Error('지금은 이 팀의 차례가 아닙니다.');
+        if (!data.member_id) throw new Error('뽑을 선수를 골라 주세요.');
+        if (draft.picks.some((p) => p.member_id === data.member_id)) throw new Error('이미 뽑힌 선수입니다.');
+        const seasonTeams = (await teams.all()).filter((t) => t.season_id === data.season_id);
+        if (seasonTeams.some((t) => t.captain_member_id === data.member_id)) throw new Error('팀장은 이미 자기 팀이라 뽑을 수 없습니다.');
+        const at = now().toISOString();
+        const pick = { pick_no: pickNo, team_id: onClock, member_id: data.member_id, picked_by: data.actor_id ?? null, at };
+        const saved = await drafts.update(draft.id, { picks: [...draft.picks, pick], updated_at: at });
+        await audit.record({
+          entity: 'season',
+          entity_id: draft.season_id,
+          action: 'create',
+          before: null,
+          after: { kind: 'draft_pick', ...pick },
+          actor_id: data.actor_id ?? 'unknown',
+        });
+        return saved;
+      });
+    },
+    undoDraftPick(seasonId, actorId) {
+      return serialDraft(async () => {
+        const draft = await requireOpenDraft(seasonId);
+        const last = draft.picks[draft.picks.length - 1];
+        if (!last) throw new Error('되돌릴 픽이 없습니다.');
+        const saved = await drafts.update(draft.id, { picks: draft.picks.slice(0, -1), updated_at: now().toISOString() });
+        await audit.record({
+          entity: 'season',
+          entity_id: seasonId,
+          action: 'delete',
+          before: { kind: 'draft_pick', ...last },
+          after: null,
+          actor_id: actorId ?? 'unknown',
+        });
+        return saved;
+      });
+    },
+    finishDraft(seasonId, actorId) {
+      return serialDraft(async () => {
+        const draft = await requireOpenDraft(seasonId);
+        const saved = await drafts.update(draft.id, { status: 'done', updated_at: now().toISOString() });
+        await audit.record({
+          entity: 'season',
+          entity_id: seasonId,
+          action: 'update',
+          before: { kind: 'draft_status', status: 'open' },
+          after: { kind: 'draft_status', status: 'done', picks: draft.picks.length },
+          actor_id: actorId ?? 'unknown',
+        });
+        return saved;
+      });
     },
   };
 }

@@ -2,6 +2,9 @@ import type {
   AddGoalData,
   Appearance,
   Availability,
+  Draft,
+  MakeDraftPickData,
+  StartDraftData,
   CreateLeagueTeamData,
   CreateSeasonData,
   Fixture,
@@ -92,4 +95,21 @@ export interface LeagueRepo {
    * 변경은 시즌(`season`) 변경 이력에 남는다.
    */
   setAvailability(data: SetAvailabilityData): Promise<Availability>;
+
+  /** 시즌 드래프트(시즌당 하나). 시작 전이면 null */
+  getDraft(seasonId: string): Promise<Draft | null>;
+  /**
+   * 드래프트를 시작한다. order를 생략하면 추첨한다. 팀이 2개 미만이거나, 순서가 시즌 팀 전체의 순열이 아니거나,
+   * 끝난 시즌이거나, 이미 픽이 있는 드래프트면 거부한다. 픽이 없는 드래프트는 다시 추첨(교체)할 수 있다.
+   */
+  startDraft(data: StartDraftData): Promise<Draft>;
+  /**
+   * 지금 차례인 팀의 픽 한 건. 차례가 아닌 팀, 이미 뽑힌 선수, 시즌 팀장, 끝났거나 없는 드래프트면 거부한다.
+   * 픽은 시즌(`season`) 변경 이력에 남는다.
+   */
+  makeDraftPick(data: MakeDraftPickData): Promise<Draft>;
+  /** 마지막 픽을 되돌린다(운영진). 픽이 없거나 끝난 드래프트면 거부한다 */
+  undoDraftPick(seasonId: string, actorId?: string | null): Promise<Draft>;
+  /** 드래프트를 끝낸다. 끝난 뒤에는 픽·되돌리기를 거부한다 */
+  finishDraft(seasonId: string, actorId?: string | null): Promise<Draft>;
 }

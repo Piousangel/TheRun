@@ -207,3 +207,46 @@ export interface SetAvailabilityData {
   /** 입력한 사람(본인 또는 대신 입력한 운영진). 감사 기록의 actor */
   actor_id?: string | null;
 }
+
+/**
+ * 팀장 실시간 스네이크 드래프트(스펙 §2.1 · §2.2 Draft/DraftPick). 시즌 하나에 드래프트 하나(`id` = `season_id`).
+ * - 순서는 1-2-3-3-2-1 반복(스네이크). 첫 픽 순서(`order`)는 시작할 때 추첨한다.
+ * - 팀장은 이미 자기 팀이라 뽑을 대상이 아니다. 픽은 추가 전용이고, 운영진만 마지막 픽을 되돌린다.
+ */
+export type DraftStatus = 'open' | 'done';
+
+export interface DraftPick {
+  /** 1부터 */
+  pick_no: number;
+  team_id: string;
+  member_id: string;
+  /** 픽을 누른 사람(팀장 또는 대신 누른 운영진) */
+  picked_by: string | null;
+  at: string;
+}
+
+export interface Draft {
+  id: string;
+  season_id: string;
+  /** 1라운드 픽 순서(팀 id). 짝수 라운드는 거꾸로 */
+  order: string[];
+  status: DraftStatus;
+  picks: DraftPick[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StartDraftData {
+  season_id: string;
+  /** 1라운드 순서. 생략하면 어댑터가 추첨한다. 시즌 팀 전부를 한 번씩 담아야 한다 */
+  order?: string[];
+  actor_id?: string | null;
+}
+
+export interface MakeDraftPickData {
+  season_id: string;
+  /** 지금 차례인 팀이어야 한다 */
+  team_id: string;
+  member_id: string;
+  actor_id?: string | null;
+}
